@@ -1,0 +1,46 @@
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Spring Boot / Java / Maven
+target/
+build/
+.classpath
+.project
+.settings/
+*.class
+*.jar
+*.war
+*.nar
+*.log
+*.log.*
+
+# Gradle
+.gradle/
+gradle/
+
+# Node.js / Vue.js
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.orig
+.cache/
