@@ -1,30 +1,94 @@
 package backend.fullstack.config;
 
 /**
- * A generic wrapper for all API responses to ensure a consistent JSON structure.
+ * Standard API response envelope used by controllers.
  *
- * @param <T>     The type of the data payload
- * @param success Whether the API call was successful
- * @param message A descriptive message about the result
- * @param data    The actual payload (can be null for errors or simple success messages)
+ * @param <T> payload type for successful responses
  */
-public record ApiResponse<T>(
-        boolean success,
-        String message,
-        T data
-) {
-    // Static factory method for successful responses with data and a custom message
-    public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, message, data);
+public class ApiResponse<T> {
+    private boolean success;
+    private String message;
+    private T data;
+
+    /**
+     * Creates an empty response instance.
+     */
+    public ApiResponse() {}
+
+    /**
+     * Creates a response instance with all fields set.
+     *
+     * @param success indicates if the operation succeeded
+     * @param message human-readable message
+     * @param data response payload
+     */
+    public ApiResponse(boolean success, String message, T data) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
     }
 
-    // Static factory method for successful responses with just data
+    /**
+     * Creates a successful response with default message.
+     *
+     * @param data response payload
+     * @param <T> payload type
+     * @return success response
+     */
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(true, "Success", data);
     }
 
-    // Static factory method for error responses
+    /**
+     * Creates a successful response with a custom message.
+     *
+     * @param message custom success message
+     * @param data response payload
+     * @param <T> payload type
+     * @return success response
+     */
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data);
+    }
+
+    /**
+     * Creates an error response without payload.
+     *
+     * @param message error message
+     * @param <T> payload type
+     * @return error response
+     */
     public static <T> ApiResponse<T> error(String message) {
         return new ApiResponse<>(false, message, null);
     }
+
+    /**
+     * @return true when operation was successful
+     */
+    public boolean isSuccess() { return success; }
+
+    /**
+     * @param success operation outcome flag
+     */
+    public void setSuccess(boolean success) { this.success = success; }
+
+    /**
+     * @return response message
+     */
+    public String getMessage() { return message; }
+
+    /**
+     * @param message response message
+     */
+    public void setMessage(String message) { this.message = message; }
+
+    /**
+     * @return response payload
+     */
+    public T getData() { return data; }
+
+    /**
+     * @param data response payload
+     */
+    public void setData(T data) { this.data = data; }
 }
