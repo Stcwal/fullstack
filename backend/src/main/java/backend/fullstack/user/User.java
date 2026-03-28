@@ -190,19 +190,7 @@ public class User implements UserDetails {
      * @return the ID of the organization this user belongs to, or null if the organization is not set
      */
     public Long getOrganizationId() {
-        return organization != null ? organization. : null;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public String getEmail() {
-        return email;
+        return organization != null ? organization.getId() : null;
     }
 
     /**
@@ -212,9 +200,5 @@ public class User implements UserDetails {
      */
     public Long getHomeLocationId() {
         return homeLocation != null ? homeLocation.getId() : null;
-    }
-
-    public Set<Location> getLocations() {
-        return locations;
     }
 }
