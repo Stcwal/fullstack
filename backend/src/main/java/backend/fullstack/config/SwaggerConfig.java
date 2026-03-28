@@ -10,15 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration class for Swagger/OpenAPI documentation.
- * Sets up API metadata and security schemes for JWT authentication.
- *
- * @version 1.0
- * @since 20.04.2026
+ * Configures OpenAPI/Swagger metadata and JWT bearer authentication scheme.
  */
 @Configuration
 public class SwaggerConfig {
 
+    /**
+     * Declares the OpenAPI model exposed by springdoc.
+     *
+     * @return OpenAPI definition for IK-Control backend
+     */
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
@@ -33,16 +34,14 @@ public class SwaggerConfig {
                 .description("Internal control system for restaurants and food/alcohol serving establishments.")
                 .version("1.0.0")
                 .contact(new Contact()
-                        .name("Gruppe 3- 4 life- fullstack ")
-                        .email("stian@stian.stian"));
+                        .name("IK-Control Team")
+                        .email("team@ik-control.local"));
     }
 
-    // This adds the "Authorize" button to Swagger UI
     private SecurityRequirement securityRequirement() {
         return new SecurityRequirement().addList("Bearer Auth");
     }
 
-    // This defines what "Bearer Auth" means — a JWT in the Authorization header
     private Components securityScheme() {
         return new Components()
                 .addSecuritySchemes("Bearer Auth", new SecurityScheme()
