@@ -58,6 +58,7 @@ public class Organization {
 
 
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<Location> locations = new ArrayList<>();
 
     /**

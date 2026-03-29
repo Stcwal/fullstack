@@ -1,5 +1,17 @@
 package backend.fullstack.config;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -8,16 +20,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseCookie;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.WebUtils;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Utility for creating, parsing and validating JWT tokens and cookies.
@@ -106,7 +108,7 @@ public class JwtUtil {
                 .path("/api")
                 .maxAge(jwtProperties.getExpirationMs() / 1000)
                 .httpOnly(true)
-                .secure(false)
+            .secure(jwtProperties.isCookieSecure())
                 .sameSite("Strict")
                 .build();
     }
@@ -121,7 +123,7 @@ public class JwtUtil {
                 .path("/api")
                 .maxAge(0)
                 .httpOnly(true)
-                .secure(false)
+            .secure(jwtProperties.isCookieSecure())
                 .sameSite("Strict")
                 .build();
     }

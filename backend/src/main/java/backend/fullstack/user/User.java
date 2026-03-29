@@ -55,7 +55,6 @@ public class User implements UserDetails {
 
     /**
      * Additional locations where a user can temporarily/permanently work.
-     * This supports "rented" users without introducing a complex assignment model.
      */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -63,6 +62,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id")
     )
+        @Builder.Default
     private Set<Location> locations = new HashSet<>();
 
     /**
@@ -100,6 +100,7 @@ public class User implements UserDetails {
      * Indicates whether the user account is active.
      */
     @Column(name = "is_active")
+    @Builder.Default
     private boolean isActive = true;
 
     /**
@@ -190,7 +191,7 @@ public class User implements UserDetails {
      * @return the ID of the organization this user belongs to, or null if the organization is not set
      */
     public Long getOrganizationId() {
-        return organization != null ? organization. : null;
+        return organization != null ? organization.getId() : null;
     }
 
     public Long getId() {

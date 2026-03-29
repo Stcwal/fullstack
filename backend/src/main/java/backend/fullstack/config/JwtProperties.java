@@ -13,6 +13,7 @@ public class JwtProperties {
     private String secret = "default-secret-key-must-be-at-least-256-bits-long-for-hs256!";
     private long expirationMs = 28800000;
     private String cookieName = "jwt";
+    private boolean cookieSecure = true;
 
     /**
      * Accessor kept for compatibility with existing call sites.
@@ -36,6 +37,13 @@ public class JwtProperties {
     public String cookieName() { return cookieName; }
 
     /**
+     * Accessor kept for compatibility with existing call sites.
+     *
+     * @return whether authentication cookie should be secure-only
+     */
+    public boolean cookieSecure() { return cookieSecure; }
+
+    /**
      * @return JWT signing secret
      */
     public String getSecret() { return secret; }
@@ -51,6 +59,11 @@ public class JwtProperties {
     public String getCookieName() { return cookieName; }
 
     /**
+     * @return whether authentication cookie should be secure-only
+     */
+    public boolean isCookieSecure() { return cookieSecure; }
+
+    /**
      * @param secret JWT signing secret
      */
     public void setSecret(String secret) { this.secret = secret; }
@@ -64,4 +77,9 @@ public class JwtProperties {
      * @param cookieName authentication cookie name
      */
     public void setCookieName(String cookieName) { this.cookieName = cookieName; }
+
+    /**
+     * @param cookieSecure whether authentication cookie should be secure-only
+     */
+    public void setCookieSecure(boolean cookieSecure) { this.cookieSecure = cookieSecure; }
 }
