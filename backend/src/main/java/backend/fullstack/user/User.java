@@ -194,18 +194,6 @@ public class User implements UserDetails {
         return organization != null ? organization.getId() : null;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
     /**
      * Convenience method to get the home location ID directly from the user entity.
      *
@@ -213,9 +201,5 @@ public class User implements UserDetails {
      */
     public Long getHomeLocationId() {
         return homeLocation != null ? homeLocation.getId() : null;
-    }
-
-    public Set<Location> getLocations() {
-        return locations;
     }
 }

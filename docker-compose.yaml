@@ -18,5 +18,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  backend:
+    build:
+      context: backend/
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
 volumes:
   db_data_mysql80:
