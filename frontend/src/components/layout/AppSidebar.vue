@@ -1,0 +1,157 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useLayoutStore } from '@/stores/layout'
+
+const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
+const layout = useLayoutStore()
+
+const collapsed = computed(() => layout.isSidebarCollapsed)
+
+const user = computed(() => auth.user)
+const initials = computed(() => {
+  if (!user.value) return '?'
+  return (user.value.firstName[0] + user.value.lastName[0]).toUpperCase()
+})
+
+const roleName = computed(() => {
+  const map = { ADMIN: 'Administrator', MANAGER: 'Leder', STAFF: 'Ansatt' }
+  return user.value ? map[user.value.role] : ''
+})
+
+interface NavItem {
+  name: string
+  route: string
+  icon: string
+  alert?: boolean
+}
+
+const navItems: NavItem[] = [
+  { name: 'Oversikt',       route: 'dashboard',    icon: 'grid' },
+  { name: 'Fryser',         route: 'fryser',       icon: 'snowflake' },
+  { name: 'Kjøleskap',      route: 'kjoeleskap',   icon: 'thermometer' },
+  { name: 'Generelt',       route: 'generelt',     icon: 'checklist' },
+  { name: 'Avvik',          route: 'avvik',        icon: 'warning', alert: true },
+  { name: 'Temperaturgrafer', route: 'grafer',     icon: 'chart' },
+  { name: 'Opplæring',      route: 'opplaering',   icon: 'book' },
+]
+
+const settingsItem: NavItem = { name: 'Innstillinger', route: 'settings-units', icon: 'settings' }
+
+function isActive(routeName: string): boolean {
+  if (routeName === 'settings-units') {
+    return route.path.startsWith('/innstillinger')
+  }
+  return route.name === routeName
+}
+
+function navigate(routeName: string) {
+  router.push({ name: routeName })
+}
+
+function logout() {
+  auth.logout()
+  router.push({ name: 'login' })
+}
+</script>
+
+<template>
+  <nav class="sidebar" :class="{ collapsed }">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+          <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">IK-System</div>
+        <div class="brand-sub">Everest Sushi & Fusion</div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="sidebar-nav">
+      <div class="sidebar-group-label">Hovedmeny</div>
+
+      <button
+        v-for="item in navItems"
+        :key="item.route"
+        class="sidebar-item"
+        :class="{ active: isActive(item.route) }"
+        @click="navigate(item.route)"
+        :title="collapsed ? item.name : undefined"
+      >
+        <span class="sidebar-item-icon">
+          <SidebarIcon :name="item.icon" />
+        </span>
+        <span class="sidebar-item-label">{{ item.name }}</span>
+        <span v-if="item.alert && !collapsed" class="alert-dot" />
+      </button>
+
+      <template v-if="user?.role === 'ADMIN'">
+        <div class="sidebar-group-label">Administrasjon</div>
+        <button
+          class="sidebar-item"
+          :class="{ active: isActive(settingsItem.route) }"
+          @click="navigate(settingsItem.route)"
+          :title="collapsed ? settingsItem.name : undefined"
+        >
+          <span class="sidebar-item-icon">
+            <SidebarIcon :name="settingsItem.icon" />
+          </span>
+          <span class="sidebar-item-label">{{ settingsItem.name }}</span>
+        </button>
+      </template>
+    </div>
+
+    <!-- Footer: user + logout -->
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">{{ initials }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ user?.firstName }} {{ user?.lastName }}</div>
+          <div class="user-role">{{ roleName }}</div>
+        </div>
+      </div>
+
+      <button class="sidebar-item" style="margin-top: 0.25rem;" @click="logout" :title="collapsed ? 'Logg ut' : undefined">
+        <span class="sidebar-item-icon">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="sidebar-item-label">Logg ut</span>
+      </button>
+
+      <!-- Collapse toggle -->
+      <button class="sidebar-toggle" @click="layout.toggleSidebar" :title="collapsed ? 'Utvid' : 'Skjul'">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" :style="{ transform: collapsed ? 'rotate(180deg)' : '' }" style="transition: transform 0.3s">
+          <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</template>
+
+<script lang="ts">
+// Inline icon component to avoid external icon library dependency
+const SidebarIcon = {
+  props: ['name'],
+  template: `
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" v-bind="$attrs">
+      <path v-if="name==='grid'" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      <path v-else-if="name==='snowflake'" d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M12 6l-2-2m2 2l2-2M12 18l-2 2m2-2l2 2M6 12l-2-2m2 2l-2 2M18 12l2-2m-2 2l2 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      <path v-else-if="name==='thermometer'" d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <path v-else-if="name==='checklist'" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <path v-else-if="name==='warning'" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <path v-else-if="name==='chart'" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <path v-else-if="name==='book'" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <path v-else-if="name==='settings'" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `
+}
+</script>
