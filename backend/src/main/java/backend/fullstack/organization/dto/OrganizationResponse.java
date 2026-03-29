@@ -1,13 +1,13 @@
 package backend.fullstack.organization.dto;
 
+import java.util.List;
+
 import backend.fullstack.location.Location;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 /**
  * DTO for Organization response.
@@ -29,7 +29,7 @@ public class OrganizationResponse {
     private String name;
 
     @Schema(description = "Organization number", example = "123456789")
-    private int organizationNumber;
+    private String organizationNumber;
 
     @Schema(description = "Number of locations associated with the organization", example = "3")
     private int locationCount;
