@@ -15,7 +15,6 @@ import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.exceptions.RoleException;
 import backend.fullstack.exceptions.UserConflictException;
 import backend.fullstack.location.Location;
-import backend.fullstack.location.Location;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
 import backend.fullstack.user.User;

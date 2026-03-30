@@ -5,17 +5,29 @@ const MOCK_USERS: (AuthResponse & { password: string })[] = [
   {
     password: 'admin123',
     token: 'mock-jwt-admin',
-    user: { id: 1, firstName: 'Kari', lastName: 'Larsen', email: 'kari@everestsushi.no', role: 'ADMIN' }
+    user: {
+      id: 1, firstName: 'Kari', lastName: 'Larsen', email: 'kari@everestsushi.no', role: 'ADMIN',
+      organizationId: 1,
+      permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: true, settings: true }
+    }
   },
   {
     password: 'leder123',
     token: 'mock-jwt-manager',
-    user: { id: 2, firstName: 'Ola', lastName: 'Nordmann', email: 'ola@everestsushi.no', role: 'MANAGER' }
+    user: {
+      id: 2, firstName: 'Ola', lastName: 'Nordmann', email: 'ola@everestsushi.no', role: 'MANAGER',
+      organizationId: 1,
+      permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: false, settings: false }
+    }
   },
   {
     password: 'ansatt123',
     token: 'mock-jwt-staff',
-    user: { id: 3, firstName: 'Per', lastName: 'Martinsen', email: 'per@everestsushi.no', role: 'STAFF' }
+    user: {
+      id: 3, firstName: 'Per', lastName: 'Martinsen', email: 'per@everestsushi.no', role: 'STAFF',
+      organizationId: 1,
+      permissions: { temperatureLogging: true, checklists: true, reports: false, deviations: true, userAdmin: false, settings: false }
+    }
   }
 ]
 

@@ -2,6 +2,9 @@ package backend.fullstack.permission;
 
 /**
  * Canonical permission keys used across backend authorization checks.
+ * 
+ * @version 1.0
+ * @since 30.03.26
  */
 public enum Permission {
     USERS_READ("users.read"),

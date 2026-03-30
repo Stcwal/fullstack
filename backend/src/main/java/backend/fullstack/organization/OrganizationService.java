@@ -1,13 +1,14 @@
 package backend.fullstack.organization;
 
-import backend.fullstack.exceptions.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+
 import backend.fullstack.exceptions.OrganizationConflictException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.organization.dto.OrganizationRequest;
 import backend.fullstack.organization.dto.OrganizationResponse;
 import backend.fullstack.user.AccessContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 
 
@@ -38,7 +39,7 @@ public class OrganizationService {
         return organizationMapper.toResponse(organizationRepository.save(org));
     }
 
-    public OrganizationResponse getById(Long id) throws ResourceNotFoundException, AccessDeniedException {
+    public OrganizationResponse getById(Long id) {
         Organization org = organizationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
 

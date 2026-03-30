@@ -12,7 +12,6 @@ import backend.fullstack.location.Location;
  * @since 27.03.26
  */
 @Mapper(componentModel = "spring")
-
 public interface LocationMapper {
 
     @Mapping(target = "id", ignore = true)

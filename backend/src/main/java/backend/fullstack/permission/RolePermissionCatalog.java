@@ -15,6 +15,9 @@ import backend.fullstack.user.role.Role;
  *
  * Keep this catalog as a single source of truth until role/permission mappings
  * are moved to database-backed configuration.
+ * 
+ * @version 1.0
+ * @since 30.03.26
  */
 @Component
 public class RolePermissionCatalog {

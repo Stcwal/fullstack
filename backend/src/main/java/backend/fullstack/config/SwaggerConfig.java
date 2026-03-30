@@ -35,7 +35,7 @@ public class SwaggerConfig {
                 .version("1.0.0")
                 .contact(new Contact()
                         .name("IK-Control Team")
-                        .email("team@ik-control.local"));
+                        .email("stian@stian.stian"));
     }
 
     private SecurityRequirement securityRequirement() {

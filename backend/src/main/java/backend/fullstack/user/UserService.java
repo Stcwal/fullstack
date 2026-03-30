@@ -4,6 +4,8 @@ import backend.fullstack.exceptions.*;
 import backend.fullstack.location.Location;
 import backend.fullstack.location.LocationRepository;
 import backend.fullstack.location.dto.AssignLocationsRequest;
+import backend.fullstack.permission.AuthorizationService;
+import backend.fullstack.permission.Permission;
 import backend.fullstack.user.dto.ChangePasswordRequest;
 import backend.fullstack.user.dto.CreateUserRequest;
 import backend.fullstack.user.dto.UpdateUserProfileRequest;
@@ -35,6 +37,7 @@ public class UserService {
     private final LocationRepository locationRepository;
     private final UserMapper userMapper;
     private final AccessContextService accessContext;
+    private final AuthorizationService authorizationService;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -45,9 +48,12 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public List<UserResponse> getAllInOrganization() {
+        authorizationService.assertPermission(Permission.USERS_READ);
+
         Long orgId = accessContext.getCurrentOrganizationId();
         return userRepository.findByOrganization_Id(orgId)
                 .stream()
+            .filter(authorizationService::canViewUser)
                 .map(this::toResponseWithLocations)
                 .toList();
     }
@@ -63,6 +69,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getById(Long id) {
         User user = findInCurrentOrg(id);
+        authorizationService.assertCanViewUser(user);
         return toResponseWithLocations(user);
     }
 
@@ -87,6 +94,8 @@ public class UserService {
      */
     @Transactional
     public UserResponse create(CreateUserRequest request) {
+        authorizationService.assertCanCreateUser(request.getRole(), request.getLocationId());
+
         // 1. Email must be globally unique
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserConflictException("A user with this email already exists");
@@ -118,6 +127,7 @@ public class UserService {
     @Transactional
     public UserResponse updateProfile(Long id, UpdateUserProfileRequest request) {
         User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
 
         if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
         if (request.getLastName() != null)  user.setLastName(request.getLastName());
@@ -144,6 +154,8 @@ public class UserService {
     @Transactional
     public UserResponse updateRole(Long id, UpdateRoleRequest request) {
         User user = findInCurrentOrg(id);
+        authorizationService.assertCanChangeRole(user, request.getRole(), request.getLocationId());
+
         Long orgId = accessContext.getCurrentOrganizationId();
 
         // Guard: cannot demote the last admin
@@ -180,6 +192,8 @@ public class UserService {
     @Transactional
     public UserResponse assignAdditionalLocations(Long id, AssignLocationsRequest request) {
         User user = findInCurrentOrg(id);
+        authorizationService.assertCanAssignLocations(user, request.getLocationIds());
+
         Long orgId = accessContext.getCurrentOrganizationId();
 
         List<Location> locations = request.getLocationIds().stream()
@@ -226,6 +240,8 @@ public class UserService {
     @Transactional
     public void deactivate(Long id) {
         User user     = findInCurrentOrg(id);
+        authorizationService.assertCanDeactivateUser(user);
+
         User caller   = accessContext.getCurrentUser();
         Long orgId = accessContext.getCurrentOrganizationId();
 
@@ -252,6 +268,8 @@ public class UserService {
     @Transactional
     public void reactivate(Long id) {
         User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
+
         user.setActive(true);
         userRepository.save(user);
     }
