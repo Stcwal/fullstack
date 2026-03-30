@@ -1,5 +1,6 @@
 package backend.fullstack.organization;
 
+import backend.fullstack.exceptions.AccessDeniedException;
 import backend.fullstack.exceptions.OrganizationConflictException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.organization.dto.OrganizationRequest;
@@ -8,7 +9,6 @@ import backend.fullstack.user.AccessContextService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 
 
 /**
