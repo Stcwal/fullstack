@@ -3,12 +3,23 @@
 // ============================================================
 export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
 
+export interface UserPermissions {
+  temperatureLogging: boolean
+  checklists: boolean
+  reports: boolean
+  deviations: boolean
+  userAdmin: boolean
+  settings: boolean
+}
+
 export interface User {
   id: number
   firstName: string
   lastName: string
   email: string
   role: UserRole
+  organizationId?: number
+  permissions?: UserPermissions
 }
 
 export interface LoginCredentials {
@@ -190,14 +201,7 @@ export interface SettingsUser {
   active: boolean
   colorBg: string
   colorText: string
-  permissions: {
-    temperatureLogging: boolean
-    checklists: boolean
-    reports: boolean
-    deviations: boolean
-    userAdmin: boolean
-    settings: boolean
-  }
+  permissions: UserPermissions
 }
 
 // ============================================================
