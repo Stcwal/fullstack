@@ -5,6 +5,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -82,7 +84,7 @@ public class AccessContextService {
         }
 
         String email = authentication.getName();
-        return userRepository.findUserByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
     }
 
@@ -103,4 +105,5 @@ public class AccessContextService {
 
         return new ArrayList<>(uniqueLocationIds);
     }
+
 }
