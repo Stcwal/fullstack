@@ -106,7 +106,6 @@ public class AuthController {
     @Operation(summary = "User logout", description = "Logs out the user by clearing the JWT cookie and security context")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Logout successful"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request data"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")})
     public ResponseEntity<ApiResponse<Void>> logout() {
         ResponseCookie cleanCookie = jwtUtil.getCleanJwtCookie();
