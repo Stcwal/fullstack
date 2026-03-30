@@ -9,8 +9,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+<<<<<<< Updated upstream
 import backend.fullstack.location.Location;
 import backend.fullstack.location.LocationRepository;
+=======
+import backend.fullstack.exceptions.LocationException;
+import backend.fullstack.exceptions.ResourceNotFoundException;
+import backend.fullstack.exceptions.RoleException;
+import backend.fullstack.exceptions.UserConflictException;
+import backend.fullstack.location.Location;
+>>>>>>> Stashed changes
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
 import backend.fullstack.user.User;
