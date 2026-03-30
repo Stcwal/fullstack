@@ -12,7 +12,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.location.LocationRepository;
+import backend.fullstack.user.role.Role;
 
 /**
  * Centralized tenant and location access resolver.
@@ -40,6 +42,11 @@ public class AccessContextService {
      * @return List of accessible location IDs for the current user.
      */
     public List<Long> getAllowedLocationIds() {
+        JwtPrincipal principal = getJwtPrincipal();
+        if (principal != null && !principal.locationIds().isEmpty()) {
+            return new ArrayList<>(new LinkedHashSet<>(principal.locationIds()));
+        }
+
         User user = getCurrentUser();
 
         return switch (user.getRole()) {
@@ -71,11 +78,14 @@ public class AccessContextService {
      * @return The organization ID of the current user.
      */
     public Long getCurrentOrganizationId() {
+        JwtPrincipal principal = getJwtPrincipal();
+        if (principal != null && principal.organizationId() != null) {
+            return principal.organizationId();
+        }
+
         return getCurrentUser().getOrganizationId();
     }
 
-<<<<<<< Updated upstream
-=======
     /**
      * Returns the role of the current user.
      * 
@@ -107,7 +117,6 @@ public class AccessContextService {
         throw new AccessDeniedException("Insufficient role for this operation");
     }
 
->>>>>>> Stashed changes
     /**
      * Returns the current authenticated user. If there is no authenticated user or the user cannot be found in the database, an AccessDeniedException is thrown.
      *
@@ -115,8 +124,6 @@ public class AccessContextService {
      * @throws AccessDeniedException if the request is unauthenticated or the authenticated user cannot be found in the database.
      */
     public User getCurrentUser() {
-<<<<<<< Updated upstream
-=======
         Authentication authentication = requireAuthentication();
         String email = resolveAuthenticatedEmail(authentication);
 
@@ -131,17 +138,11 @@ public class AccessContextService {
      * @throws AccessDeniedException if the current user does not have permission to manage the target user.
      */
     private Authentication requireAuthentication() {
->>>>>>> Stashed changes
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AccessDeniedException("Unauthenticated request");
         }
 
-<<<<<<< Updated upstream
-        String email = authentication.getName();
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
-=======
         return authentication;
     }
 
@@ -182,7 +183,6 @@ public class AccessContextService {
         }
 
         return authentication.getName();
->>>>>>> Stashed changes
     }
 
     /**

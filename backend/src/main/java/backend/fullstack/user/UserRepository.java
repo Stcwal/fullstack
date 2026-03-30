@@ -18,7 +18,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findUserByEmail(String email);
+    Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
 
@@ -31,6 +31,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Find all supervisors in an org — used when listing who can be assigned to a location
     List<User> findByOrganization_IdAndRole(Long organizationId, Role role);
 
+    long countByOrganization_IdAndRoleAndIsActiveTrue(Long organizationId, Role role);
+
     @Query("""
         SELECT l.id
         FROM User u
@@ -38,4 +40,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         WHERE u.id = :userId
         """)
     List<Long> findAdditionalLocationIdsByUserId(@Param("userId") Long userId);
+
+    @Query("""
+    SELECT DISTINCT u FROM User u
+    WHERE u.homeLocation.id = :locationId
+    OR :locationId IN (SELECT l.id FROM u.locations l)
+    """)
+    List<User> findAllByLocationId(@Param("locationId") Long locationId);
 }
+

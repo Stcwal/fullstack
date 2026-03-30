@@ -29,5 +29,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     Optional<Location> findByIdAndOrganization_Id(Long id, Long organizationId);
 
     boolean existsByIdAndOrganization_Id(Long id, Long organizationId);
-}
 
+    Optional<Location> findByIdAndOrganizationId(Long id, Long organizationId);
+
+}

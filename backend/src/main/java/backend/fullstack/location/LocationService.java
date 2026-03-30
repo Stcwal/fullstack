@@ -7,6 +7,7 @@ import backend.fullstack.location.dto.LocationResponse;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
 import backend.fullstack.user.AccessContextService;
+import backend.fullstack.user.role.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,8 @@ public class LocationService {
 
 
     public LocationResponse create(LocationRequest request) {
+        accessContext.assertHasRole(Role.ADMIN);
+
         Long orgId = accessContext.getCurrentOrganizationId();
 
         Organization org = organizationRepository.findById(orgId)
@@ -57,6 +60,7 @@ public class LocationService {
     }
 
     public LocationResponse update(Long id, LocationRequest request) {
+        accessContext.assertHasRole(Role.ADMIN);
         accessContext.assertCanAccess(id);
         Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Location not found"));
@@ -66,6 +70,7 @@ public class LocationService {
     }
 
     public void delete(Long id) {
+        accessContext.assertHasRole(Role.ADMIN);
         accessContext.assertCanAccess(id);
         locationRepository.deleteById(id);
     }
