@@ -10,7 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.location.LocationRepository;
+import backend.fullstack.user.role.Role;
 
 /**
  * Centralized tenant and location access resolver.
@@ -35,6 +37,11 @@ public class AccessContextService {
      * @return List of accessible location IDs for the current user.
      */
     public List<Long> getAllowedLocationIds() {
+        JwtPrincipal principal = getJwtPrincipal();
+        if (principal != null && !principal.locationIds().isEmpty()) {
+            return new ArrayList<>(new LinkedHashSet<>(principal.locationIds()));
+        }
+
         User user = getCurrentUser();
 
         return switch (user.getRole()) {
@@ -66,7 +73,32 @@ public class AccessContextService {
      * @return The organization ID of the current user.
      */
     public Long getCurrentOrganizationId() {
+        JwtPrincipal principal = getJwtPrincipal();
+        if (principal != null && principal.organizationId() != null) {
+            return principal.organizationId();
+        }
+
         return getCurrentUser().getOrganizationId();
+    }
+
+    public Role getCurrentRole() {
+        JwtPrincipal principal = getJwtPrincipal();
+        if (principal != null && principal.role() != null) {
+            return principal.role();
+        }
+
+        return getCurrentUser().getRole();
+    }
+
+    public void assertHasRole(Role... allowedRoles) {
+        Role currentRole = getCurrentRole();
+        for (Role role : allowedRoles) {
+            if (currentRole == role) {
+                return;
+            }
+        }
+
+        throw new AccessDeniedException("Insufficient role for this operation");
     }
 
     /**
@@ -76,14 +108,54 @@ public class AccessContextService {
      * @throws AccessDeniedException if the request is unauthenticated or the authenticated user cannot be found in the database.
      */
     public User getCurrentUser() {
+        Authentication authentication = requireAuthentication();
+        String email = resolveAuthenticatedEmail(authentication);
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private Authentication requireAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AccessDeniedException("Unauthenticated request");
         }
 
+<<<<<<< Updated upstream
         String email = authentication.getName();
         return userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+=======
+        return authentication;
+    }
+
+    private JwtPrincipal getJwtPrincipal() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof JwtPrincipal jwtPrincipal) {
+            return jwtPrincipal;
+        }
+
+        return null;
+    }
+
+    private String resolveAuthenticatedEmail(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof JwtPrincipal jwtPrincipal) {
+            return jwtPrincipal.email();
+        }
+
+        if (principal instanceof User user) {
+            return user.getEmail();
+        }
+
+        return authentication.getName();
+>>>>>>> Stashed changes
     }
 
     /**

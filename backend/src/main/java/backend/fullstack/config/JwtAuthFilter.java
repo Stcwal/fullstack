@@ -1,10 +1,9 @@
 package backend.fullstack.config;
 
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -16,8 +15,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collections;
+import backend.fullstack.user.role.Role;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Security filter that authenticates requests using JWT from cookie or header.
@@ -55,21 +58,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.getClaimsFromJwtToken(jwt);
                 String email = claims.getSubject();
                 String role = claims.get("role", String.class);
+                Long userId = asLong(claims.get("userId"));
+                Long organizationId = asLong(claims.get("organizationId"));
+                List<Long> locationIds = asLongList(claims.get("locationIds"));
 
                 if (role != null && !role.startsWith("ROLE_")) {
                     role = "ROLE_" + role;
                 }
 
                 if (email != null && role != null) {
-                UsernamePasswordAuthenticationToken authentication =
+                    Role parsedRole = Role.valueOf(role.replace("ROLE_", ""));
+                    JwtPrincipal principal = new JwtPrincipal(userId, email, parsedRole, organizationId, locationIds);
+
+                    UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority(role))
+                            principal,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority(role))
                         );
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
         } catch (Exception e) {
@@ -97,5 +106,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         return null;
+    }
+
+    private Long asLong(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
+    }
+
+    private List<Long> asLongList(Object value) {
+        if (!(value instanceof List<?> rawList)) {
+            return List.of();
+        }
+
+        return rawList.stream()
+                .filter(Number.class::isInstance)
+                .map(Number.class::cast)
+                .map(Number::longValue)
+                .toList();
     }
 }
