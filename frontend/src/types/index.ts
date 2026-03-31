@@ -222,3 +222,52 @@ export interface SettingsUnit {
 // Temperature Chart
 // ============================================================
 export type ChartPeriod = 'WEEK' | 'MONTH'
+
+// ============================================================
+// IK-Alkohol
+// ============================================================
+
+export type AgeVerificationOutcome = 'APPROVED' | 'DENIED' | 'UNSURE'
+
+export interface AlderskontrollEntry {
+  id: number
+  recordedAt: string        // ISO 8601
+  recordedBy: string        // staff member name
+  outcome: AgeVerificationOutcome
+  note?: string
+}
+
+export interface NewAlderskontrollEntry {
+  outcome: AgeVerificationOutcome
+  note?: string
+  recordedAt?: string       // defaults to now if omitted
+}
+
+export type AlkoholIncidentType =
+  | 'NEKTET_SERVERING'
+  | 'BERUSET_GJEST'
+  | 'POLITIKONTAKT'
+  | 'ANNET'
+
+export interface AlkoholIncident {
+  id: number
+  incidentType: AlkoholIncidentType
+  description: string
+  occurredAt: string        // ISO 8601
+  reportedBy: string
+  followUpRequired: boolean
+  relatedDeviationId?: number
+}
+
+export interface NewAlkoholIncident {
+  incidentType: AlkoholIncidentType
+  description: string
+  followUpRequired: boolean
+  occurredAt?: string       // defaults to now
+}
+
+export interface AlkoholStats {
+  ageChecksToday: number
+  incidentsThisWeek: number
+  checklistCompletionPct: number
+}
