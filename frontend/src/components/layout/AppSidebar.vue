@@ -41,6 +41,12 @@ const navItems: NavItem[] = [
 
 const settingsItem: NavItem = { name: 'Innstillinger', route: 'settings-units', icon: 'settings' }
 
+const alkoholNavItems = [
+  { name: 'Alderskontroll', route: 'alkohol-alderskontroll' },
+  { name: 'Sjekklister',    route: 'alkohol-sjekklister' },
+  { name: 'Hendelseslogg',  route: 'alkohol-hendelser' },
+]
+
 function isActive(routeName: string): boolean {
   if (routeName === 'settings-units') {
     return route.path.startsWith('/innstillinger')
@@ -90,6 +96,21 @@ function logout() {
         </span>
         <span class="sidebar-item-label">{{ item.name }}</span>
         <span v-if="item.alert && !collapsed" class="alert-dot" />
+      </button>
+
+      <!-- IK-Alkohol section -->
+      <div class="sidebar-group-label">IK-Alkohol</div>
+      <button
+        v-for="item in alkoholNavItems"
+        :key="item.route"
+        class="sidebar-item sidebar-item--alkohol"
+        :class="{ active: isActive(item.route) }"
+        :aria-current="isActive(item.route) ? 'page' : undefined"
+        @click="navigate(item.route)"
+        :title="collapsed ? item.name : undefined"
+      >
+        <span class="sidebar-item-icon" aria-hidden="true">&#x1F37A;</span>
+        <span class="sidebar-item-label">{{ item.name }}</span>
       </button>
 
       <template v-if="user?.role === 'ADMIN'">

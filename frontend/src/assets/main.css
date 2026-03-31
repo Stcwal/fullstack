@@ -871,6 +871,11 @@ label {
 
 .sidebar-item.active .sidebar-item-icon { color: var(--c-primary); }
 
+.sidebar-item--alkohol.active {
+  background: hsl(var(--ik-alkohol-hue, 38), 90%, 15%);
+  color: hsl(var(--ik-alkohol-hue, 38), 90%, 75%);
+}
+
 .sidebar-item-icon {
   width: 18px;
   height: 18px;
