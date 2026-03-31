@@ -57,6 +57,29 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/alkohol',
+      component: () => import('@/views/alkohol/AlkoholView.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        { path: '', redirect: 'alderskontroll' },
+        {
+          path: 'alderskontroll',
+          name: 'alkohol-alderskontroll',
+          component: () => import('@/views/alkohol/AlderskontrollTab.vue')
+        },
+        {
+          path: 'sjekklister',
+          name: 'alkohol-sjekklister',
+          component: () => import('@/views/alkohol/AlkoholSjekklisterTab.vue')
+        },
+        {
+          path: 'hendelser',
+          name: 'alkohol-hendelser',
+          component: () => import('@/views/alkohol/HendelsesloggTab.vue')
+        }
+      ]
+    },
+    {
       path: '/innstillinger',
       component: () => import('@/views/settings/SettingsView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true },
