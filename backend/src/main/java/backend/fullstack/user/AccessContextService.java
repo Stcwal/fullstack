@@ -1,12 +1,11 @@
 package backend.fullstack.user;
 
 import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +20,7 @@ import backend.fullstack.user.role.Role;
  * All location-scoped services should use this service to prevent duplicated
  * authorization logic and role drift across modules.
  * 
- * @version 1.0
+ * @version 1.1
  * @since 30.03.26
  */
 @Service
@@ -29,10 +28,16 @@ public class AccessContextService {
 
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
+    private final UserLocationScopeAssignmentRepository userLocationScopeAssignmentRepository;
 
-    public AccessContextService(UserRepository userRepository, LocationRepository locationRepository) {
+    public AccessContextService(
+            UserRepository userRepository,
+            LocationRepository locationRepository,
+            UserLocationScopeAssignmentRepository userLocationScopeAssignmentRepository
+    ) {
         this.userRepository = userRepository;
         this.locationRepository = locationRepository;
+        this.userLocationScopeAssignmentRepository = userLocationScopeAssignmentRepository;
     }
 
     /**
@@ -42,18 +47,21 @@ public class AccessContextService {
      * @return List of accessible location IDs for the current user.
      */
     public List<Long> getAllowedLocationIds() {
-        JwtPrincipal principal = getJwtPrincipal();
-        if (principal != null && !principal.locationIds().isEmpty()) {
-            return new ArrayList<>(new LinkedHashSet<>(principal.locationIds()));
+        User user = getCurrentUser();
+        Set<Long> uniqueLocationIds = new LinkedHashSet<>();
+
+        switch (user.getRole()) {
+            case ADMIN -> uniqueLocationIds.addAll(locationRepository.findIdsByOrganizationId(user.getOrganizationId()));
+            case SUPERVISOR, MANAGER, STAFF -> uniqueLocationIds.addAll(userRepository.findEffectiveLocationScopeByUserId(user.getId()));
         }
 
-        User user = getCurrentUser();
+        // Temporary scope assignments are resolved from the database at request-time
+        // so access changes take effect immediately without requiring re-login.
+        uniqueLocationIds.addAll(
+                userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(user.getId(), LocalDateTime.now())
+        );
 
-        return switch (user.getRole()) {
-            case ADMIN -> locationRepository.findIdsByOrganizationId(user.getOrganizationId());
-            case SUPERVISOR -> userRepository.findAdditionalLocationIdsByUserId(user.getId());
-            case MANAGER, STAFF -> resolveStaffOrManagerLocations(user);
-        };
+        return new ArrayList<>(uniqueLocationIds);
     }
 
     /**
@@ -183,24 +191,6 @@ public class AccessContextService {
         }
 
         return authentication.getName();
-    }
-
-    /**
-     * Resolves the location IDs for STAFF and MANAGER roles by combining their home location and any additional locations they have access to, ensuring no duplicates.
-     *
-     * @param user The user for whom to resolve location IDs. Must have a role of STAFF or MANAGER.
-     * @return A list of unique location IDs that the user has access to, including their home location and any additional locations.
-     */
-    private List<Long> resolveStaffOrManagerLocations(User user) {
-        Set<Long> uniqueLocationIds = new LinkedHashSet<>();
-
-        if (user.getHomeLocationId() != null) {
-            uniqueLocationIds.add(user.getHomeLocationId());
-        }
-
-        uniqueLocationIds.addAll(userRepository.findAdditionalLocationIdsByUserId(user.getId()));
-
-        return new ArrayList<>(uniqueLocationIds);
     }
 
 }
