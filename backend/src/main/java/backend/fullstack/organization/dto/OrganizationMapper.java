@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
 public interface OrganizationMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "locations", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     Organization toEntity(OrganizationRequest request);
 
