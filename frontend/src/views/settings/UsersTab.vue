@@ -187,6 +187,15 @@ function roleLabel(role: UserRole): string {
   return 'Ansatt'
 }
 
+function getAvatarColors(role: UserRole): { bg: string; text: string } {
+  const roleColors: Record<UserRole, { bg: string; text: string }> = {
+    ADMIN: { bg: '#A855F7', text: '#FFFFFF' },
+    MANAGER: { bg: '#3B82F6', text: '#FFFFFF' },
+    STAFF: { bg: '#6B7280', text: '#FFFFFF' },
+  }
+  return roleColors[role]
+}
+
 function openAddModal() {
   isEditing.value = false
   editingId.value = null
@@ -209,12 +218,15 @@ function openEditModal(user: SettingsUser) {
 }
 
 async function save() {
+  const colors = getAvatarColors(form.role)
+  const userData = { ...form, colorBg: colors.bg, colorText: colors.text }
+
   if (isEditing.value && editingId.value !== null) {
-    const updated = await organizationService.updateUser(editingId.value, { ...form })
+    const updated = await organizationService.updateUser(editingId.value, userData)
     const idx = users.value.findIndex((u) => u.id === editingId.value)
     if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated }
   } else {
-    const created = await organizationService.createUser({ ...form })
+    const created = await organizationService.createUser(userData)
     users.value.push(created)
   }
   showModal.value = false

@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useDeviationsStore } from '@/stores/deviations'
 import AppModal from '@/components/AppModal.vue'
-import type { DeviationSeverity, ModuleType, NewDeviation } from '@/types'
+import type { NewDeviation } from '@/types'
 
 const deviationsStore = useDeviationsStore()
 

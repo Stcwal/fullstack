@@ -88,8 +88,9 @@ export const checklistsService = {
     // Real: return (await api.get<Checklist[]>(`/checklists?frequency=${frequency}`)).data
   },
 
-  async toggleItem(checklistId: number, itemId: number, completed: boolean): Promise<void> {
+  async toggleItem(_checklistId: number, _itemId: number, _completed: boolean): Promise<void> {
     await delay(150)
-    // Real: await api.patch(`/checklists/${checklistId}/items/${itemId}`, { completed })
+    // TODO: Replace mock with real API call
+    // Real: await api.patch(`/checklists/${_checklistId}/items/${_itemId}`, { completed: _completed })
   }
 }
