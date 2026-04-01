@@ -12,7 +12,7 @@ const merOpen = ref(false)
 // The 5 primary tabs — always visible
 const primaryTabs = [
   { id: 'oversikt', label: 'Hjem',   route: 'dashboard',  icon: 'grid',        primary: false },
-  { id: 'temp',     label: 'Temp',   route: 'fryser',     icon: 'thermometer', primary: false },
+  { id: 'temp',     label: 'Enheter', route: 'fryser',     icon: 'thermometer', primary: false },
   { id: 'sjekk',    label: 'SJEKK',  route: 'generelt',   icon: 'checklist',   primary: true  },
   { id: 'avvik',    label: 'Avvik',  route: 'avvik',      icon: 'alert',       primary: false },
   { id: 'mer',      label: 'Mer',    route: '',           icon: 'menu',        primary: false },
@@ -91,6 +91,7 @@ function closeMer() {
       v-for="tab in primaryTabs"
       :key="tab.id"
       class="tab-bar-item"
+      :data-tab="tab.id"
       :class="{
         'tab-bar-item--active': isActive(tab.id),
         'tab-bar-item--primary': tab.primary,
@@ -144,18 +145,25 @@ function closeMer() {
   outline: 2px solid #6366f1;
   outline-offset: -2px;
 }
-.tab-bar-item--active { background: #1e293b; color: #60a5fa; }
+/* Muted base colours — always visible on dark background */
+.tab-bar-item[data-tab="oversikt"] { color: #5b8dd9; }
+.tab-bar-item[data-tab="temp"]     { color: #22a8c0; }
+.tab-bar-item[data-tab="sjekk"]    { color: #4ab870; }
+.tab-bar-item[data-tab="avvik"]    { color: #d06060; }
+
+/* Vibrant active fills — same intensity for all tabs including SJEKK */
+.tab-bar-item[data-tab="oversikt"].tab-bar-item--active { background: #2563eb; color: #fff; }
+.tab-bar-item[data-tab="temp"].tab-bar-item--active     { background: #0891b2; color: #fff; }
+.tab-bar-item[data-tab="sjekk"].tab-bar-item--active    { background: #16a34a; color: #fff; }
+.tab-bar-item[data-tab="avvik"].tab-bar-item--active    { background: #dc2626; color: #fff; }
 .tab-bar-item--mer-open { background: #1e293b; color: #94a3b8; }
 
-/* Primary (SJEKK) — raised green button */
+/* Primary (SJEKK) — shape only, colour comes from data-tab selectors above */
 .tab-bar-item--primary {
-  flex: 0 0 60px;
-  background: #16A34A;
+  flex: 1;
   border-radius: 12px;
   padding: 8px 4px;
-  color: #fff;
 }
-.tab-bar-item--primary:hover { background: #15803d; }
 .tab-bar-item--primary:focus-visible { outline-color: #fff; }
 
 .tab-icon { display: flex; align-items: center; justify-content: center; }
@@ -164,13 +172,16 @@ function closeMer() {
 
 /* Mer drawer */
 .mer-backdrop {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--tabbar-h, 76px);
   z-index: 49;
 }
 .mer-drawer {
-  position: fixed;
-  bottom: 76px;
+  position: absolute;
+  bottom: var(--tabbar-h, 76px);
   left: 0;
   right: 0;
   background: #1e293b;

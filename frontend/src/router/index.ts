@@ -28,9 +28,7 @@ const router = createRouter({
     },
     {
       path: '/kjoeleskap',
-      name: 'kjoeleskap',
-      component: () => import('@/views/FridgeView.vue'),
-      meta: { requiresAuth: true }
+      redirect: '/fryser'
     },
     {
       path: '/generelt',
@@ -42,6 +40,12 @@ const router = createRouter({
       path: '/avvik',
       name: 'avvik',
       component: () => import('@/views/DeviationsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/temperatur-logg',
+      name: 'temperatur-logg',
+      component: () => import('@/views/TemperaturLoggView.vue'),
       meta: { requiresAuth: true }
     },
     {

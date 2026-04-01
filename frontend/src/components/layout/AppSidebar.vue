@@ -31,8 +31,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Oversikt',       route: 'dashboard',    icon: 'grid' },
-  { name: 'Fryser',         route: 'fryser',       icon: 'snowflake' },
-  { name: 'Kjøleskap',      route: 'kjoeleskap',   icon: 'thermometer' },
+  { name: 'Temperaturlogging', route: 'fryser',          icon: 'thermometer' },
+  { name: 'Temperaturlogg',   route: 'temperatur-logg',  icon: 'chart' },
   { name: 'Generelt',       route: 'generelt',     icon: 'checklist' },
   { name: 'Avvik',          route: 'avvik',        icon: 'warning', alert: true },
   { name: 'Temperaturgrafer', route: 'grafer',     icon: 'chart' },
