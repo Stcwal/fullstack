@@ -1,7 +1,9 @@
 package backend.fullstack.permission.dto;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import backend.fullstack.user.role.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,7 +30,7 @@ public class CapabilitiesResponse {
     @Schema(description = "Locations the user can access", example = "[1,2,3]")
     private List<Long> allowedLocationIds = new ArrayList<>();
 
-    @Schema(description = "Flattened effective permission keys", example = "[\"users.read\",\"temperature.log\"]")
+    @Schema(description = "Flattened effective permission keys", example = "[\"users.read.location\",\"logs.temperature.create\"]")
     private List<String> permissions = new ArrayList<>();
 
     @Schema(description = "Roles this actor can manage", example = "[\"MANAGER\",\"STAFF\"]")
@@ -36,4 +38,13 @@ public class CapabilitiesResponse {
 
     @Schema(description = "Location ids this actor can assign to managed users", example = "[1,2]")
     private List<Long> manageableLocationIds = new ArrayList<>();
+
+    @Schema(description = "Active permission profile names assigned to the user", example = "[\"Shift Leader\",\"Kitchen Supervisor\"]")
+    private List<String> activeProfileNames = new ArrayList<>();
+
+    @Schema(description = "Optional map of permission key to location scope ids")
+    private Map<String, List<Long>> permissionScopeLocationIds = new LinkedHashMap<>();
+
+    @Schema(description = "Resolved effective permissions for each accessible location")
+    private List<LocationCapabilitiesResponse> locations = new ArrayList<>();
 }

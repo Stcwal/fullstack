@@ -6,6 +6,14 @@ import backend.fullstack.location.LocationRepository;
 import backend.fullstack.location.dto.AssignLocationsRequest;
 import backend.fullstack.permission.AuthorizationService;
 import backend.fullstack.permission.Permission;
+import backend.fullstack.permission.PermissionEffect;
+import backend.fullstack.permission.PermissionProfile;
+import backend.fullstack.permission.PermissionProfileRepository;
+import backend.fullstack.permission.PermissionScope;
+import backend.fullstack.permission.UserPermissionOverride;
+import backend.fullstack.permission.UserPermissionOverrideRepository;
+import backend.fullstack.permission.UserProfileAssignment;
+import backend.fullstack.permission.UserProfileAssignmentRepository;
 import backend.fullstack.user.dto.ChangePasswordRequest;
 import backend.fullstack.user.dto.CreateUserRequest;
 import backend.fullstack.user.dto.UpdateUserProfileRequest;
@@ -18,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -38,6 +47,10 @@ public class UserService {
     private final UserMapper userMapper;
     private final AccessContextService accessContext;
     private final AuthorizationService authorizationService;
+    private final PermissionProfileRepository permissionProfileRepository;
+    private final UserProfileAssignmentRepository userProfileAssignmentRepository;
+    private final UserPermissionOverrideRepository userPermissionOverrideRepository;
+    private final UserLocationScopeAssignmentRepository userLocationScopeAssignmentRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -48,7 +61,10 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public List<UserResponse> getAllInOrganization() {
-        authorizationService.assertPermission(Permission.USERS_READ);
+        if (!authorizationService.hasPermission(Permission.USERS_READ_ORGANIZATION)
+                && !authorizationService.hasPermission(Permission.USERS_READ_LOCATION)) {
+            throw new AccessDeniedException("Missing permission: users.read.location or users.read.organization");
+        }
 
         Long orgId = accessContext.getCurrentOrganizationId();
         return userRepository.findByOrganization_Id(orgId)
@@ -274,6 +290,162 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void assignProfiles(
+            Long id,
+            List<Long> profileIds,
+            Long locationId,
+            LocalDateTime startsAt,
+            LocalDateTime endsAt,
+            boolean replaceScopeAssignments
+    ) {
+        User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
+        validateWindow(startsAt, endsAt);
+
+        if (profileIds == null || profileIds.isEmpty()) {
+            throw new RoleException("At least one profile id must be provided");
+        }
+
+        Long orgId = accessContext.getCurrentOrganizationId();
+        Location scopedLocation = null;
+        if (locationId != null) {
+            scopedLocation = locationRepository.findByIdAndOrganizationId(locationId, orgId)
+                    .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
+
+            if (accessContext.getCurrentRole() != Role.ADMIN) {
+                accessContext.assertCanAccess(locationId);
+            }
+        }
+
+        List<PermissionProfile> profiles = permissionProfileRepository
+                .findByIdInAndOrganization_IdAndIsActiveTrue(profileIds, orgId);
+
+        if (profiles.size() != profileIds.size()) {
+            throw new RoleException("One or more profiles are invalid for this organization");
+        }
+
+        if (replaceScopeAssignments) {
+            if (locationId == null) {
+                userProfileAssignmentRepository.deleteAllGlobalByUserId(user.getId());
+            } else {
+                userProfileAssignmentRepository.deleteAllByUserIdAndLocationId(user.getId(), locationId);
+            }
+        }
+
+        for (PermissionProfile profile : profiles) {
+            userProfileAssignmentRepository.save(
+                    UserProfileAssignment.builder()
+                            .user(user)
+                            .profile(profile)
+                            .location(scopedLocation)
+                            .startsAt(startsAt)
+                            .endsAt(endsAt)
+                            .build()
+            );
+        }
+    }
+
+    @Transactional
+    public void addUserPermissionGrant(Long id, Permission permission, String reason) {
+        addUserPermissionOverride(id, permission, PermissionEffect.ALLOW, PermissionScope.ORGANIZATION, null, null, null, reason);
+    }
+
+    @Transactional
+    public void addUserPermissionDeny(Long id, Permission permission, String reason) {
+        addUserPermissionOverride(id, permission, PermissionEffect.DENY, PermissionScope.ORGANIZATION, null, null, null, reason);
+    }
+
+    @Transactional
+    public void assignTemporaryLocationScope(
+            Long id,
+            Long locationId,
+            LocalDateTime startsAt,
+            LocalDateTime endsAt,
+            TemporaryAssignmentMode mode,
+            String reason
+    ) {
+        User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
+        validateWindow(startsAt, endsAt);
+
+        Long orgId = accessContext.getCurrentOrganizationId();
+        Location location = locationRepository.findByIdAndOrganizationId(locationId, orgId)
+                .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
+
+        if (accessContext.getCurrentRole() != Role.ADMIN) {
+            accessContext.assertCanAccess(locationId);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        TemporaryAssignmentStatus initialStatus = startsAt != null && startsAt.isAfter(now)
+                ? TemporaryAssignmentStatus.SCHEDULED
+                : TemporaryAssignmentStatus.ACTIVE;
+
+        userLocationScopeAssignmentRepository.save(
+                UserLocationScopeAssignment.builder()
+                        .user(user)
+                        .location(location)
+                        .startsAt(startsAt)
+                        .endsAt(endsAt)
+                        .mode(mode == null ? TemporaryAssignmentMode.INHERIT : mode)
+                        .status(initialStatus)
+                        .reason(reason)
+                        .build()
+        );
+    }
+
+    @Transactional
+    public void completeTemporaryLocationScope(Long userId, Long assignmentId) {
+        User user = findInCurrentOrg(userId);
+        authorizationService.assertCanManageUser(user);
+
+        UserLocationScopeAssignment assignment = userLocationScopeAssignmentRepository.findById(assignmentId)
+                .filter(a -> a.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Temporary location assignment not found"));
+
+        if (assignment.getStatus() == TemporaryAssignmentStatus.ARCHIVED
+                || assignment.getStatus() == TemporaryAssignmentStatus.CONFIRMED) {
+            throw new RoleException("Assignment is already closed");
+        }
+
+        assignment.setStatus(TemporaryAssignmentStatus.COMPLETED);
+        assignment.setCompletedAt(LocalDateTime.now());
+        userLocationScopeAssignmentRepository.save(assignment);
+    }
+
+    @Transactional
+    public void confirmTemporaryLocationScope(Long userId, Long assignmentId) {
+        User user = findInCurrentOrg(userId);
+        authorizationService.assertCanManageUser(user);
+
+        UserLocationScopeAssignment assignment = userLocationScopeAssignmentRepository.findById(assignmentId)
+                .filter(a -> a.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Temporary location assignment not found"));
+
+        if (assignment.getStatus() != TemporaryAssignmentStatus.COMPLETED) {
+            throw new RoleException("Assignment must be completed before confirmation");
+        }
+
+        assignment.setStatus(TemporaryAssignmentStatus.CONFIRMED);
+        assignment.setConfirmedAt(LocalDateTime.now());
+        userLocationScopeAssignmentRepository.save(assignment);
+    }
+
+    @Transactional
+    public void assignTemporaryPermission(
+            Long id,
+            Permission permission,
+            PermissionEffect effect,
+            PermissionScope scope,
+            Long locationId,
+            LocalDateTime startsAt,
+            LocalDateTime endsAt,
+            String reason
+    ) {
+        addUserPermissionOverride(id, permission, effect, scope, locationId, startsAt, endsAt, reason);
+    }
+
     /**
      * Resolves and assigns location(s) to a user based on their role.
      * MANAGER and STAFF require a home location. ADMIN and SUPERVISOR do not.
@@ -330,5 +502,53 @@ public class UserService {
                         .toList()
         );
         return response;
+    }
+
+    private void addUserPermissionOverride(
+            Long id,
+            Permission permission,
+            PermissionEffect effect,
+            PermissionScope scope,
+            Long locationId,
+            LocalDateTime startsAt,
+            LocalDateTime endsAt,
+            String reason
+    ) {
+        User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
+        validateWindow(startsAt, endsAt);
+
+        if (scope == PermissionScope.LOCATION) {
+            if (locationId == null) {
+                throw new RoleException("locationId is required when scope is LOCATION");
+            }
+
+            Long orgId = accessContext.getCurrentOrganizationId();
+            locationRepository.findByIdAndOrganizationId(locationId, orgId)
+                    .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
+
+            if (accessContext.getCurrentRole() != Role.ADMIN) {
+                accessContext.assertCanAccess(locationId);
+            }
+        }
+
+        userPermissionOverrideRepository.save(
+                UserPermissionOverride.builder()
+                        .user(user)
+                        .permission(permission)
+                        .effect(effect)
+                        .scope(scope)
+                        .locationId(locationId)
+                        .startsAt(startsAt)
+                        .endsAt(endsAt)
+                        .reason(reason)
+                        .build()
+        );
+    }
+
+    private void validateWindow(LocalDateTime startsAt, LocalDateTime endsAt) {
+        if (startsAt != null && endsAt != null && endsAt.isBefore(startsAt)) {
+            throw new RoleException("endsAt must be after startsAt");
+        }
     }
 }
