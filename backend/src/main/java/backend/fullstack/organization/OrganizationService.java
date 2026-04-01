@@ -7,6 +7,7 @@ import backend.fullstack.exceptions.OrganizationConflictException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.organization.dto.OrganizationRequest;
 import backend.fullstack.organization.dto.OrganizationResponse;
+import backend.fullstack.organization.dto.OrganizationMapper;
 import backend.fullstack.user.AccessContextService;
 import lombok.RequiredArgsConstructor;
 
