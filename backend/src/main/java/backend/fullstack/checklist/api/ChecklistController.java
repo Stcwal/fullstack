@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,11 +60,13 @@ public class ChecklistController {
     }
 
     @PostMapping("/templates")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create checklist template", description = "Creates a template and a mock instance for today")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Template created"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden")
     })
     public ResponseEntity<ApiResponse<ChecklistTemplateResponse>> createTemplate(
             @AuthenticationPrincipal JwtPrincipal principal,
@@ -74,7 +77,14 @@ public class ChecklistController {
     }
 
     @PutMapping("/templates/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update checklist template")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Template updated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<ApiResponse<ChecklistTemplateResponse>> updateTemplate(
             @AuthenticationPrincipal JwtPrincipal principal,
             @PathVariable Long id,
@@ -85,7 +95,13 @@ public class ChecklistController {
     }
 
     @DeleteMapping("/templates/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete checklist template")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Template deleted"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<ApiResponse<Void>> deleteTemplate(
             @AuthenticationPrincipal JwtPrincipal principal,
             @PathVariable Long id
