@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import backend.fullstack.checklist.api.dto.ChecklistInstanceItemResponse;
 import backend.fullstack.checklist.api.dto.ChecklistInstanceItemUpdateRequest;
@@ -26,6 +27,7 @@ import backend.fullstack.checklist.infrastructure.ChecklistTemplateRepository;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 
 @Service
+@Transactional
 public class MockChecklistService implements ChecklistService {
 
     private final ChecklistTemplateRepository templateRepository;
@@ -40,6 +42,7 @@ public class MockChecklistService implements ChecklistService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ChecklistTemplateResponse> listTemplates(Long organizationId) {
         return templateRepository.findAllByOrganizationId(organizationId).stream()
                 .sorted(Comparator.comparing(ChecklistTemplate::getId))
@@ -69,12 +72,13 @@ public class MockChecklistService implements ChecklistService {
 
     @Override
     public void deleteTemplate(Long organizationId, Long templateId) {
-        templateRepository.findByIdAndOrganizationId(templateId, organizationId)
+        ChecklistTemplate existing = templateRepository.findByIdAndOrganizationId(templateId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Checklist template", templateId));
-        templateRepository.deleteById(templateId);
+        templateRepository.delete(existing);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ChecklistInstanceResponse> listInstances(
             Long organizationId,
             ChecklistFrequency frequency,
@@ -91,6 +95,7 @@ public class MockChecklistService implements ChecklistService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ChecklistInstanceResponse getInstance(Long organizationId, Long instanceId) {
         ChecklistInstance instance = instanceRepository.findByIdAndOrganizationId(instanceId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Checklist instance", instanceId));
@@ -139,11 +144,9 @@ public class MockChecklistService implements ChecklistService {
     }
 
     private List<ChecklistTemplateItem> buildTemplateItems(List<String> texts) {
-        long index = 1;
         java.util.ArrayList<ChecklistTemplateItem> items = new java.util.ArrayList<>();
         for (String text : texts) {
-            items.add(new ChecklistTemplateItem(index, text));
-            index++;
+            items.add(new ChecklistTemplateItem(text));
         }
         return items;
     }
@@ -159,7 +162,6 @@ public class MockChecklistService implements ChecklistService {
 
         List<ChecklistInstanceItem> items = template.getItems().stream().map(templateItem -> {
             ChecklistInstanceItem instanceItem = new ChecklistInstanceItem();
-            instanceItem.setId(templateItem.getId());
             instanceItem.setText(templateItem.getText());
             instanceItem.setCompleted(false);
             return instanceItem;

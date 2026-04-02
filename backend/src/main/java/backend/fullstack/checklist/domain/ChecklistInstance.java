@@ -4,15 +4,48 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "checklist_instances")
 public class ChecklistInstance {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "template_id", nullable = false)
     private Long templateId;
+
+    @Column(name = "organization_id", nullable = false)
     private Long organizationId;
+
+    @Column(nullable = false, length = 120)
     private String title;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private ChecklistFrequency frequency;
+
+    @Column(nullable = false)
     private LocalDate date;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private ChecklistInstanceStatus status;
+
+    @OneToMany(mappedBy = "instance", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<ChecklistInstanceItem> items = new ArrayList<>();
 
     public ChecklistInstance() {
@@ -79,6 +112,17 @@ public class ChecklistInstance {
     }
 
     public void setItems(List<ChecklistInstanceItem> items) {
-        this.items = items;
+        this.items.clear();
+        if (items == null) {
+            return;
+        }
+        for (ChecklistInstanceItem item : items) {
+            addItem(item);
+        }
+    }
+
+    public void addItem(ChecklistInstanceItem item) {
+        item.setInstance(this);
+        this.items.add(item);
     }
 }

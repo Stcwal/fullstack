@@ -1,7 +1,12 @@
 package backend.fullstack.checklist.application;
 
+import java.lang.reflect.Proxy;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,7 +21,11 @@ import backend.fullstack.checklist.api.dto.ChecklistInstanceResponse;
 import backend.fullstack.checklist.api.dto.ChecklistTemplateResponse;
 import backend.fullstack.checklist.api.dto.ChecklistTemplateUpsertRequest;
 import backend.fullstack.checklist.domain.ChecklistFrequency;
+import backend.fullstack.checklist.domain.ChecklistInstance;
+import backend.fullstack.checklist.domain.ChecklistInstanceItem;
 import backend.fullstack.checklist.domain.ChecklistInstanceStatus;
+import backend.fullstack.checklist.domain.ChecklistTemplate;
+import backend.fullstack.checklist.domain.ChecklistTemplateItem;
 import backend.fullstack.checklist.infrastructure.ChecklistInstanceRepository;
 import backend.fullstack.checklist.infrastructure.ChecklistTemplateRepository;
 import backend.fullstack.exceptions.ResourceNotFoundException;
@@ -24,14 +33,121 @@ import backend.fullstack.exceptions.ResourceNotFoundException;
 class MockChecklistServiceTest {
 
     private MockChecklistService service;
+        private Map<Long, ChecklistTemplate> templateStore;
+        private Map<Long, ChecklistInstance> instanceStore;
+
+        private AtomicLong templateIdSequence;
+        private AtomicLong templateItemIdSequence;
+        private AtomicLong instanceIdSequence;
+        private AtomicLong instanceItemIdSequence;
 
     @BeforeEach
     void setUp() {
-        service = new MockChecklistService(
-                new ChecklistTemplateRepository(),
-                new ChecklistInstanceRepository()
-        );
+                templateStore = new HashMap<>();
+                instanceStore = new HashMap<>();
+                templateIdSequence = new AtomicLong(0);
+                templateItemIdSequence = new AtomicLong(0);
+                instanceIdSequence = new AtomicLong(0);
+                instanceItemIdSequence = new AtomicLong(0);
+
+                ChecklistTemplateRepository templateRepository = createTemplateRepositoryProxy();
+                ChecklistInstanceRepository instanceRepository = createInstanceRepositoryProxy();
+
+                service = new MockChecklistService(templateRepository, instanceRepository);
     }
+
+        private ChecklistTemplateRepository createTemplateRepositoryProxy() {
+                return (ChecklistTemplateRepository) Proxy.newProxyInstance(
+                                ChecklistTemplateRepository.class.getClassLoader(),
+                                new Class[]{ChecklistTemplateRepository.class},
+                                (proxy, method, args) -> {
+                                        switch (method.getName()) {
+                                                case "findAllByOrganizationId" -> {
+                                                        Long orgId = (Long) args[0];
+                                                        return templateStore.values().stream()
+                                                                        .filter(template -> orgId.equals(template.getOrganizationId()))
+                                                                        .toList();
+                                                }
+                                                case "findByIdAndOrganizationId" -> {
+                                                        Long templateId = (Long) args[0];
+                                                        Long orgId = (Long) args[1];
+                                                        ChecklistTemplate template = templateStore.get(templateId);
+                                                        if (template == null || !orgId.equals(template.getOrganizationId())) {
+                                                                return Optional.empty();
+                                                        }
+                                                        return Optional.of(template);
+                                                }
+                                                case "save" -> {
+                                                        ChecklistTemplate template = (ChecklistTemplate) args[0];
+                                                        if (template.getId() == null) {
+                                                                template.setId(templateIdSequence.incrementAndGet());
+                                                        }
+                                                        for (ChecklistTemplateItem item : template.getItems()) {
+                                                                if (item.getId() == null) {
+                                                                        item.setId(templateItemIdSequence.incrementAndGet());
+                                                                }
+                                                        }
+                                                        templateStore.put(template.getId(), template);
+                                                        return template;
+                                                }
+                                                case "delete" -> {
+                                                        ChecklistTemplate template = (ChecklistTemplate) args[0];
+                                                        if (template != null && template.getId() != null) {
+                                                                templateStore.remove(template.getId());
+                                                        }
+                                                        return null;
+                                                }
+                                                case "toString" -> {
+                                                        return "ChecklistTemplateRepositoryProxy";
+                                                }
+                                                default -> throw new UnsupportedOperationException("Unsupported method in test proxy: " + method.getName());
+                                        }
+                                }
+                );
+        }
+
+        private ChecklistInstanceRepository createInstanceRepositoryProxy() {
+                return (ChecklistInstanceRepository) Proxy.newProxyInstance(
+                                ChecklistInstanceRepository.class.getClassLoader(),
+                                new Class[]{ChecklistInstanceRepository.class},
+                                (proxy, method, args) -> {
+                                        switch (method.getName()) {
+                                                case "findAllByOrganizationId" -> {
+                                                        Long orgId = (Long) args[0];
+                                                        return instanceStore.values().stream()
+                                                                        .filter(instance -> orgId.equals(instance.getOrganizationId()))
+                                                                        .toList();
+                                                }
+                                                case "findByIdAndOrganizationId" -> {
+                                                        Long instanceId = (Long) args[0];
+                                                        Long orgId = (Long) args[1];
+                                                        ChecklistInstance instance = instanceStore.get(instanceId);
+                                                        if (instance == null || !orgId.equals(instance.getOrganizationId())) {
+                                                                return Optional.empty();
+                                                        }
+                                                        return Optional.of(instance);
+                                                }
+                                                case "save" -> {
+                                                        ChecklistInstance instance = (ChecklistInstance) args[0];
+                                                        if (instance.getId() == null) {
+                                                                instance.setId(instanceIdSequence.incrementAndGet());
+                                                        }
+                                                        for (ChecklistInstanceItem item : instance.getItems()) {
+                                                                if (item.getId() == null) {
+                                                                        item.setId(instanceItemIdSequence.incrementAndGet());
+                                                                }
+                                                        }
+                                                        instanceStore.put(instance.getId(), instance);
+                                                        return instance;
+                                                }
+                                                case "toString" -> {
+                                                        return "ChecklistInstanceRepositoryProxy";
+                                                }
+                                                default -> throw new UnsupportedOperationException("Unsupported method in test proxy: " + method.getName());
+                                        }
+                                }
+                );
+        }
 
     @Test
     void createTemplateCreatesTemplateAndMockInstanceForSameOrganization() {
