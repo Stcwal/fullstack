@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.model;
 
 /**
  * Enum representing the types of conditions that can be associated with a permission. These conditions define additional requirements that must be met for a permission to be considered effective.

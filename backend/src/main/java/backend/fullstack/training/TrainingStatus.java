@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.training;
 
 /**
  * Enum representing different statuses for a training session.

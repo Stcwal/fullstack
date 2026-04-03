@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.profile;
 
 import java.time.LocalDateTime;
 import java.util.List;

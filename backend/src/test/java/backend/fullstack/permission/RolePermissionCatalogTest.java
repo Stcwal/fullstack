@@ -19,6 +19,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import backend.fullstack.organization.Organization;
+import backend.fullstack.permission.catalog.RolePermissionBindingRepository;
+import backend.fullstack.permission.catalog.RolePermissionCatalog;
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
+import backend.fullstack.permission.override.UserPermissionOverride;
+import backend.fullstack.permission.override.UserPermissionOverrideRepository;
+import backend.fullstack.permission.profile.PermissionProfile;
+import backend.fullstack.permission.profile.PermissionProfileBinding;
+import backend.fullstack.permission.profile.PermissionProfileBindingRepository;
+import backend.fullstack.permission.profile.UserProfileAssignment;
+import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
 import backend.fullstack.user.User;
 import backend.fullstack.user.UserLocationScopeAssignmentRepository;
 import backend.fullstack.user.role.Role;

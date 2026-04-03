@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.profile;
 
 import java.util.List;
 import java.util.Optional;

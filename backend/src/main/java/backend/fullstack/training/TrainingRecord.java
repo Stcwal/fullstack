@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.training;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +22,7 @@ import lombok.Setter;
 
 /**
  * Represents a record of a training session completed by a user. This entity tracks the type of training, its status, and relevant timestamps for completion and expiration.
- * 
+ *
  * @version 1.0
  * @since 31.03.26
  */

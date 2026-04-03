@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
-import backend.fullstack.permission.AuthorizationService;
+import backend.fullstack.permission.core.AuthorizationService;
 import backend.fullstack.permission.dto.CapabilitiesResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

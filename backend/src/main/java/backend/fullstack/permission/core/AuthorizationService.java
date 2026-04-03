@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.core;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -10,8 +10,10 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import backend.fullstack.exceptions.AccessDeniedException;
+import backend.fullstack.permission.catalog.RolePermissionCatalog;
 import backend.fullstack.permission.dto.CapabilitiesResponse;
 import backend.fullstack.permission.dto.LocationCapabilitiesResponse;
+import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.AccessContextService;
 import backend.fullstack.user.User;
 import backend.fullstack.user.UserRepository;

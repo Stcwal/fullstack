@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.catalog;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.role.Role;
 
 /**
@@ -14,12 +15,12 @@ import backend.fullstack.user.role.Role;
  * @version 1.0
  * @since 31.03.26
  */
-final class DefaultRolePermissionMatrix {
+public final class DefaultRolePermissionMatrix {
 
     private DefaultRolePermissionMatrix() {
     }
 
-    static Map<Role, Set<Permission>> create() {
+    public static Map<Role, Set<Permission>> create() {
         Map<Role, Set<Permission>> mapping = new EnumMap<>(Role.class);
 
         mapping.put(Role.ADMIN, EnumSet.allOf(Permission.class));
