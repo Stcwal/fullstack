@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.catalog;
 
 import java.util.List;
 

@@ -1,5 +1,8 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.override;
 
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
 import java.time.LocalDateTime;
 
 import backend.fullstack.user.User;

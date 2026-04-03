@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.core;
 
 /**
  * Context for condition-based permission checks.

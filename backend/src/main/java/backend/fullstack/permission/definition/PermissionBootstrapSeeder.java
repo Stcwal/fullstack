@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.definition;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +11,10 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import backend.fullstack.permission.catalog.DefaultRolePermissionMatrix;
+import backend.fullstack.permission.catalog.RolePermissionBinding;
+import backend.fullstack.permission.catalog.RolePermissionBindingRepository;
+import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.role.Role;
 
 @Component

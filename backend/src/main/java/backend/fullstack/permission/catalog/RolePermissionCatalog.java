@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.catalog;
 
 import java.util.EnumSet;
 import java.util.EnumMap;
@@ -13,6 +13,18 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Component;
 
+import backend.fullstack.permission.definition.PermissionDefinition;
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionConditionType;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
+import backend.fullstack.permission.override.UserPermissionOverride;
+import backend.fullstack.permission.override.UserPermissionOverrideRepository;
+import backend.fullstack.permission.profile.PermissionProfile;
+import backend.fullstack.permission.profile.PermissionProfileBinding;
+import backend.fullstack.permission.profile.PermissionProfileBindingRepository;
+import backend.fullstack.permission.profile.UserProfileAssignment;
+import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
 import backend.fullstack.user.User;
 import backend.fullstack.user.UserLocationScopeAssignmentRepository;
 import backend.fullstack.user.role.Role;

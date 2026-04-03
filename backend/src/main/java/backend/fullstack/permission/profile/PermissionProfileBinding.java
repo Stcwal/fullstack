@@ -1,5 +1,8 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.profile;
 
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionConditionType;
+import backend.fullstack.permission.model.PermissionScope;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

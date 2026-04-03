@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.model;
 
 import java.util.Arrays;
 import java.util.Map;

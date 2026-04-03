@@ -1,7 +1,8 @@
 package backend.fullstack.user;
 
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
 import backend.fullstack.user.role.Role;
-import backend.fullstack.permission.PermissionEffect;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -85,10 +86,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     AND (o.startsAt IS NULL OR o.startsAt <= :at)
                     AND (o.endsAt IS NULL OR o.endsAt >= :at)
                 """)
-        List<backend.fullstack.permission.Permission> findActiveOverridePermissionsByUserId(
+        List<Permission> findActiveOverridePermissionsByUserId(
                         @Param("userId") Long userId,
                         @Param("effect") PermissionEffect effect,
                         @Param("at") LocalDateTime at
         );
 }
-

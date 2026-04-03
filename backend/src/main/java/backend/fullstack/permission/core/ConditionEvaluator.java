@@ -1,9 +1,12 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.core;
 
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.training.TrainingRecordRepository;
+import backend.fullstack.training.TrainingType;
 import backend.fullstack.user.User;
 
 /**

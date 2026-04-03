@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.model;
 
 /**
  * Enum representing the effect of a permission override. This indicates whether a specific permission is allowed or denied for a user, role, or profile.

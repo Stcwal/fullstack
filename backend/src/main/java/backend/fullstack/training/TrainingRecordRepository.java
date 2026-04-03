@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.training;
 
 import java.time.LocalDateTime;
 
@@ -20,7 +20,7 @@ public interface TrainingRecordRepository extends JpaRepository<TrainingRecord, 
         FROM TrainingRecord t
         WHERE t.user.id = :userId
           AND t.trainingType = :trainingType
-          AND t.status = backend.fullstack.permission.TrainingStatus.COMPLETED
+          AND t.status = backend.fullstack.training.TrainingStatus.COMPLETED
           AND (t.expiresAt IS NULL OR t.expiresAt >= :at)
         """)
     boolean hasValidTraining(

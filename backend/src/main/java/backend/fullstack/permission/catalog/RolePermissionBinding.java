@@ -1,5 +1,6 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.catalog;
 
+import backend.fullstack.permission.definition.PermissionDefinition;
 import backend.fullstack.user.role.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

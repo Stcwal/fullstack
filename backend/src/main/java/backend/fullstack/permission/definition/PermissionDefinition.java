@@ -1,4 +1,4 @@
-package backend.fullstack.permission;
+package backend.fullstack.permission.definition;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
