@@ -28,8 +28,6 @@ public class LocationService {
     private final AccessContextService accessContext;
     private final LocationMapper locationMapper;
 
-
-
     public LocationResponse create(LocationRequest request) {
         accessContext.assertHasRole(Role.ADMIN);
 
@@ -53,25 +51,34 @@ public class LocationService {
     }
 
     public LocationResponse getById(Long id) {
-        accessContext.assertCanAccess(id); // throws 403 if not allowed
-        Location location = locationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Location not found"));
+        Location location = getLocationInCurrentOrganization(id);
+        accessContext.assertCanAccess(location.getId());
         return locationMapper.toResponse(location);
     }
 
     public LocationResponse update(Long id, LocationRequest request) {
         accessContext.assertHasRole(Role.ADMIN);
-        accessContext.assertCanAccess(id);
-        Location location = locationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Location not found"));
+
+        Location location = getLocationInCurrentOrganization(id);
+        accessContext.assertCanAccess(location.getId());
         location.setName(request.getName());
         location.setAddress(request.getAddress());
+
         return locationMapper.toResponse(locationRepository.save(location));
     }
 
     public void delete(Long id) {
         accessContext.assertHasRole(Role.ADMIN);
-        accessContext.assertCanAccess(id);
-        locationRepository.deleteById(id);
+
+        Location location = getLocationInCurrentOrganization(id);
+        accessContext.assertCanAccess(location.getId());
+        locationRepository.delete(location);
+    }
+
+    private Location getLocationInCurrentOrganization(Long id) {
+        Long orgId = accessContext.getCurrentOrganizationId();
+
+        return locationRepository.findByIdAndOrganization_Id(id, orgId)
+                .orElseThrow(() -> new ResourceNotFoundException("Location not found"));
     }
 }
