@@ -1,12 +1,12 @@
 package backend.fullstack.location;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Repository interface for managing Location entities.
@@ -30,6 +30,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 
     boolean existsByIdAndOrganization_Id(Long id, Long organizationId);
 
-    Optional<Location> findByIdAndOrganizationId(Long id, Long organizationId);
+    @Query("SELECT l FROM Location l WHERE l.id = :id AND l.organization.id = :organizationId")
+    Optional<Location> findByIdAndOrganizationId(@Param("id") Long id, @Param("organizationId") Long organizationId);
 
 }
