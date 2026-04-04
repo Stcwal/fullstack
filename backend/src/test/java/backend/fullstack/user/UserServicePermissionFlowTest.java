@@ -97,7 +97,7 @@ class UserServicePermissionFlowTest {
         Location location = location(5L, 100L);
 
         when(userRepository.findById(50L)).thenReturn(Optional.of(target));
-        when(locationRepository.findByIdAndOrganizationId(5L, 100L)).thenReturn(Optional.of(location));
+        when(locationRepository.findByIdAndOrganization_Id(5L, 100L)).thenReturn(Optional.of(location));
 
         List<Long> profileIds = List.of(1L, 2L);
         List<PermissionProfile> profiles = List.of(profile(1L), profile(2L));
@@ -136,7 +136,7 @@ class UserServicePermissionFlowTest {
         Location location = location(5L, 100L);
 
         when(userRepository.findById(50L)).thenReturn(Optional.of(target));
-        when(locationRepository.findByIdAndOrganizationId(5L, 100L)).thenReturn(Optional.of(location));
+        when(locationRepository.findByIdAndOrganization_Id(5L, 100L)).thenReturn(Optional.of(location));
 
         LocalDateTime future = LocalDateTime.now().plusHours(2);
         userService.assignTemporaryLocationScope(50L, 5L, future, future.plusHours(8), TemporaryAssignmentMode.INHERIT, "shift");
