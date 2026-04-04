@@ -4,16 +4,16 @@ import backend.fullstack.exceptions.*;
 import backend.fullstack.location.Location;
 import backend.fullstack.location.LocationRepository;
 import backend.fullstack.location.dto.AssignLocationsRequest;
-import backend.fullstack.permission.AuthorizationService;
-import backend.fullstack.permission.Permission;
-import backend.fullstack.permission.PermissionEffect;
-import backend.fullstack.permission.PermissionProfile;
-import backend.fullstack.permission.PermissionProfileRepository;
-import backend.fullstack.permission.PermissionScope;
-import backend.fullstack.permission.UserPermissionOverride;
-import backend.fullstack.permission.UserPermissionOverrideRepository;
-import backend.fullstack.permission.UserProfileAssignment;
-import backend.fullstack.permission.UserProfileAssignmentRepository;
+import backend.fullstack.permission.core.AuthorizationService;
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
+import backend.fullstack.permission.override.UserPermissionOverride;
+import backend.fullstack.permission.override.UserPermissionOverrideRepository;
+import backend.fullstack.permission.profile.PermissionProfile;
+import backend.fullstack.permission.profile.PermissionProfileRepository;
+import backend.fullstack.permission.profile.UserProfileAssignment;
+import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
 import backend.fullstack.user.dto.ChangePasswordRequest;
 import backend.fullstack.user.dto.CreateUserRequest;
 import backend.fullstack.user.dto.UpdateUserProfileRequest;
@@ -214,7 +214,7 @@ public class UserService {
 
         List<Location> locations = request.getLocationIds().stream()
                 .map(locId -> locationRepository
-                        .findByIdAndOrganizationId(locId, orgId)
+                        .findByIdAndOrganization_Id(locId, orgId)
                         .orElseThrow(() -> new LocationException(
                                 "Location " + locId + " does not exist in your organization"
                         )))
@@ -310,7 +310,7 @@ public class UserService {
         Long orgId = accessContext.getCurrentOrganizationId();
         Location scopedLocation = null;
         if (locationId != null) {
-            scopedLocation = locationRepository.findByIdAndOrganizationId(locationId, orgId)
+            scopedLocation = locationRepository.findByIdAndOrganization_Id(locationId, orgId)
                     .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
 
             if (accessContext.getCurrentRole() != Role.ADMIN) {
@@ -370,7 +370,7 @@ public class UserService {
         validateWindow(startsAt, endsAt);
 
         Long orgId = accessContext.getCurrentOrganizationId();
-        Location location = locationRepository.findByIdAndOrganizationId(locationId, orgId)
+        Location location = locationRepository.findByIdAndOrganization_Id(locationId, orgId)
                 .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
 
         if (accessContext.getCurrentRole() != Role.ADMIN) {
@@ -463,7 +463,7 @@ public class UserService {
                 );
             }
             Location location = locationRepository
-                    .findByIdAndOrganizationId(locationId, orgId)
+                    .findByIdAndOrganization_Id(locationId, orgId)
                     .orElseThrow(() -> new LocationException(
                             "Location does not exist in your organization"
                     ));
@@ -524,7 +524,7 @@ public class UserService {
             }
 
             Long orgId = accessContext.getCurrentOrganizationId();
-            locationRepository.findByIdAndOrganizationId(locationId, orgId)
+            locationRepository.findByIdAndOrganization_Id(locationId, orgId)
                     .orElseThrow(() -> new LocationException("Location does not exist in your organization"));
 
             if (accessContext.getCurrentRole() != Role.ADMIN) {

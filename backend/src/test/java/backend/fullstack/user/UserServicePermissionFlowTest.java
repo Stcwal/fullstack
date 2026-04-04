@@ -30,12 +30,15 @@ import backend.fullstack.exceptions.RoleException;
 import backend.fullstack.location.Location;
 import backend.fullstack.location.LocationRepository;
 import backend.fullstack.organization.Organization;
-import backend.fullstack.permission.AuthorizationService;
-import backend.fullstack.permission.PermissionProfile;
-import backend.fullstack.permission.PermissionProfileRepository;
-import backend.fullstack.permission.UserPermissionOverrideRepository;
-import backend.fullstack.permission.UserProfileAssignment;
-import backend.fullstack.permission.UserProfileAssignmentRepository;
+import backend.fullstack.permission.core.AuthorizationService;
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
+import backend.fullstack.permission.override.UserPermissionOverrideRepository;
+import backend.fullstack.permission.profile.PermissionProfile;
+import backend.fullstack.permission.profile.PermissionProfileRepository;
+import backend.fullstack.permission.profile.UserProfileAssignment;
+import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
 import backend.fullstack.user.dto.UserMapper;
 import backend.fullstack.user.role.Role;
 
@@ -94,7 +97,7 @@ class UserServicePermissionFlowTest {
         Location location = location(5L, 100L);
 
         when(userRepository.findById(50L)).thenReturn(Optional.of(target));
-        when(locationRepository.findByIdAndOrganizationId(5L, 100L)).thenReturn(Optional.of(location));
+        when(locationRepository.findByIdAndOrganization_Id(5L, 100L)).thenReturn(Optional.of(location));
 
         List<Long> profileIds = List.of(1L, 2L);
         List<PermissionProfile> profiles = List.of(profile(1L), profile(2L));
@@ -133,7 +136,7 @@ class UserServicePermissionFlowTest {
         Location location = location(5L, 100L);
 
         when(userRepository.findById(50L)).thenReturn(Optional.of(target));
-        when(locationRepository.findByIdAndOrganizationId(5L, 100L)).thenReturn(Optional.of(location));
+        when(locationRepository.findByIdAndOrganization_Id(5L, 100L)).thenReturn(Optional.of(location));
 
         LocalDateTime future = LocalDateTime.now().plusHours(2);
         userService.assignTemporaryLocationScope(50L, 5L, future, future.plusHours(8), TemporaryAssignmentMode.INHERIT, "shift");
@@ -195,9 +198,9 @@ class UserServicePermissionFlowTest {
         assertThrows(RoleException.class,
                 () -> userService.assignTemporaryPermission(
                         50L,
-                        backend.fullstack.permission.Permission.USERS_UPDATE,
-                        backend.fullstack.permission.PermissionEffect.ALLOW,
-                        backend.fullstack.permission.PermissionScope.ORGANIZATION,
+                        Permission.USERS_UPDATE,
+                        PermissionEffect.ALLOW,
+                        PermissionScope.ORGANIZATION,
                         null,
                         start,
                         end,

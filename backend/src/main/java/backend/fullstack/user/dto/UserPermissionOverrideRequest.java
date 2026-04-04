@@ -2,9 +2,9 @@ package backend.fullstack.user.dto;
 
 import java.time.LocalDateTime;
 
-import backend.fullstack.permission.Permission;
-import backend.fullstack.permission.PermissionEffect;
-import backend.fullstack.permission.PermissionScope;
+import backend.fullstack.permission.model.Permission;
+import backend.fullstack.permission.model.PermissionEffect;
+import backend.fullstack.permission.model.PermissionScope;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
