@@ -21,6 +21,7 @@ public class TemperatureThresholdsValidator implements ConstraintValidator<Valid
         if (!valid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate())
+                    .addPropertyNode("targetTemperature")
                     .addConstraintViolation();
         }
 
