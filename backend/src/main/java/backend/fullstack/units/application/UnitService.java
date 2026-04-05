@@ -5,7 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import backend.fullstack.exceptions.InvalidThresholdException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
+import backend.fullstack.exceptions.UnitInactiveException;
+import backend.fullstack.exceptions.UnitNotFoundException;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
 import backend.fullstack.units.api.dto.UnitMapper;
@@ -64,6 +67,7 @@ public class UnitService {
         validateThresholds(request.minThreshold(), request.targetTemperature(), request.maxThreshold());
 
         TemperatureUnit unit = findScopedUnit(organizationId, unitId);
+        assertUnitActive(unit);
         applyRequest(unit, request);
 
         TemperatureUnit saved = unitRepository.save(unit);
@@ -93,7 +97,13 @@ public class UnitService {
 
     private TemperatureUnit findScopedUnit(Long organizationId, Long unitId) {
         return unitRepository.findByIdAndOrganization_Id(unitId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Temperature unit", unitId));
+                .orElseThrow(() -> new UnitNotFoundException(unitId));
+    }
+
+    private void assertUnitActive(TemperatureUnit unit) {
+        if (!unit.isActive()) {
+            throw new UnitInactiveException(unit.getId());
+        }
     }
 
     private void applyRequest(TemperatureUnit unit, UnitRequest request) {
@@ -111,7 +121,7 @@ public class UnitService {
         }
 
         if (!(min < target && target < max)) {
-            throw new IllegalArgumentException("Invalid thresholds: expected min < target < max");
+            throw new InvalidThresholdException();
         }
     }
 }

@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import backend.fullstack.dto.ErrorResponse;
 import backend.fullstack.exceptions.AppException;
+import backend.fullstack.exceptions.InvalidThresholdException;
 import backend.fullstack.exceptions.LocationException;
 import backend.fullstack.exceptions.OrganizationConflictException;
 import backend.fullstack.exceptions.PasswordException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.exceptions.RoleException;
+import backend.fullstack.exceptions.UnitInactiveException;
+import backend.fullstack.exceptions.UnitNotFoundException;
 import backend.fullstack.exceptions.UserConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -49,6 +52,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
         logger.warn("Resource not found: {}", ex.getMessage());
+        return buildErrorResponse(ex, request);
+    }
+
+    @ExceptionHandler(UnitNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUnitNotFound(UnitNotFoundException ex, HttpServletRequest request) {
+        logger.warn("Unit not found: {}", ex.getMessage());
+        return buildErrorResponse(ex, request);
+    }
+
+    @ExceptionHandler(InvalidThresholdException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidThreshold(
+            InvalidThresholdException ex, HttpServletRequest request) {
+        logger.warn("Invalid threshold values: {}", ex.getMessage());
+        return buildErrorResponse(ex, request);
+    }
+
+    @ExceptionHandler(UnitInactiveException.class)
+    public ResponseEntity<ErrorResponse> handleUnitInactive(UnitInactiveException ex, HttpServletRequest request) {
+        logger.warn("Inactive unit usage blocked: {}", ex.getMessage());
         return buildErrorResponse(ex, request);
     }
 
