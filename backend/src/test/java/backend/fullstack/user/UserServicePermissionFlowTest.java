@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -208,6 +209,15 @@ class UserServicePermissionFlowTest {
                 ));
     }
 
+    @Test
+    void assignProfilesRequiresAdminRole() {
+        User target = targetUser();
+        setPrincipal(Role.MANAGER);
+
+        assertThrows(AccessDeniedException.class,
+                () -> userService.assignProfiles(50L, List.of(1L), null, null, null, true));
+    }
+
     private static User targetUser() {
         Organization organization = Organization.builder()
                 .id(100L)
@@ -258,10 +268,14 @@ class UserServicePermissionFlowTest {
     }
 
         private static void setAdminPrincipal() {
+                setPrincipal(Role.ADMIN);
+        }
+
+        private static void setPrincipal(Role role) {
                 JwtPrincipal principal = new JwtPrincipal(
                                 999L,
-                                "admin@everest.no",
-                                Role.ADMIN,
+                                role.name().toLowerCase() + "@everest.no",
+                                role,
                                 100L,
                                 List.of()
                 );

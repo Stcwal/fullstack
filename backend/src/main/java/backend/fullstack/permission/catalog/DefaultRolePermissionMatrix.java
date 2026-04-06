@@ -36,6 +36,7 @@ public final class DefaultRolePermissionMatrix {
                 Permission.LOGS_TEMPERATURE_READ,
                 Permission.CHECKLISTS_READ,
                 Permission.DEVIATIONS_READ,
+                Permission.DEVIATIONS_RESOLVE,
                 Permission.REPORTS_READ,
                 Permission.REPORTS_EXPORT
         ));
@@ -49,9 +50,13 @@ public final class DefaultRolePermissionMatrix {
                 Permission.LOGS_TEMPERATURE_CREATE,
                 Permission.CHECKLISTS_READ,
                 Permission.CHECKLISTS_COMPLETE,
+                Permission.CHECKLISTS_APPROVE,
+                Permission.CHECKLISTS_TEMPLATE_MANAGE,
                 Permission.DEVIATIONS_READ,
                 Permission.DEVIATIONS_CREATE,
-                Permission.REPORTS_READ
+                Permission.DEVIATIONS_RESOLVE,
+                Permission.REPORTS_READ,
+                Permission.REPORTS_EXPORT
         ));
 
         mapping.put(Role.STAFF, EnumSet.of(

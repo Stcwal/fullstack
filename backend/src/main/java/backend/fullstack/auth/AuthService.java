@@ -55,7 +55,7 @@ public class AuthService {
      */
     public User registerBootstrapAdmin(RegisterRequest request) {
         if (userRepository.count() > 0) {
-            throw new AccessDeniedException("Public registration is disabled after bootstrap");
+            throw new AccessDeniedException("Bootstrap registration is only available before the first user is created");
         }
 
         if (request.getRole() != Role.ADMIN) {

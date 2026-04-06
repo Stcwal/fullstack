@@ -2,6 +2,7 @@ package backend.fullstack.organization;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import backend.fullstack.exceptions.OrganizationConflictException;
 import backend.fullstack.exceptions.ResourceNotFoundException;
@@ -11,6 +12,7 @@ import backend.fullstack.organization.dto.OrganizationMapper;
 import backend.fullstack.permission.core.AuthorizationService;
 import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.AccessContextService;
+import backend.fullstack.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 
@@ -26,11 +28,15 @@ import lombok.RequiredArgsConstructor;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
     private final AccessContextService accessContext;
     private final AuthorizationService authorizationService;
     private final OrganizationMapper organizationMapper;
 
+    @Transactional
     public OrganizationResponse create(OrganizationRequest request) {
+        assertBootstrapOrganizationCreationAllowed();
+
         if (organizationRepository.existsByOrganizationNumber(request.getOrganizationNumber())) {
             throw new OrganizationConflictException(
                     "An organization with org number " + request.getOrganizationNumber() + " already exists"
@@ -42,6 +48,7 @@ public class OrganizationService {
         return organizationMapper.toResponse(organizationRepository.save(org));
     }
 
+    @Transactional(readOnly = true)
     public OrganizationResponse getCurrentOrganization() {
         authorizationService.assertPermission(Permission.ORGANIZATION_SETTINGS_READ);
 
@@ -52,6 +59,7 @@ public class OrganizationService {
         return organizationMapper.toResponse(org);
     }
 
+    @Transactional(readOnly = true)
     public OrganizationResponse getById(Long id) {
         authorizationService.assertPermission(Permission.ORGANIZATION_SETTINGS_READ);
 
@@ -66,6 +74,7 @@ public class OrganizationService {
         return organizationMapper.toResponse(org);
     }
 
+    @Transactional
     public OrganizationResponse updateCurrentOrganization(OrganizationRequest request) {
         authorizationService.assertPermission(Permission.ORGANIZATION_SETTINGS_UPDATE);
 
@@ -82,6 +91,15 @@ public class OrganizationService {
         org.setName(request.getName());
         org.setOrganizationNumber(request.getOrganizationNumber());
 
-        return organizationMapper.toResponse(org);
+        Organization savedOrganization = organizationRepository.save(org);
+        return organizationMapper.toResponse(savedOrganization);
+    }
+
+    private void assertBootstrapOrganizationCreationAllowed() {
+        if (userRepository.count() > 0) {
+            throw new AccessDeniedException(
+                    "Organization creation is only available before the first user is created"
+            );
+        }
     }
 }

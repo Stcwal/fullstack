@@ -81,7 +81,7 @@ class AuthorizationServiceTest {
         User actor = user(1L, 100L, Role.MANAGER, "actor@everest.no");
         authenticate(actor);
 
-        when(userRepository.findByEmail(actor.getEmail())).thenReturn(java.util.Optional.of(actor));
+        when(userRepository.findById(actor.getId())).thenReturn(java.util.Optional.of(actor));
         when(userRepository.findEffectiveLocationScopeByUserId(actor.getId())).thenReturn(List.of(10L, 20L));
         when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(actor.getId()), any()))
                 .thenReturn(List.of());
@@ -102,7 +102,7 @@ class AuthorizationServiceTest {
         User sameUser = user(1L, 100L, Role.STAFF, "actor@everest.no");
         User otherOrgUser = user(2L, 200L, Role.STAFF, "other@everest.no");
 
-        when(userRepository.findByEmail(actor.getEmail())).thenReturn(java.util.Optional.of(actor));
+        when(userRepository.findById(actor.getId())).thenReturn(java.util.Optional.of(actor));
         rolePermissionCatalog.setEffectivePermissions(null, Set.of(Permission.USERS_READ_LOCATION));
 
         assertDoesNotThrow(() -> authorizationService.assertCanViewUser(sameUser));
@@ -117,32 +117,81 @@ class AuthorizationServiceTest {
     @Test
     void assertCanManageUserRoleMatrixEnforced() {
         User supervisor = user(10L, 100L, Role.SUPERVISOR, "supervisor@everest.no");
+        User targetManagerInScope = user(12L, 100L, Role.MANAGER, "target-manager-in-scope@everest.no");
         User targetSupervisor = user(11L, 100L, Role.SUPERVISOR, "target-supervisor@everest.no");
 
         authenticate(supervisor);
-        when(userRepository.findByEmail(supervisor.getEmail())).thenReturn(java.util.Optional.of(supervisor));
+        when(userRepository.findById(supervisor.getId())).thenReturn(java.util.Optional.of(supervisor));
         rolePermissionCatalog.setEffectivePermissions(null, Set.of(Permission.USERS_UPDATE));
+        when(userRepository.findAdditionalLocationIdsByUserId(supervisor.getId())).thenReturn(List.of(7L));
+        when(userRepository.findAdditionalLocationIdsByUserId(targetManagerInScope.getId())).thenReturn(List.of(7L));
+
+        assertDoesNotThrow(() -> authorizationService.assertCanManageUser(targetManagerInScope));
 
         assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
                 () -> authorizationService.assertCanManageUser(targetSupervisor));
 
         User manager = user(20L, 100L, Role.MANAGER, "manager@everest.no");
+        User targetStaff = user(31L, 100L, Role.STAFF, "target-staff@everest.no");
         User targetManager = user(21L, 100L, Role.MANAGER, "target-manager@everest.no");
 
         authenticate(manager);
-        when(userRepository.findByEmail(manager.getEmail())).thenReturn(java.util.Optional.of(manager));
+        when(userRepository.findById(manager.getId())).thenReturn(java.util.Optional.of(manager));
+        when(userRepository.findAdditionalLocationIdsByUserId(manager.getId())).thenReturn(List.of(9L));
+        when(userRepository.findAdditionalLocationIdsByUserId(targetStaff.getId())).thenReturn(List.of(9L));
+        assertDoesNotThrow(() -> authorizationService.assertCanManageUser(targetStaff));
 
         assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
                 () -> authorizationService.assertCanManageUser(targetManager));
 
         User staff = user(30L, 100L, Role.STAFF, "staff@everest.no");
-        User targetStaff = user(31L, 100L, Role.STAFF, "target-staff@everest.no");
 
         authenticate(staff);
-        when(userRepository.findByEmail(staff.getEmail())).thenReturn(java.util.Optional.of(staff));
-
+        when(userRepository.findById(staff.getId())).thenReturn(java.util.Optional.of(staff));
         assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
                 () -> authorizationService.assertCanManageUser(targetStaff));
+    }
+
+    @Test
+    void assertCanCreateUserFollowsHierarchy() {
+        User supervisor = user(10L, 100L, Role.SUPERVISOR, "supervisor@everest.no");
+        authenticate(supervisor);
+        when(userRepository.findById(supervisor.getId())).thenReturn(java.util.Optional.of(supervisor));
+        when(userRepository.findEffectiveLocationScopeByUserId(supervisor.getId())).thenReturn(List.of(7L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(supervisor.getId()), any()))
+                .thenReturn(List.of());
+        rolePermissionCatalog.setEffectivePermissions(null, Set.of(Permission.USERS_CREATE));
+
+        assertDoesNotThrow(() -> authorizationService.assertCanCreateUser(Role.STAFF, 7L));
+
+        backend.fullstack.exceptions.AccessDeniedException supervisorEx =
+                assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
+                        () -> authorizationService.assertCanCreateUser(Role.SUPERVISOR, 7L));
+        assertTrue(supervisorEx.getMessage().contains("Supervisors can only create"));
+
+        User manager = user(20L, 100L, Role.MANAGER, "manager@everest.no");
+        authenticate(manager);
+        when(userRepository.findById(manager.getId())).thenReturn(java.util.Optional.of(manager));
+        when(userRepository.findEffectiveLocationScopeByUserId(manager.getId())).thenReturn(List.of(7L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(manager.getId()), any()))
+                .thenReturn(List.of());
+        rolePermissionCatalog.setEffectivePermissions(null, Set.of(Permission.USERS_CREATE));
+
+        assertDoesNotThrow(() -> authorizationService.assertCanCreateUser(Role.STAFF, 7L));
+
+        backend.fullstack.exceptions.AccessDeniedException managerEx =
+                assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
+                        () -> authorizationService.assertCanCreateUser(Role.MANAGER, 7L));
+        assertTrue(managerEx.getMessage().contains("Managers can only create"));
+
+        User admin = user(1L, 100L, Role.ADMIN, "admin@everest.no");
+        authenticate(admin);
+        when(userRepository.findById(admin.getId())).thenReturn(java.util.Optional.of(admin));
+        when(locationRepository.findIdsByOrganizationId(100L)).thenReturn(List.of(7L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(admin.getId()), any()))
+                .thenReturn(List.of());
+
+        assertDoesNotThrow(() -> authorizationService.assertCanCreateUser(Role.STAFF, 7L));
     }
 
     @Test
@@ -150,7 +199,7 @@ class AuthorizationServiceTest {
         User actor = user(1L, 100L, Role.MANAGER, "actor@everest.no");
         authenticate(actor);
 
-        when(userRepository.findByEmail(actor.getEmail())).thenReturn(java.util.Optional.of(actor));
+        when(userRepository.findById(actor.getId())).thenReturn(java.util.Optional.of(actor));
         when(userRepository.findEffectiveLocationScopeByUserId(actor.getId())).thenReturn(List.of(7L, 8L));
         when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(actor.getId()), any()))
                 .thenReturn(List.of());

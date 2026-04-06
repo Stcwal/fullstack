@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.location.LocationRepository;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.user.role.Role;
@@ -68,6 +69,27 @@ class AccessContextServiceTest {
 
         when(userRepository.findByEmail(manager.getEmail())).thenReturn(Optional.of(manager));
         when(userRepository.findEffectiveLocationScopeByUserId(2L)).thenReturn(List.of(4L, 5L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(2L), any()))
+                .thenReturn(List.of(6L));
+
+        List<Long> allowed = accessContextService.getAllowedLocationIds();
+
+        assertEquals(List.of(4L, 5L, 6L), allowed);
+    }
+
+    @Test
+    void usesJwtLocationScopeBeforeRepositoryLookup() {
+        JwtPrincipal principal = new JwtPrincipal(
+                2L,
+                "manager@everest.no",
+                Role.MANAGER,
+                100L,
+                List.of(4L, 5L)
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+
         when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(2L), any()))
                 .thenReturn(List.of(6L));
 
