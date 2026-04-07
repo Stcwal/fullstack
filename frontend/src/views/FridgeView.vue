@@ -37,15 +37,15 @@
           <div class="unit-info-grid">
             <div class="info-item">
               <span class="text-muted text-sm">Måltemperatur</span>
-              <span class="info-value">{{ selectedUnit.targetTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ selectedUnit.targetTemperature }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Akseptabelt område</span>
-              <span class="info-value">{{ selectedUnit.minTemp }}&nbsp;°C – {{ selectedUnit.maxTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ selectedUnit.minThreshold }}&nbsp;°C – {{ selectedUnit.maxThreshold }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Innhold</span>
-              <span class="info-value">{{ selectedUnit.contents || '—' }}</span>
+              <span class="info-value">{{ selectedUnit.description || '—' }}</span>
             </div>
           </div>
         </div>

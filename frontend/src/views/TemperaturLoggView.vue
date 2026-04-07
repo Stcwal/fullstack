@@ -83,8 +83,8 @@ onMounted(async () => {
           </div>
           <div class="unit-header-right">
             <span class="text-muted text-sm">
-              Mål: {{ unit.targetTemp }}&nbsp;°C &nbsp;·&nbsp;
-              Område: {{ unit.minTemp }}–{{ unit.maxTemp }}&nbsp;°C
+              Mål: {{ unit.targetTemperature }}&nbsp;°C &nbsp;·&nbsp;
+              Område: {{ unit.minThreshold }}–{{ unit.maxThreshold }}&nbsp;°C
             </span>
           </div>
         </div>

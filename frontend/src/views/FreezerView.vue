@@ -308,15 +308,15 @@ watch(tempUnits, (units) => {
           <div class="unit-info-grid">
             <div class="info-item">
               <span class="text-muted text-sm">Måltemperatur</span>
-              <span class="info-value">{{ activeUnit.targetTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ activeUnit.targetTemperature }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Akseptabelt område</span>
-              <span class="info-value">{{ activeUnit.minTemp }}&nbsp;°C – {{ activeUnit.maxTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ activeUnit.minThreshold }}&nbsp;°C – {{ activeUnit.maxThreshold }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Innhold</span>
-              <span class="info-value">{{ activeUnit.contents || '—' }}</span>
+              <span class="info-value">{{ activeUnit.description || '—' }}</span>
             </div>
           </div>
         </div>
