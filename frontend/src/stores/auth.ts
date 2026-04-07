@@ -21,6 +21,14 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = response.user
     sessionStorage.setItem('token', response.token)
     sessionStorage.setItem('user', JSON.stringify(response.user))
+    // Hydrate full profile (gets firstName/lastName/permissions from /api/users/me in real backend)
+    try {
+      const fullUser = await authService.me()
+      user.value = fullUser
+      sessionStorage.setItem('user', JSON.stringify(fullUser))
+    } catch {
+      // me() failed — keep the login response user as fallback
+    }
   }
 
   function logout(): void {

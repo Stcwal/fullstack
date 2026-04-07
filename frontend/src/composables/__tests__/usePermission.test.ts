@@ -14,7 +14,7 @@ describe('usePermission', () => {
     expect(can('settings')).toBe(false)
   })
 
-  it('returns true when user has the permission', () => {
+  it('returns true when user has the permission explicitly set', () => {
     const auth = useAuthStore()
     auth.user = {
       id: 1, firstName: 'Kari', lastName: 'Larsen',
@@ -29,7 +29,7 @@ describe('usePermission', () => {
     expect(can('settings')).toBe(true)
   })
 
-  it('returns false when user exists but permission is false', () => {
+  it('returns false when user exists but permission is explicitly false', () => {
     const auth = useAuthStore()
     auth.user = {
       id: 2, firstName: 'Per', lastName: 'Hansen',
@@ -44,13 +44,47 @@ describe('usePermission', () => {
     expect(can('userAdmin')).toBe(false)
   })
 
-  it('returns false when user has no permissions object', () => {
+  it('falls back to role-derived defaults when user has no permissions object', () => {
     const auth = useAuthStore()
     auth.user = {
       id: 3, firstName: 'Ola', lastName: 'Berg',
       email: 'ola@test.no', role: 'MANAGER'
     }
     const { can } = usePermission()
-    expect(can('temperatureLogging')).toBe(false)
+    // MANAGER defaults: temperatureLogging true, settings false
+    expect(can('temperatureLogging')).toBe(true)
+    expect(can('settings')).toBe(false)
+    expect(can('userAdmin')).toBe(false)
+    expect(can('reports')).toBe(true)
+  })
+
+  it('STAFF role defaults deny reports, userAdmin, and settings', () => {
+    const auth = useAuthStore()
+    auth.user = {
+      id: 4, firstName: 'Anne', lastName: 'Dahl',
+      email: 'anne@test.no', role: 'STAFF'
+    }
+    const { can } = usePermission()
+    expect(can('temperatureLogging')).toBe(true)
+    expect(can('checklists')).toBe(true)
+    expect(can('deviations')).toBe(true)
+    expect(can('reports')).toBe(false)
+    expect(can('userAdmin')).toBe(false)
+    expect(can('settings')).toBe(false)
+  })
+
+  it('ADMIN role defaults grant all permissions', () => {
+    const auth = useAuthStore()
+    auth.user = {
+      id: 5, firstName: 'Admin', lastName: 'User',
+      email: 'admin@test.no', role: 'ADMIN'
+    }
+    const { can } = usePermission()
+    expect(can('temperatureLogging')).toBe(true)
+    expect(can('checklists')).toBe(true)
+    expect(can('reports')).toBe(true)
+    expect(can('deviations')).toBe(true)
+    expect(can('userAdmin')).toBe(true)
+    expect(can('settings')).toBe(true)
   })
 })
