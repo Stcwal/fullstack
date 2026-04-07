@@ -114,6 +114,23 @@ public class JwtUtil {
     }
 
     /**
+     * Generates an HttpOnly cookie from a pre-built JWT token string.
+     * Use this when you need to reuse the same token in both the cookie and the response body.
+     *
+     * @param token pre-built JWT token string
+     * @return configured JWT response cookie
+     */
+    public ResponseCookie generateJwtCookieFromToken(String token) {
+        return ResponseCookie.from(jwtProperties.getCookieName(), token)
+                .path("/api")
+                .maxAge(jwtProperties.getExpirationMs() / 1000)
+                .httpOnly(true)
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite("Strict")
+                .build();
+    }
+
+    /**
      * Generates an expired JWT cookie used for logout.
      *
      * @return cookie that clears the authentication cookie in the browser

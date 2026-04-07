@@ -65,13 +65,15 @@ public class AuthController {
         User user = (User) authentication.getPrincipal();
         LoginResponse loginResponse = authService.buildLoginResponse(user);
 
-        ResponseCookie jwtCookie = jwtUtil.generateJwtCookie(
+        String jwtToken = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getId(),
                 user.getRole().name(),
                 user.getOrganizationId(),
                 loginResponse.getAllowedLocationIds()
         );
+        ResponseCookie jwtCookie = jwtUtil.generateJwtCookieFromToken(jwtToken);
+        loginResponse.setToken(jwtToken);
 
         return ResponseEntity.ok()
                 .header("Set-Cookie", jwtCookie.toString())
