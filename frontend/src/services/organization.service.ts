@@ -38,20 +38,40 @@ export const organizationService = {
   async getOrg(): Promise<Organization> {
     await delay()
     return { ...mockOrg }
-    // Real: return (await api.get<Organization>('/organization')).data
+    // Real:
+    // const res = await api.get('/organization/me')
+    // return {
+    //   name: res.data.name,
+    //   orgNumber: res.data.organizationNumber,    // backend uses organizationNumber
+    //   industry: '',                               // not in backend yet
+    //   address: '',                                // not in backend yet
+    //   modules: { ikMat: true, ikAlkohol: true },  // frontend-only, not persisted
+    //   notifications: {                            // frontend-only, not persisted
+    //     emailOnTempDeviation: false,
+    //     dailySummaryToManagers: false,
+    //     smsOnCritical: false
+    //   }
+    // }
   },
 
   async updateOrg(data: Partial<Organization>): Promise<Organization> {
     await delay()
     mockOrg = { ...mockOrg, ...data }
     return { ...mockOrg }
-    // Real: return (await api.put<Organization>('/organization', data)).data
+    // Real:
+    // await api.put('/organization/me', {
+    //   name: data.name,
+    //   organizationNumber: data.orgNumber    // map frontend orgNumber → backend organizationNumber
+    // })
+    // return this.getOrg()    // re-fetch to merge frontend-only fields
   },
 
   async getUsers(): Promise<SettingsUser[]> {
     await delay()
     return [...mockUsers]
-    // Real: return (await api.get<SettingsUser[]>('/users')).data
+    // Real: return (await api.get('/users')).data
+    // Note: backend UserResponse uses isActive (not active) and has no permissions object.
+    // Map isActive → isActive (matches), derive permissions from role using usePermission defaults.
   },
 
   async updateUser(id: number, data: Partial<SettingsUser>): Promise<SettingsUser> {
@@ -60,7 +80,9 @@ export const organizationService = {
     if (idx === -1) throw new Error('Bruker ikke funnet')
     mockUsers[idx] = { ...mockUsers[idx], ...data }
     return { ...mockUsers[idx] }
-    // Real: return (await api.put<SettingsUser>(`/users/${id}`, data)).data
+    // Real: await api.put(`/users/${id}`, { firstName: data.firstName, lastName: data.lastName })
+    // Note: backend PUT /users/{id} only accepts firstName and lastName.
+    // Role changes go to PUT /users/{id}/role. Password changes via POST /users/me/change-password.
   },
 
   async createUser(data: Omit<SettingsUser, 'id'>): Promise<SettingsUser> {
