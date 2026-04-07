@@ -23,6 +23,7 @@ api.interceptors.response.use(
       response.data !== null &&
       typeof response.data === 'object' &&
       'success' in response.data &&
+      'message' in response.data &&
       'data' in response.data
     ) {
       response.data = response.data.data

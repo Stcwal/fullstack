@@ -177,7 +177,7 @@ Invalidate the refresh token server-side. Requires `Authorization` header.
 
 ---
 
-### GET `/api/auth/me`
+### GET `/api/users/me`
 
 Return the currently authenticated user, re-reading from the database (useful for permission changes taking effect).
 

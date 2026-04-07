@@ -171,13 +171,13 @@ These are **frontend requirements that depend on backend implementation**:
 
 | # | Requirement | Backend action needed |
 |---|-------------|----------------------|
-| B1 | `GET /api/auth/me` — returns full user with firstName, lastName | Implement endpoint |
+| B1 | `GET /api/users/me` — returns full user with firstName, lastName | Implement endpoint |
 | B2 | Login response must include `firstName`, `lastName` | Update `LoginResponse` DTO |
 | B3 | User management API (`GET/POST/PUT /api/users`) | Implement endpoints |
 | B4 | All feature endpoints (units, readings, checklists, deviations, dashboard, documents, reports) | Implement — prioritise in order listed |
 | B5 | Age verification log endpoint for IK-Alkohol | New endpoint needed |
 | B6 | Alcohol incident log endpoint | New endpoint needed |
-| B7 | `GET /api/auth/capabilities` or include permissions in `/auth/me` | Decide and implement |
+| B7 | `GET /api/auth/capabilities` or include permissions in `/users/me` | Decide and implement |
 
 ---
 
