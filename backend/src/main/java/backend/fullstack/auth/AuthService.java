@@ -5,12 +5,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import backend.fullstack.location.LocationRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import backend.fullstack.exceptions.LocationException;
+import backend.fullstack.exceptions.ResourceNotFoundException;
+import backend.fullstack.exceptions.RoleException;
+import backend.fullstack.exceptions.UserConflictException;
 import backend.fullstack.location.Location;
-import backend.fullstack.location.LocationRepository;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
 import backend.fullstack.user.User;
@@ -55,15 +59,15 @@ public class AuthService {
         }
 
         if (request.getRole() != Role.ADMIN) {
-            throw new IllegalArgumentException("Bootstrap registration can only create an ADMIN user");
+            throw new RoleException("Bootstrap registration can only create an ADMIN user");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new UserConflictException("Email is already in use");
         }
 
         Organization organization = organizationRepository.findById(request.getOrganizationId())
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
 
         User user = User.builder()
                 .organization(organization)
@@ -77,10 +81,10 @@ public class AuthService {
 
         if (request.getPrimaryLocationId() != null) {
             Location location = locationRepository.findById(request.getPrimaryLocationId())
-                    .orElseThrow(() -> new IllegalArgumentException("Primary location not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Primary location not found"));
 
             if (!location.getOrganizationId().equals(organization.getId())) {
-                throw new IllegalArgumentException("Primary location does not belong to the organization");
+                throw new LocationException("Primary location does not belong to the organization");
             }
 
             user.setHomeLocation(location);
