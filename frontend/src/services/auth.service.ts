@@ -47,7 +47,7 @@ export const authService = {
     const stored = sessionStorage.getItem('user')
     if (!stored) throw new Error('Not authenticated')
     return JSON.parse(stored)
-    // Real: return (await api.get<User>('/auth/me')).data
+    // Real: return (await api.get<User>('/users/me')).data
   }
 }
 

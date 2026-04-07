@@ -17,7 +17,18 @@ api.interceptors.request.use((config) => {
 
 // Redirect to login on 401
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap ApiResponse<T> envelope from Spring Boot backend
+    if (
+      response.data !== null &&
+      typeof response.data === 'object' &&
+      'success' in response.data &&
+      'data' in response.data
+    ) {
+      response.data = response.data.data
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token')
