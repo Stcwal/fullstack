@@ -10,6 +10,6 @@ public interface ReadingMapper {
 
     @Mapping(target = "unitId", source = "unit.id")
     @Mapping(target = "recordedBy", source = "recordedByName")
-    @Mapping(target = "isOutOfRange", source = "isOutOfRange")
+    @Mapping(target = "isOutOfRange", source = "outOfRange")
     ReadingResponse toResponse(TemperatureReading reading);
 }
