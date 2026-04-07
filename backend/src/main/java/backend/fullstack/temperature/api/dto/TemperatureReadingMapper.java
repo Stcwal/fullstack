@@ -30,16 +30,12 @@ public interface TemperatureReadingMapper {
     @Mapping(target = "isDeviation", source = "deviation")
     TemperatureReadingResponse toResponse(TemperatureReading reading);
 
+    @Named("toRecordedByResponse")
     default RecordedByResponse toRecordedByResponse(User user) {
         if (user == null) {
             return null;
         }
 
         return new RecordedByResponse(user.getId(), user.getFirstName() + " " + user.getLastName());
-    }
-
-    @Named("toRecordedByResponse")
-    default RecordedByResponse mapRecordedBy(User user) {
-        return toRecordedByResponse(user);
     }
 }
