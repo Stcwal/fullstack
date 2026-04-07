@@ -36,7 +36,7 @@ export interface AuthResponse {
 // Units
 // ============================================================
 export type UnitType = 'FREEZER' | 'FRIDGE' | 'COOLER' | 'DISPLAY' | 'OTHER'
-export type ModuleType = 'IK_MAT' | 'IK_ALKOHOL'
+export type ModuleType = 'IK_MAT' | 'IK_ALKOHOL' | 'SHARED'
 
 export interface Unit {
   id: number
@@ -100,7 +100,7 @@ export interface Checklist {
 // Deviations
 // ============================================================
 export type DeviationStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'
-export type DeviationSeverity = 'CRITICAL' | 'MEDIUM' | 'LOW'
+export type DeviationSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
 
 export interface Deviation {
   id: number
