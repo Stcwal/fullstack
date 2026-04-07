@@ -69,6 +69,7 @@
           <option value="FREEZER">Fryser</option>
           <option value="FRIDGE">Kjøleskap</option>
           <option value="COOLER">Kjøler</option>
+          <option value="DISPLAY">Visningsenhet</option>
           <option value="OTHER">Annet</option>
         </select>
       </div>
@@ -168,6 +169,7 @@ function unitTypeLabel(type: UnitType): string {
     FREEZER: 'Fryser',
     FRIDGE: 'Kjøleskap',
     COOLER: 'Kjøler',
+    DISPLAY: 'Visningsenhet',
     OTHER: 'Annet',
   }
   return labels[type]

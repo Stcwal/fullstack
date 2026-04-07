@@ -72,13 +72,14 @@
           <label class="font-medium text-sm">Rolle</label>
           <select v-model="form.role" class="form-control">
             <option value="ADMIN">Admin</option>
+            <option value="SUPERVISOR">Veileder</option>
             <option value="MANAGER">Leder</option>
             <option value="STAFF">Ansatt</option>
           </select>
         </div>
         <div class="form-group">
           <label class="font-medium text-sm">Status</label>
-          <select v-model="form.active" class="form-control">
+          <select v-model="form.isActive" class="form-control">
             <option :value="true">Aktiv</option>
             <option :value="false">Inaktiv</option>
           </select>
@@ -149,7 +150,7 @@ const emptyForm = (): FormData => ({
   lastName: '',
   email: '',
   role: 'STAFF',
-  active: true,
+  isActive: true,
   permissions: {
     temperatureLogging: false,
     checklists: false,
@@ -177,12 +178,14 @@ function initials(firstName: string, lastName: string): string {
 
 function roleBadgeClass(role: UserRole): string {
   if (role === 'ADMIN') return 'badge-purple'
+  if (role === 'SUPERVISOR') return 'badge-info'
   if (role === 'MANAGER') return 'badge-info'
   return 'badge-neutral'
 }
 
 function roleLabel(role: UserRole): string {
   if (role === 'ADMIN') return 'Admin'
+  if (role === 'SUPERVISOR') return 'Veileder'
   if (role === 'MANAGER') return 'Leder'
   return 'Ansatt'
 }
@@ -190,6 +193,7 @@ function roleLabel(role: UserRole): string {
 function getAvatarColors(role: UserRole): { bg: string; text: string } {
   const roleColors: Record<UserRole, { bg: string; text: string }> = {
     ADMIN: { bg: '#A855F7', text: '#FFFFFF' },
+    SUPERVISOR: { bg: '#3B82F6', text: '#FFFFFF' },
     MANAGER: { bg: '#3B82F6', text: '#FFFFFF' },
     STAFF: { bg: '#6B7280', text: '#FFFFFF' },
   }
@@ -211,7 +215,7 @@ function openEditModal(user: SettingsUser) {
     lastName: user.lastName,
     email: user.email,
     role: user.role,
-    active: user.active,
+    isActive: user.isActive,
     permissions: { ...user.permissions },
   })
   showModal.value = true

@@ -17,17 +17,17 @@ let mockOrg: Organization = {
 let mockUsers: SettingsUser[] = [
   {
     id: 1, firstName: 'Kari',  lastName: 'Larsen',    email: 'kari@everestsushi.no',
-    role: 'ADMIN',   active: true, colorBg: '#EDE9FE', colorText: '#5B21B6',
+    role: 'ADMIN',   isActive: true, colorBg: '#EDE9FE', colorText: '#5B21B6',
     permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: true, settings: true }
   },
   {
     id: 2, firstName: 'Ola',   lastName: 'Nordmann',  email: 'ola@everestsushi.no',
-    role: 'MANAGER', active: true, colorBg: '#F0FDF4', colorText: '#15803D',
+    role: 'MANAGER', isActive: true, colorBg: '#F0FDF4', colorText: '#15803D',
     permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: false, settings: false }
   },
   {
     id: 3, firstName: 'Per',   lastName: 'Martinsen', email: 'per@everestsushi.no',
-    role: 'STAFF',   active: true, colorBg: '#F1F5F9', colorText: '#475569',
+    role: 'STAFF',   isActive: true, colorBg: '#F1F5F9', colorText: '#475569',
     permissions: { temperatureLogging: true, checklists: true, reports: false, deviations: true, userAdmin: false, settings: false }
   }
 ]

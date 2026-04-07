@@ -18,7 +18,7 @@ const initials = computed(() => {
 })
 
 const roleName = computed(() => {
-  const map = { ADMIN: 'Administrator', MANAGER: 'Leder', STAFF: 'Ansatt' }
+  const map = { ADMIN: 'Administrator', SUPERVISOR: 'Veileder', MANAGER: 'Leder', STAFF: 'Ansatt' }
   return user.value ? map[user.value.role] : ''
 })
 
