@@ -87,4 +87,19 @@ describe('usePermission', () => {
     expect(can('userAdmin')).toBe(true)
     expect(can('settings')).toBe(true)
   })
+
+  it('SUPERVISOR role defaults: reports true, userAdmin and settings false', () => {
+    const auth = useAuthStore()
+    auth.user = {
+      id: 6, firstName: 'Supervisor', lastName: 'User',
+      email: 'supervisor@test.no', role: 'SUPERVISOR'
+    }
+    const { can } = usePermission()
+    expect(can('temperatureLogging')).toBe(true)
+    expect(can('checklists')).toBe(true)
+    expect(can('reports')).toBe(true)
+    expect(can('deviations')).toBe(true)
+    expect(can('userAdmin')).toBe(false)
+    expect(can('settings')).toBe(false)
+  })
 })
