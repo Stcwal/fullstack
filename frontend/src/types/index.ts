@@ -1,7 +1,7 @@
 // ============================================================
 // Auth
 // ============================================================
-export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
+export type UserRole = 'ADMIN' | 'SUPERVISOR' | 'MANAGER' | 'STAFF'
 
 export interface UserPermissions {
   temperatureLogging: boolean
@@ -35,19 +35,22 @@ export interface AuthResponse {
 // ============================================================
 // Units
 // ============================================================
-export type UnitType = 'FREEZER' | 'FRIDGE' | 'COOLER' | 'OTHER'
+export type UnitType = 'FREEZER' | 'FRIDGE' | 'COOLER' | 'DISPLAY' | 'OTHER'
 export type ModuleType = 'IK_MAT' | 'IK_ALKOHOL'
 
 export interface Unit {
   id: number
   name: string
   type: UnitType
-  targetTemp: number
-  minTemp: number
-  maxTemp: number
-  contents: string
+  targetTemperature: number
+  minThreshold: number
+  maxThreshold: number
+  description: string
   active: boolean
   hasAlert?: boolean
+  organizationId?: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 // ============================================================
@@ -198,7 +201,7 @@ export interface SettingsUser {
   lastName: string
   email: string
   role: UserRole
-  active: boolean
+  isActive: boolean
   colorBg: string
   colorText: string
   permissions: UserPermissions
@@ -211,10 +214,10 @@ export interface SettingsUnit {
   id: number
   name: string
   type: UnitType
-  targetTemp: number
-  minTemp: number
-  maxTemp: number
-  contents: string
+  targetTemperature: number
+  minThreshold: number
+  maxThreshold: number
+  description: string
   active: boolean
 }
 
