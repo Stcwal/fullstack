@@ -1,7 +1,6 @@
 package backend.fullstack.dashboard.application;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,7 +43,6 @@ class DashboardServiceTest {
     @Test
     void getDashboard_returnsStatsWithOpenDeviationCount() {
         Long orgId = 1L;
-        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
         when(readingRepository.countByOrganization_IdAndIsOutOfRangeTrueAndRecordedAtAfter(
                 org.mockito.ArgumentMatchers.eq(orgId),
