@@ -43,7 +43,7 @@ public class AuthController {
     }
 
     /**
-     * Authenticates the user and returns a JWT token in an HTTP-only cookie. The response body contains user details and allowed location IDs.
+     * Authenticates the user and returns a JWT token in an HTTP-only cookie and also in the response body as {@code data.token} for Bearer auth fallback. The response body contains user details and allowed location IDs.
      * The JWT cookie is set with the following claims: email, userId, role, organizationId, and allowedLocationIds. The cookie is HTTP-only and has a max age of 24 hours.
      *
      * @param request The login request containing email and password.

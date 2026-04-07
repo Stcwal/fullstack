@@ -57,7 +57,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("Login successful"))
                 .andExpect(jsonPath("$.data.userId").value(42))
                 .andExpect(jsonPath("$.data.organizationId").value(10))
-                .andExpect(jsonPath("$.data.allowedLocationIds[0]").value(1));
+                .andExpect(jsonPath("$.data.allowedLocationIds[0]").value(1))
+                .andExpect(jsonPath("$.data.token").value("test-token"));
     }
 
     @Test
@@ -134,6 +135,16 @@ class AuthControllerTest {
 
         private TestJwtUtil() {
             super(new JwtProperties());
+        }
+
+        @Override
+        public String generateToken(String email, Long userId, String role, Long organizationId, List<Long> locationIds) {
+            return "test-token";
+        }
+
+        @Override
+        public ResponseCookie generateJwtCookieFromToken(String token) {
+            return ResponseCookie.from("jwt", token).build();
         }
 
         @Override
