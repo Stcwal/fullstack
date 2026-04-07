@@ -2,8 +2,10 @@ package backend.fullstack.temperature.api.dto;
 
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import jakarta.validation.ConstraintViolation;
@@ -13,11 +15,20 @@ import jakarta.validation.ValidatorFactory;
 
 class TemperatureReadingRequestValidationTest {
 
-    private final Validator validator;
+    private static ValidatorFactory validatorFactory;
+    private static Validator validator;
 
-    TemperatureReadingRequestValidationTest() {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        this.validator = validatorFactory.getValidator();
+    @BeforeAll
+    static void initValidator() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+
+    @AfterAll
+    static void closeValidatorFactory() {
+        if (validatorFactory != null) {
+            validatorFactory.close();
+        }
     }
 
     @Test
