@@ -81,7 +81,6 @@ public class TemperatureReadingService {
         reading.setOrganization(unit.getOrganization());
         reading.setUnit(unit);
         reading.setRecordedBy(recordedBy);
-        reading.setRecordedAt(reading.getRecordedAt() != null ? reading.getRecordedAt() : LocalDateTime.now());
         reading.evaluateDeviation(unit.getMinThreshold(), unit.getMaxThreshold());
 
         TemperatureReading saved = readingRepository.save(reading);
