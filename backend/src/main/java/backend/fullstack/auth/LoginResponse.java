@@ -34,6 +34,12 @@ public class LoginResponse {
 	@Schema(description = "All locations the user can access", example = "[1,2,3]")
 	private List<Long> allowedLocationIds = new ArrayList<>();
 
+	@Schema(description = "First name", example = "Kari")
+	private String firstName;
+
+	@Schema(description = "Last name", example = "Larsen")
+	private String lastName;
+
 	@Schema(description = "JWT token for Bearer auth fallback", example = "eyJ...")
 	private String token;
 

@@ -105,6 +105,8 @@ public class AuthService {
         LoginResponse response = new LoginResponse();
         response.setUserId(user.getId());
         response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
         response.setRole(user.getRole());
         response.setOrganizationId(user.getOrganizationId());
         response.setPrimaryLocationId(user.getHomeLocationId());
