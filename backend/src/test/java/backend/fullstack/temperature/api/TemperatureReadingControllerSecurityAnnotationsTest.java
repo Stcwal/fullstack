@@ -21,6 +21,11 @@ class TemperatureReadingControllerSecurityAnnotationsTest {
     }
 
     @Test
+    void readingStatsRequireAdminOrManager() {
+        assertPreAuthorize("getReadingStats", "hasAnyRole('ADMIN','MANAGER')");
+    }
+
+    @Test
     void createReadingAllowsAllOperationalRoles() {
         assertPreAuthorize("createReading", "hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')");
     }

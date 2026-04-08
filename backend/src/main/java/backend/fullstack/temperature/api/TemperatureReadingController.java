@@ -23,6 +23,8 @@ import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.temperature.api.dto.TemperatureReadingRequest;
 import backend.fullstack.temperature.api.dto.TemperatureReadingResponse;
+import backend.fullstack.temperature.api.dto.TemperatureReadingStatsGroupBy;
+import backend.fullstack.temperature.api.dto.TemperatureReadingStatsResponse;
 import backend.fullstack.temperature.application.TemperatureReadingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -89,6 +91,32 @@ public class TemperatureReadingController {
         );
 
         return ResponseEntity.ok(ApiResponse.success("Readings retrieved", readings));
+    }
+
+    @GetMapping("/readings/stats")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @Operation(summary = "Get reading statistics for charts")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Reading statistics retrieved"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<ApiResponse<TemperatureReadingStatsResponse>> getReadingStats(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @RequestParam(required = false) List<Long> unitIds,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(defaultValue = "DAY") TemperatureReadingStatsGroupBy groupBy
+    ) {
+        TemperatureReadingStatsResponse response = readingService.getReadingStats(
+                principal.organizationId(),
+                unitIds,
+                from,
+                to,
+                groupBy
+        );
+
+        return ResponseEntity.ok(ApiResponse.success("Reading statistics retrieved", response));
     }
 
     @PostMapping("/units/{unitId}/readings")
