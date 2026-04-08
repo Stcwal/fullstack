@@ -70,8 +70,8 @@ public class Deviation {
     @JoinColumn(name = "reported_by_id", nullable = false)
     private User reportedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "resolved_by_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resolved_by_id")
     private User resolvedBy;
 
     @Column(name = "resolved_at")

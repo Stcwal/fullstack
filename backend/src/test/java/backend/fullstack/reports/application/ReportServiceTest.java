@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import backend.fullstack.organization.Organization;
-import backend.fullstack.readings.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
 import backend.fullstack.reports.api.dto.ChartResponse;
 import backend.fullstack.units.domain.TemperatureUnit;
 import backend.fullstack.units.domain.UnitType;
@@ -62,9 +62,9 @@ class ReportServiceTest {
         when(unitRepository.findByOrganizationAndOptionalActive(orgId, true))
                 .thenReturn(List.of(unit1, unit2));
 
-        when(readingRepository.findByUnit_IdAndOrganization_IdOrderByRecordedAtDesc(1L, orgId))
+        when(readingRepository.findByOrganization_IdAndUnit_IdOrderByRecordedAtDesc(orgId, 1L))
                 .thenReturn(List.of());
-        when(readingRepository.findByUnit_IdAndOrganization_IdOrderByRecordedAtDesc(2L, orgId))
+        when(readingRepository.findByOrganization_IdAndUnit_IdOrderByRecordedAtDesc(orgId, 2L))
                 .thenReturn(List.of());
 
         ChartResponse response = service.getChartData(orgId, "WEEK");
