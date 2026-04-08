@@ -172,6 +172,15 @@ class UserControllerTest {
     }
 
     @Test
+    void resendInviteDelegatesToService() throws Exception {
+        mockMvc.perform(post("/api/users/3/resend-invite"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Invite resent"));
+
+        assert userService.resendInviteId.equals(3L);
+    }
+
+    @Test
     void createReturnsValidationErrorForMissingFields() throws Exception {
         mockMvc.perform(post("/api/users")
                         .contentType(APPLICATION_JSON)
@@ -181,8 +190,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.fieldErrors.firstName").value("First name is required"))
                 .andExpect(jsonPath("$.fieldErrors.lastName").value("Last name is required"))
                 .andExpect(jsonPath("$.fieldErrors.email").value("Email is required"))
-                .andExpect(jsonPath("$.fieldErrors.role").value("Role is required"))
-                .andExpect(jsonPath("$.fieldErrors.password").value("Password is required"));
+                .andExpect(jsonPath("$.fieldErrors.role").value("Role is required"));
     }
 
     private static CreateUserRequest createRequest() {
@@ -192,7 +200,6 @@ class UserControllerTest {
         request.setEmail("staff@everest.no");
         request.setRole(Role.STAFF);
         request.setLocationId(1L);
-        request.setPassword("Password1");
         return request;
     }
 
@@ -235,9 +242,10 @@ class UserControllerTest {
         private Long lastId;
         private Long deactivatedId;
         private Long reactivatedId;
+        private Long resendInviteId;
 
         private TestUserService() {
-            super(null, null, null, null, null, null, null, null, null, null);
+            super(null, null, null, null, null, null, null, null, null, null, null);
         }
 
         @Override
@@ -294,6 +302,11 @@ class UserControllerTest {
         @Override
         public void reactivate(Long id) {
             reactivatedId = id;
+        }
+
+        @Override
+        public void resendInvite(Long id) {
+            resendInviteId = id;
         }
     }
 }

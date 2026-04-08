@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
  * - POST /api/users/me/change-password: Change current user password.
  * - POST /api/users/{id}/deactivate: Deactivate user.
  * - POST /api/users/{id}/reactivate: Reactivate user.
+ * - POST /api/users/{id}/resend-invite: Resend invite link email.
  * 
  * @version 1.0
  * @since 03.04.26
@@ -120,5 +121,12 @@ public class UserController {
     public ApiResponse<Void> reactivate(@PathVariable Long id) {
         userService.reactivate(id);
         return ApiResponse.success("User reactivated", null);
+    }
+
+    @PostMapping("/{id}/resend-invite")
+    @Operation(summary = "Resend invite")
+    public ApiResponse<Void> resendInvite(@PathVariable Long id) {
+        userService.resendInvite(id);
+        return ApiResponse.success("Invite resent", null);
     }
 }

@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/logout").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/logout", "/api/auth/invite/accept").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/organization")
                         .access(this::canAccessBootstrapSetup)
                         .anyRequest().authenticated()
