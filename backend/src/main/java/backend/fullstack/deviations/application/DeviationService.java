@@ -6,12 +6,17 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import backend.fullstack.deviations.api.dto.DeviationCommentRequest;
+import backend.fullstack.deviations.api.dto.DeviationCommentResponse;
 import backend.fullstack.deviations.api.dto.DeviationMapper;
 import backend.fullstack.deviations.api.dto.DeviationRequest;
 import backend.fullstack.deviations.api.dto.DeviationResponse;
 import backend.fullstack.deviations.api.dto.ResolveDeviationRequest;
+import backend.fullstack.deviations.api.dto.UpdateDeviationStatusRequest;
+import backend.fullstack.deviations.domain.DeviationComment;
 import backend.fullstack.deviations.domain.Deviation;
 import backend.fullstack.deviations.domain.DeviationStatus;
+import backend.fullstack.deviations.infrastructure.DeviationCommentRepository;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
 import backend.fullstack.exceptions.ResourceNotFoundException;
 import backend.fullstack.organization.Organization;
@@ -24,17 +29,20 @@ import backend.fullstack.user.UserRepository;
 public class DeviationService {
 
     private final DeviationRepository deviationRepository;
+    private final DeviationCommentRepository deviationCommentRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
     private final DeviationMapper deviationMapper;
 
     public DeviationService(
             DeviationRepository deviationRepository,
+            DeviationCommentRepository deviationCommentRepository,
             OrganizationRepository organizationRepository,
             UserRepository userRepository,
             DeviationMapper deviationMapper
     ) {
         this.deviationRepository = deviationRepository;
+        this.deviationCommentRepository = deviationCommentRepository;
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
         this.deviationMapper = deviationMapper;
@@ -74,19 +82,96 @@ public class DeviationService {
         return deviationMapper.toResponse(saved);
     }
 
-    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
+    public DeviationResponse updateDeviationStatus(
+            Long organizationId,
+            Long userId,
+            Long deviationId,
+            UpdateDeviationStatusRequest request
+    ) {
         Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
 
-        User resolver = userRepository.findById(userId)
+        User actor = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
-        deviation.setStatus(DeviationStatus.RESOLVED);
-        deviation.setResolvedBy(resolver);
-        deviation.setResolvedAt(LocalDateTime.now());
-        deviation.setResolution(request.resolution());
+        assertUserInOrganization(actor, organizationId);
+        assertAllowedTransition(deviation.getStatus(), request.status());
+
+        deviation.setStatus(request.status());
+
+        if (request.status() == DeviationStatus.RESOLVED) {
+            deviation.setResolvedBy(actor);
+            deviation.setResolvedAt(LocalDateTime.now());
+            deviation.setResolution(request.resolution());
+        } else {
+            deviation.setResolvedBy(null);
+            deviation.setResolvedAt(null);
+            deviation.setResolution(null);
+        }
 
         Deviation saved = deviationRepository.save(deviation);
         return deviationMapper.toResponse(saved);
+    }
+
+    public DeviationCommentResponse addComment(
+            Long organizationId,
+            Long userId,
+            Long deviationId,
+            DeviationCommentRequest request
+    ) {
+        Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
+
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        assertUserInOrganization(author, organizationId);
+
+        DeviationComment comment = DeviationComment.builder()
+                .organization(deviation.getOrganization())
+                .deviation(deviation)
+                .createdBy(author)
+                .commentText(request.comment())
+                .build();
+
+        DeviationComment saved = deviationCommentRepository.save(comment);
+        return new DeviationCommentResponse(
+                saved.getId(),
+                saved.getCommentText(),
+                saved.getCreatedById(),
+                saved.getCreatedByName(),
+                saved.getCreatedAt()
+        );
+    }
+
+    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
+        return updateDeviationStatus(
+                organizationId,
+                userId,
+                deviationId,
+                new UpdateDeviationStatusRequest(DeviationStatus.RESOLVED, request.resolution())
+        );
+    }
+
+    private void assertUserInOrganization(User user, Long organizationId) {
+        if (!organizationId.equals(user.getOrganizationId())) {
+            throw new IllegalArgumentException("User does not belong to this organization");
+        }
+    }
+
+    private void assertAllowedTransition(DeviationStatus current, DeviationStatus target) {
+        if (current == target) {
+            return;
+        }
+
+        boolean valid = switch (current) {
+            case OPEN -> target == DeviationStatus.IN_PROGRESS || target == DeviationStatus.RESOLVED;
+            case IN_PROGRESS -> target == DeviationStatus.RESOLVED;
+            case RESOLVED -> false;
+        };
+
+        if (!valid) {
+            throw new IllegalArgumentException("Invalid status transition: " + current + " -> " + target);
+        }
     }
 }
