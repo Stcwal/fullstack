@@ -7,7 +7,8 @@ const props = defineProps<{
 
 const labels: Record<ModuleType, string> = {
   IK_MAT: 'IK-Mat',
-  IK_ALKOHOL: 'IK-Alkohol'
+  IK_ALKOHOL: 'IK-Alkohol',
+  SHARED: 'Felles'
 }
 </script>
 
