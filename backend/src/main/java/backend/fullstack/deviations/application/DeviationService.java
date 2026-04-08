@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import backend.fullstack.deviations.api.dto.DeviationCommentRequest;
 import backend.fullstack.deviations.api.dto.DeviationCommentResponse;
+import backend.fullstack.deviations.api.dto.DeviationDetailsResponse;
 import backend.fullstack.deviations.api.dto.DeviationMapper;
 import backend.fullstack.deviations.api.dto.DeviationRequest;
 import backend.fullstack.deviations.api.dto.DeviationResponse;
@@ -60,6 +61,41 @@ public class DeviationService {
                 .map(deviationMapper::toResponse)
                 .toList();
     }
+
+            @Transactional(readOnly = true)
+            public DeviationDetailsResponse getDeviationById(Long organizationId, Long deviationId) {
+            Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
+
+            List<DeviationCommentResponse> comments = deviationCommentRepository
+                .findByOrganization_IdAndDeviation_IdOrderByCreatedAtAsc(organizationId, deviationId)
+                .stream()
+                .map(comment -> new DeviationCommentResponse(
+                    comment.getId(),
+                    comment.getCommentText(),
+                    comment.getCreatedById(),
+                    comment.getCreatedByName(),
+                    comment.getCreatedAt()
+                ))
+                .toList();
+
+            DeviationResponse base = deviationMapper.toResponse(deviation);
+            return new DeviationDetailsResponse(
+                base.id(),
+                base.title(),
+                base.description(),
+                base.status(),
+                base.severity(),
+                base.moduleType(),
+                base.reportedBy(),
+                base.reportedAt(),
+                base.resolvedBy(),
+                base.resolvedAt(),
+                base.resolution(),
+                deviation.getRelatedReadingId(),
+                comments
+            );
+            }
 
     public DeviationResponse createDeviation(Long organizationId, Long userId, DeviationRequest request) {
         Organization organization = organizationRepository.findById(organizationId)

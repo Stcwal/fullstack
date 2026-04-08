@@ -18,6 +18,7 @@ import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.deviations.api.dto.DeviationCommentRequest;
 import backend.fullstack.deviations.api.dto.DeviationCommentResponse;
+import backend.fullstack.deviations.api.dto.DeviationDetailsResponse;
 import backend.fullstack.deviations.api.dto.DeviationRequest;
 import backend.fullstack.deviations.api.dto.DeviationResponse;
 import backend.fullstack.deviations.api.dto.ResolveDeviationRequest;
@@ -55,6 +56,23 @@ public class DeviationController {
             @RequestParam(required = false) DeviationStatus status) {
         List<DeviationResponse> deviations = deviationService.getDeviations(principal.organizationId(), status);
         return ResponseEntity.ok(ApiResponse.success("Deviations retrieved", deviations));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
+    @Operation(summary = "Get deviation by id", description = "Returns one deviation including comment log")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Deviation retrieved"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Deviation not found")
+    })
+    public ResponseEntity<ApiResponse<DeviationDetailsResponse>> getDeviationById(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @PathVariable Long id
+    ) {
+        DeviationDetailsResponse deviation = deviationService.getDeviationById(principal.organizationId(), id);
+        return ResponseEntity.ok(ApiResponse.success("Deviation retrieved", deviation));
     }
 
     @PostMapping
