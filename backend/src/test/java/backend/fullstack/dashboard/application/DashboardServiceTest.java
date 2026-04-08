@@ -21,6 +21,7 @@ import backend.fullstack.dashboard.api.dto.DashboardResponse;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
 import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.user.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
@@ -34,11 +35,14 @@ class DashboardServiceTest {
     @Mock
     private ChecklistInstanceRepository checklistInstanceRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     private DashboardService service;
 
     @BeforeEach
     void setUp() {
-        service = new DashboardService(readingRepository, deviationRepository, checklistInstanceRepository);
+        service = new DashboardService(readingRepository, deviationRepository, checklistInstanceRepository, userRepository);
     }
 
     @Test

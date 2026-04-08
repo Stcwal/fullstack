@@ -23,6 +23,7 @@ import backend.fullstack.deviations.domain.DeviationSeverity;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
 import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.user.UserRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -33,15 +34,18 @@ public class DashboardService {
     private final TemperatureReadingRepository readingRepository;
     private final DeviationRepository deviationRepository;
     private final ChecklistInstanceRepository checklistInstanceRepository;
+    private final UserRepository userRepository;
 
     public DashboardService(
             TemperatureReadingRepository readingRepository,
             DeviationRepository deviationRepository,
-            ChecklistInstanceRepository checklistInstanceRepository
+            ChecklistInstanceRepository checklistInstanceRepository,
+            UserRepository userRepository
     ) {
         this.readingRepository = readingRepository;
         this.deviationRepository = deviationRepository;
         this.checklistInstanceRepository = checklistInstanceRepository;
+        this.userRepository = userRepository;
     }
 
     public DashboardResponse getDashboard(Long organizationId) {
@@ -88,11 +92,12 @@ public class DashboardService {
                     .map(item -> formatInstant(item.getCompletedAt()))
                     .reduce((first, second) -> second)
                     .orElse(null);
-            // completedBy: use userId as string (no User join on items)
             completedBy = instance.getItems().stream()
                     .filter(item -> item.getCompletedByUserId() != null)
-                    .map(item -> String.valueOf(item.getCompletedByUserId()))
+                    .map(item -> item.getCompletedByUserId())
                     .findFirst()
+                    .flatMap(userRepository::findById)
+                    .map(u -> u.getFirstName() + " " + u.getLastName())
                     .orElse(null);
         }
 
