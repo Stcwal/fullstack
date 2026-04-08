@@ -75,6 +75,8 @@ public class DeviationService {
     }
 
     public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
+        validateResolutionForResolvedStatus(request.resolution());
+
         Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
 
@@ -88,5 +90,11 @@ public class DeviationService {
 
         Deviation saved = deviationRepository.save(deviation);
         return deviationMapper.toResponse(saved);
+    }
+
+    private void validateResolutionForResolvedStatus(String resolution) {
+        if (resolution == null || resolution.isBlank()) {
+            throw new IllegalArgumentException("Resolution text is required when status is RESOLVED");
+        }
     }
 }

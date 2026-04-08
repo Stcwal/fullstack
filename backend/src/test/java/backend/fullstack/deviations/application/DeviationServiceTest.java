@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -158,6 +159,16 @@ class DeviationServiceTest {
         assertNotNull(saved.getResolvedAt());
         assertEquals(resolver, saved.getResolvedBy());
     }
+
+        @Test
+        void resolveDeviation_blankResolution_throwsIllegalArgumentException() {
+                IllegalArgumentException ex = assertThrows(
+                                IllegalArgumentException.class,
+                                () -> service.resolveDeviation(1L, 5L, 20L, new ResolveDeviationRequest("   "))
+                );
+
+                assertEquals("Resolution text is required when status is RESOLVED", ex.getMessage());
+        }
 
     // --- helpers ---
 
