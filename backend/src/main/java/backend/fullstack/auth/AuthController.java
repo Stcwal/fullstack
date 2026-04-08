@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtUtil;
+import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.user.User;
 import jakarta.validation.Valid;
 
@@ -29,15 +30,18 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+        private final UserInviteService userInviteService;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
     public AuthController(
             AuthService authService,
+                        UserInviteService userInviteService,
             JwtUtil jwtUtil,
             AuthenticationManager authenticationManager
     ) {
         this.authService = authService;
+                this.userInviteService = userInviteService;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
     }
@@ -116,5 +120,20 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header("Set-Cookie", cleanCookie.toString())
                 .body(ApiResponse.success("Logged out", null));
+    }
+
+    /**
+     * Accepts a one-time invite token and sets the initial account password.
+     */
+    @PostMapping("/invite/accept")
+    @Operation(summary = "Accept invite", description = "Sets initial password using one-time invite token")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite accepted"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Invalid or expired invite token")
+    })
+    public ResponseEntity<ApiResponse<Void>> acceptInvite(@Valid @RequestBody AcceptInviteRequest request) {
+        userInviteService.acceptInvite(request.getToken(), request.getPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password set successfully", null));
     }
 }

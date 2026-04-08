@@ -1,4 +1,4 @@
-package backend.fullstack.permission.definition;
+package backend.fullstack.permission;
 
 import java.util.Map;
 import java.util.Set;
@@ -8,13 +8,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import backend.fullstack.permission.catalog.DefaultRolePermissionMatrix;
 import backend.fullstack.permission.catalog.RolePermissionBinding;
 import backend.fullstack.permission.catalog.RolePermissionBindingRepository;
+import backend.fullstack.permission.definition.PermissionDefinition;
+import backend.fullstack.permission.definition.PermissionDefinitionRepository;
 import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.role.Role;
 
+/**
+ * Component responsible for seeding the permission system with initial data on application startup.
+ *
+ * @version 1.0
+ * @since 31.03.26
+ */
 @Component
 public class PermissionBootstrapSeeder implements ApplicationRunner {
 
@@ -31,7 +40,13 @@ public class PermissionBootstrapSeeder implements ApplicationRunner {
         this.rolePermissionBindingRepository = rolePermissionBindingRepository;
     }
 
+    /**
+     * Seeds the permission system with initial data on application startup.
+     *
+     * @param args the application arguments
+     */
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         try {
             seedPermissionDefinitions();
@@ -42,6 +57,9 @@ public class PermissionBootstrapSeeder implements ApplicationRunner {
         }
     }
 
+    /**
+     * Seeds the permission definitions with initial data.
+     */
     private void seedPermissionDefinitions() {
         for (Permission permission : Permission.values()) {
             permissionDefinitionRepository.findByPermissionKey(permission.key())
@@ -54,6 +72,9 @@ public class PermissionBootstrapSeeder implements ApplicationRunner {
         }
     }
 
+    /**
+     * Seeds the role permissions with initial data.
+     */
     private void seedRolePermissions() {
         Map<Role, Set<Permission>> defaults = DefaultRolePermissionMatrix.create();
 
