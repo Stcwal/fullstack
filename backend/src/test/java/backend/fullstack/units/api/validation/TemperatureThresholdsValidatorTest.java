@@ -2,8 +2,10 @@ package backend.fullstack.units.api.validation;
 
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import backend.fullstack.units.api.dto.UnitRequest;
@@ -15,11 +17,20 @@ import jakarta.validation.ValidatorFactory;
 
 class TemperatureThresholdsValidatorTest {
 
-    private final Validator validator;
+    private static ValidatorFactory validatorFactory;
+    private static Validator validator;
 
-    TemperatureThresholdsValidatorTest() {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        this.validator = validatorFactory.getValidator();
+    @BeforeAll
+    static void initValidator() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+
+    @AfterAll
+    static void closeValidatorFactory() {
+        if (validatorFactory != null) {
+            validatorFactory.close();
+        }
     }
 
     @Test
