@@ -20,6 +20,9 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Writes security-layer authentication and authorization failures using the
  * same JSON error envelope as controller exceptions.
+ * 
+ * @version 1.0
+ * @since 04.04.26
  */
 @Component
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
