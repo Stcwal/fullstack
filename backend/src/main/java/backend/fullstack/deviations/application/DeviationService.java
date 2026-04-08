@@ -118,12 +118,9 @@ public class DeviationService {
         return deviationMapper.toResponse(saved);
     }
 
-    public DeviationResponse updateDeviationStatus(
-            Long organizationId,
-            Long userId,
-            Long deviationId,
-            UpdateDeviationStatusRequest request
-    ) {
+    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
+        validateResolutionForResolvedStatus(request.resolution());
+
         Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
 
@@ -149,65 +146,9 @@ public class DeviationService {
         return deviationMapper.toResponse(saved);
     }
 
-    public DeviationCommentResponse addComment(
-            Long organizationId,
-            Long userId,
-            Long deviationId,
-            DeviationCommentRequest request
-    ) {
-        Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
-
-        User author = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
-
-        assertUserInOrganization(author, organizationId);
-
-        DeviationComment comment = DeviationComment.builder()
-                .organization(deviation.getOrganization())
-                .deviation(deviation)
-                .createdBy(author)
-                .commentText(request.comment())
-                .build();
-
-        DeviationComment saved = deviationCommentRepository.save(comment);
-        return new DeviationCommentResponse(
-                saved.getId(),
-                saved.getCommentText(),
-                saved.getCreatedById(),
-                saved.getCreatedByName(),
-                saved.getCreatedAt()
-        );
-    }
-
-    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
-        return updateDeviationStatus(
-                organizationId,
-                userId,
-                deviationId,
-                new UpdateDeviationStatusRequest(DeviationStatus.RESOLVED, request.resolution())
-        );
-    }
-
-    private void assertUserInOrganization(User user, Long organizationId) {
-        if (!organizationId.equals(user.getOrganizationId())) {
-            throw new IllegalArgumentException("User does not belong to this organization");
-        }
-    }
-
-    private void assertAllowedTransition(DeviationStatus current, DeviationStatus target) {
-        if (current == target) {
-            return;
-        }
-
-        boolean valid = switch (current) {
-            case OPEN -> target == DeviationStatus.IN_PROGRESS || target == DeviationStatus.RESOLVED;
-            case IN_PROGRESS -> target == DeviationStatus.RESOLVED;
-            case RESOLVED -> false;
-        };
-
-        if (!valid) {
-            throw new IllegalArgumentException("Invalid status transition: " + current + " -> " + target);
+    private void validateResolutionForResolvedStatus(String resolution) {
+        if (resolution == null || resolution.isBlank()) {
+            throw new IllegalArgumentException("Resolution text is required when status is RESOLVED");
         }
     }
 }
