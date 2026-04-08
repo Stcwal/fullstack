@@ -15,7 +15,6 @@ import backend.fullstack.deviations.api.dto.DeviationResponse;
 import backend.fullstack.deviations.api.dto.ResolveDeviationRequest;
 import backend.fullstack.deviations.api.dto.UpdateDeviationStatusRequest;
 import backend.fullstack.deviations.domain.Deviation;
-import backend.fullstack.deviations.domain.DeviationComment;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import backend.fullstack.deviations.infrastructure.DeviationCommentRepository;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
@@ -62,12 +61,12 @@ public class DeviationService {
                 .toList();
     }
 
-            @Transactional(readOnly = true)
-            public DeviationDetailsResponse getDeviationById(Long organizationId, Long deviationId) {
-            Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
+    @Transactional(readOnly = true)
+    public DeviationDetailsResponse getDeviationById(Long organizationId, Long deviationId) {
+        Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
 
-            List<DeviationCommentResponse> comments = deviationCommentRepository
+        List<DeviationCommentResponse> comments = deviationCommentRepository
                 .findByOrganization_IdAndDeviation_IdOrderByCreatedAtAsc(organizationId, deviationId)
                 .stream()
                 .map(comment -> new DeviationCommentResponse(
@@ -79,8 +78,8 @@ public class DeviationService {
                 ))
                 .toList();
 
-            DeviationResponse base = deviationMapper.toResponse(deviation);
-            return new DeviationDetailsResponse(
+        DeviationResponse base = deviationMapper.toResponse(deviation);
+        return new DeviationDetailsResponse(
                 base.id(),
                 base.title(),
                 base.description(),
@@ -94,8 +93,8 @@ public class DeviationService {
                 base.resolution(),
                 deviation.getRelatedReadingId(),
                 comments
-            );
-            }
+        );
+    }
 
     public DeviationResponse createDeviation(Long organizationId, Long userId, DeviationRequest request) {
         Organization organization = organizationRepository.findById(organizationId)
@@ -118,8 +117,15 @@ public class DeviationService {
         return deviationMapper.toResponse(saved);
     }
 
-    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
-        validateResolutionForResolvedStatus(request.resolution());
+    public DeviationResponse updateDeviationStatus(
+            Long organizationId,
+            Long userId,
+            Long deviationId,
+            UpdateDeviationStatusRequest request
+    ) {
+        if (request.status() == DeviationStatus.RESOLVED) {
+            validateResolutionForResolvedStatus(request.resolution());
+        }
 
         Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
@@ -146,9 +152,71 @@ public class DeviationService {
         return deviationMapper.toResponse(saved);
     }
 
+    public DeviationCommentResponse addComment(
+        Long organizationId,
+        Long userId,
+        Long deviationId,
+        DeviationCommentRequest request
+    ) {
+    Deviation deviation = deviationRepository.findByIdAndOrganization_Id(deviationId, organizationId)
+        .orElseThrow(() -> new ResourceNotFoundException("Deviation", deviationId));
+
+    User author = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+    assertUserInOrganization(author, organizationId);
+
+    var comment = backend.fullstack.deviations.domain.DeviationComment.builder()
+        .organization(deviation.getOrganization())
+        .deviation(deviation)
+        .createdBy(author)
+        .commentText(request.comment())
+        .build();
+
+    var saved = deviationCommentRepository.save(comment);
+    return new DeviationCommentResponse(
+        saved.getId(),
+        saved.getCommentText(),
+        saved.getCreatedById(),
+        saved.getCreatedByName(),
+        saved.getCreatedAt()
+    );
+    }
+
+    public DeviationResponse resolveDeviation(Long organizationId, Long userId, Long deviationId, ResolveDeviationRequest request) {
+    return updateDeviationStatus(
+        organizationId,
+        userId,
+        deviationId,
+        new UpdateDeviationStatusRequest(DeviationStatus.RESOLVED, request.resolution())
+    );
+    }
+
     private void validateResolutionForResolvedStatus(String resolution) {
         if (resolution == null || resolution.isBlank()) {
             throw new IllegalArgumentException("Resolution text is required when status is RESOLVED");
+        }
+    }
+
+    private void assertUserInOrganization(User user, Long organizationId) {
+        if (!organizationId.equals(user.getOrganizationId())) {
+            throw new IllegalArgumentException("User does not belong to this organization");
+        }
+    }
+
+    private void assertAllowedTransition(DeviationStatus current, DeviationStatus target) {
+        if (current == target) {
+            return;
+        }
+
+        boolean valid = switch (current) {
+            case OPEN -> target == DeviationStatus.IN_PROGRESS || target == DeviationStatus.RESOLVED;
+            case IN_PROGRESS -> target == DeviationStatus.RESOLVED;
+            case RESOLVED -> false;
+        };
+
+        if (!valid) {
+            throw new IllegalArgumentException("Invalid status transition: " + current + " -> " + target);
         }
     }
 }
