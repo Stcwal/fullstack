@@ -7,6 +7,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
@@ -32,7 +34,7 @@ public class UserInviteService {
     private final UserInviteTokenRepository userInviteTokenRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
+    private final Optional<JavaMailSender> mailSender;
     private final InviteProperties inviteProperties;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -40,7 +42,7 @@ public class UserInviteService {
             UserInviteTokenRepository userInviteTokenRepository,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JavaMailSender mailSender,
+            Optional<JavaMailSender> mailSender,
             InviteProperties inviteProperties
     ) {
         this.userInviteTokenRepository = userInviteTokenRepository;
@@ -105,7 +107,11 @@ public class UserInviteService {
                 + inviteLink + "\n\n"
                 + "This link expires in 24 hours and can only be used once.\n");
 
-        mailSender.send(message);
+        if (mailSender.isEmpty()) {
+            logger.warn("Mail sender not configured — invite email NOT sent to userId={} email={}", user.getId(), user.getEmail());
+            return;
+        }
+        mailSender.get().send(message);
         logger.info("Invite email sent to userId={} email={}", user.getId(), user.getEmail());
     }
 

@@ -48,7 +48,7 @@ class UserInviteServiceTest {
                 userInviteTokenRepository,
                 userRepository,
                 passwordEncoder,
-                mailSender,
+                Optional.of(mailSender),
                 inviteProperties
         );
     }
