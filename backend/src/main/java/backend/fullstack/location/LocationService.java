@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Service class for managing locations within an organization.
  *
- * @version 1.0
+ * @version 1.1
  * @since 28.03.26
  */
 @Service

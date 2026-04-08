@@ -194,7 +194,6 @@ public class AuthorizationService {
      */
     public void assertCanCreateUser(Role targetRole, Long primaryLocationId) {
         assertPermission(Permission.USERS_CREATE);
-
         User actor = accessContext.getCurrentUser();
 
         switch (actor.getRole()) {
@@ -232,6 +231,10 @@ public class AuthorizationService {
         assertSameOrganization(actor, targetUser);
 
         if (actor.getRole() == Role.ADMIN) {
+            return;
+        }
+
+        if (actor.getId().equals(targetUser.getId())) {
             return;
         }
 
@@ -274,32 +277,23 @@ public class AuthorizationService {
      */
     public void assertCanChangeRole(User targetUser, Role newRole, Long primaryLocationId) {
         assertCanManageUser(targetUser);
-
         User actor = accessContext.getCurrentUser();
-        if (actor.getRole() == Role.ADMIN) {
-            return;
-        }
 
-        if (actor.getRole() == Role.SUPERVISOR) {
-            if (newRole != Role.MANAGER && newRole != Role.STAFF) {
-                throw new AccessDeniedException("Supervisors can only assign MANAGER and STAFF roles");
+        switch (actor.getRole()) {
+            case ADMIN -> {
+                if (newRole == Role.MANAGER || newRole == Role.STAFF) {
+                    accessContext.assertCanAccess(primaryLocationId);
+                }
             }
-
-            if (newRole == Role.MANAGER || newRole == Role.STAFF) {
+            case SUPERVISOR -> {
+                if (newRole != Role.MANAGER && newRole != Role.STAFF) {
+                    throw new AccessDeniedException("Supervisors can only assign MANAGER and STAFF roles");
+                }
                 accessContext.assertCanAccess(primaryLocationId);
             }
-            return;
+            case MANAGER -> throw new AccessDeniedException("Managers cannot change user roles");
+            case STAFF -> throw new AccessDeniedException("Staff cannot change user roles");
         }
-
-        if (actor.getRole() == Role.MANAGER) {
-            if (newRole != Role.STAFF) {
-                throw new AccessDeniedException("Managers can only assign STAFF role");
-            }
-            accessContext.assertCanAccess(primaryLocationId);
-            return;
-        }
-
-        throw new AccessDeniedException("Insufficient role for role updates");
     }
 
     /**
@@ -318,14 +312,16 @@ public class AuthorizationService {
         }
 
         User actor = accessContext.getCurrentUser();
-        if (actor.getRole() == Role.ADMIN) {
-            return;
+        if (actor.getRole() == Role.MANAGER || actor.getRole() == Role.STAFF) {
+            throw new AccessDeniedException("Only ADMIN or SUPERVISOR can assign locations");
         }
 
-        Set<Long> allowed = new HashSet<>(accessContext.getAllowedLocationIds());
-        boolean hasForbiddenLocation = requestedLocationIds.stream().anyMatch(locationId -> !allowed.contains(locationId));
-        if (hasForbiddenLocation) {
-            throw new AccessDeniedException("Cannot assign locations outside your scope");
+        if (actor.getRole() == Role.SUPERVISOR) {
+            Set<Long> allowed = new HashSet<>(accessContext.getAllowedLocationIds());
+            boolean hasForbiddenLocation = requestedLocationIds.stream().anyMatch(locationId -> !allowed.contains(locationId));
+            if (hasForbiddenLocation) {
+                throw new AccessDeniedException("Cannot assign locations outside your scope");
+            }
         }
     }
 
@@ -338,6 +334,11 @@ public class AuthorizationService {
     public void assertCanDeactivateUser(User targetUser) {
         assertPermission(Permission.USERS_DEACTIVATE);
         assertCanManageUser(targetUser);
+
+        User actor = accessContext.getCurrentUser();
+        if (actor.getRole() == Role.MANAGER || actor.getRole() == Role.STAFF) {
+            throw new AccessDeniedException("Only ADMIN or SUPERVISOR can deactivate users");
+        }
     }
 
     /**

@@ -28,15 +28,18 @@ import backend.fullstack.user.UserRepository;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final SecurityErrorHandler securityErrorHandler;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
+            SecurityErrorHandler securityErrorHandler,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.securityErrorHandler = securityErrorHandler;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -46,12 +49,17 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(securityErrorHandler)
+                        .accessDeniedHandler(securityErrorHandler)
+                )
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/logout").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/register").access(this::canAccessRegister)
+                    .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/organization")
+                        .access(this::canAccessBootstrapSetup)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -78,20 +86,22 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-    private AuthorizationDecision canAccessRegister(
+    private AuthorizationDecision canAccessBootstrapSetup(
             Supplier<Authentication> authentication,
             RequestAuthorizationContext context
     ) {
-        return new AuthorizationDecision(isRegisterAccessAllowed(authentication.get()));
+        return new AuthorizationDecision(isBootstrapSetupAllowed(authentication.get()));
     }
 
     boolean isRegisterAccessAllowed(Authentication auth) {
-        if (userRepository.count() == 0) {
-            return true;
-        }
+        return isBootstrapSetupAllowed(auth);
+    }
 
-        return auth != null
-                && auth.isAuthenticated()
-                && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    boolean isOrganizationCreateAccessAllowed(Authentication auth) {
+        return isBootstrapSetupAllowed(auth);
+    }
+
+    private boolean isBootstrapSetupAllowed(Authentication auth) {
+        return userRepository.count() == 0;
     }
 }
