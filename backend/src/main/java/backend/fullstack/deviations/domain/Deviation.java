@@ -1,12 +1,16 @@
 package backend.fullstack.deviations.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import backend.fullstack.organization.Organization;
+import backend.fullstack.temperature.domain.TemperatureReading;
 import backend.fullstack.user.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +35,10 @@ import lombok.Setter;
         name = "deviations",
         indexes = {
                 @Index(name = "idx_deviations_organization_id", columnList = "organization_id"),
-                @Index(name = "idx_deviations_status", columnList = "status")
+        @Index(name = "idx_deviations_status", columnList = "status"),
+        @Index(name = "idx_deviations_severity", columnList = "severity"),
+        @Index(name = "idx_deviations_module_type", columnList = "module_type"),
+        @Index(name = "idx_deviations_related_reading_id", columnList = "related_reading_id")
         }
 )
 @Getter
@@ -71,6 +79,10 @@ public class Deviation {
     private User reportedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "related_reading_id")
+    private TemperatureReading relatedReading;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resolved_by_id")
     private User resolvedBy;
 
@@ -79,6 +91,14 @@ public class Deviation {
 
     @Column(name = "resolution", length = 2000)
     private String resolution;
+
+    @OneToMany(
+            mappedBy = "deviation",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<DeviationComment> comments = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -98,5 +118,14 @@ public class Deviation {
 
     public String getResolvedByName() {
         return resolvedBy != null ? resolvedBy.getFirstName() + " " + resolvedBy.getLastName() : null;
+    }
+
+    public Long getRelatedReadingId() {
+        return relatedReading != null ? relatedReading.getId() : null;
+    }
+
+    public void addComment(DeviationComment comment) {
+        comments.add(comment);
+        comment.setDeviation(this);
     }
 }
