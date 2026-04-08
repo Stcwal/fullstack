@@ -19,6 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Controller for managing locations within an organization.
+ * Endpoints:
+ * - POST /api/locations: Create a new location.
+ * - GET /api/locations: Get all accessible locations.
+ * - GET /api/locations/{id}: Get location by ID.
+ * - PUT /api/locations/{id}: Update location.
+ * - DELETE /api/locations/{id}: Delete location.
+ * 
+ * @version 1.0
+ * @since 03.04.26
+ */
 @RestController
 @RequestMapping("/api/locations")
 @RequiredArgsConstructor

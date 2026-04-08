@@ -18,8 +18,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service class for managing organizations.
  *
- * @version 1.0
- * @since 28.03.26
+ * @version 1.1
+ * @since 03.04.26
  */
 @Service
 @RequiredArgsConstructor

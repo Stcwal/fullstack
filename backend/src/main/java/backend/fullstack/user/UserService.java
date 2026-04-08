@@ -299,6 +299,7 @@ public class UserService {
             LocalDateTime endsAt,
             boolean replaceScopeAssignments
     ) {
+        accessContext.assertHasRole(Role.ADMIN);
         User user = findInCurrentOrg(id);
         authorizationService.assertCanManageUser(user);
         validateWindow(startsAt, endsAt);
@@ -365,6 +366,7 @@ public class UserService {
             TemporaryAssignmentMode mode,
             String reason
     ) {
+        accessContext.assertHasRole(Role.ADMIN);
         User user = findInCurrentOrg(id);
         authorizationService.assertCanManageUser(user);
         validateWindow(startsAt, endsAt);
@@ -397,6 +399,7 @@ public class UserService {
 
     @Transactional
     public void completeTemporaryLocationScope(Long userId, Long assignmentId) {
+        accessContext.assertHasRole(Role.ADMIN);
         User user = findInCurrentOrg(userId);
         authorizationService.assertCanManageUser(user);
 
@@ -416,6 +419,7 @@ public class UserService {
 
     @Transactional
     public void confirmTemporaryLocationScope(Long userId, Long assignmentId) {
+        accessContext.assertHasRole(Role.ADMIN);
         User user = findInCurrentOrg(userId);
         authorizationService.assertCanManageUser(user);
 
@@ -443,6 +447,7 @@ public class UserService {
             LocalDateTime endsAt,
             String reason
     ) {
+        accessContext.assertHasRole(Role.ADMIN);
         addUserPermissionOverride(id, permission, effect, scope, locationId, startsAt, endsAt, reason);
     }
 

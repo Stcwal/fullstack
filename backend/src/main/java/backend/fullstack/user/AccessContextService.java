@@ -10,6 +10,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import backend.fullstack.config.JwtPrincipal;
 import backend.fullstack.location.LocationRepository;
@@ -25,6 +27,8 @@ import backend.fullstack.user.role.Role;
  */
 @Service
 public class AccessContextService {
+
+    private static final String CURRENT_USER_REQUEST_ATTRIBUTE = AccessContextService.class.getName() + ".currentUser";
 
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
@@ -47,18 +51,28 @@ public class AccessContextService {
      * @return List of accessible location IDs for the current user.
      */
     public List<Long> getAllowedLocationIds() {
-        User user = getCurrentUser();
+        JwtPrincipal principal = getJwtPrincipal();
+        User user = null;
         Set<Long> uniqueLocationIds = new LinkedHashSet<>();
 
-        switch (user.getRole()) {
-            case ADMIN -> uniqueLocationIds.addAll(locationRepository.findIdsByOrganizationId(user.getOrganizationId()));
-            case SUPERVISOR, MANAGER, STAFF -> uniqueLocationIds.addAll(userRepository.findEffectiveLocationScopeByUserId(user.getId()));
+        if (principal != null && !principal.locationIds().isEmpty()) {
+            uniqueLocationIds.addAll(principal.locationIds());
+        } else {
+            user = getCurrentUser();
+            switch (user.getRole()) {
+                case ADMIN -> uniqueLocationIds.addAll(locationRepository.findIdsByOrganizationId(user.getOrganizationId()));
+                case SUPERVISOR, MANAGER, STAFF -> uniqueLocationIds.addAll(userRepository.findEffectiveLocationScopeByUserId(user.getId()));
+            }
         }
+
+        Long userId = principal != null && principal.userId() != null
+                ? principal.userId()
+                : requireCurrentUser(user).getId();
 
         // Temporary scope assignments are resolved from the database at request-time
         // so access changes take effect immediately without requiring re-login.
         uniqueLocationIds.addAll(
-                userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(user.getId(), LocalDateTime.now())
+                userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(userId, LocalDateTime.now())
         );
 
         return new ArrayList<>(uniqueLocationIds);
@@ -132,11 +146,15 @@ public class AccessContextService {
      * @throws AccessDeniedException if the request is unauthenticated or the authenticated user cannot be found in the database.
      */
     public User getCurrentUser() {
-        Authentication authentication = requireAuthentication();
-        String email = resolveAuthenticatedEmail(authentication);
+        User cachedUser = getCachedCurrentUser();
+        if (cachedUser != null) {
+            return cachedUser;
+        }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+        Authentication authentication = requireAuthentication();
+        User currentUser = resolveCurrentUser(authentication);
+        cacheCurrentUser(currentUser);
+        return currentUser;
     }
 
     /**
@@ -191,6 +209,44 @@ public class AccessContextService {
         }
 
         return authentication.getName();
+    }
+
+    private User resolveCurrentUser(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof User user) {
+            return user;
+        }
+
+        if (principal instanceof JwtPrincipal jwtPrincipal && jwtPrincipal.userId() != null) {
+            return userRepository.findById(jwtPrincipal.userId())
+                    .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+        }
+
+        String email = resolveAuthenticatedEmail(authentication);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    private User requireCurrentUser(User user) {
+        return user != null ? user : getCurrentUser();
+    }
+
+    private User getCachedCurrentUser() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes == null) {
+            return null;
+        }
+
+        Object cached = requestAttributes.getAttribute(CURRENT_USER_REQUEST_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+        return cached instanceof User user ? user : null;
+    }
+
+    private void cacheCurrentUser(User user) {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes != null) {
+            requestAttributes.setAttribute(CURRENT_USER_REQUEST_ATTRIBUTE, user, RequestAttributes.SCOPE_REQUEST);
+        }
     }
 
 }

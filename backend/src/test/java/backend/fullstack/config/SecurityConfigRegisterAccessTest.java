@@ -1,13 +1,10 @@
 package backend.fullstack.config;
 
 import java.lang.reflect.Proxy;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import backend.fullstack.user.UserRepository;
@@ -16,11 +13,7 @@ class SecurityConfigRegisterAccessTest {
 
     @Test
     void allowsAnonymousRegisterWhenNoUsersExist() {
-        SecurityConfig config = new SecurityConfig(
-                new JwtAuthFilter(new JwtUtil(new JwtProperties())),
-                repositoryWithCount(0L),
-                new BCryptPasswordEncoder()
-        );
+        SecurityConfig config = configWithUserCount(0L);
 
         boolean allowed = config.isRegisterAccessAllowed(null);
 
@@ -29,11 +22,7 @@ class SecurityConfigRegisterAccessTest {
 
     @Test
     void deniesAnonymousRegisterAfterBootstrap() {
-        SecurityConfig config = new SecurityConfig(
-                new JwtAuthFilter(new JwtUtil(new JwtProperties())),
-                repositoryWithCount(3L),
-                new BCryptPasswordEncoder()
-        );
+        SecurityConfig config = configWithUserCount(3L);
 
         boolean allowed = config.isRegisterAccessAllowed(null);
 
@@ -41,23 +30,39 @@ class SecurityConfigRegisterAccessTest {
     }
 
     @Test
-    void allowsAdminRegisterAfterBootstrap() {
-        SecurityConfig config = new SecurityConfig(
-                new JwtAuthFilter(new JwtUtil(new JwtProperties())),
-                repositoryWithCount(3L),
-                new BCryptPasswordEncoder()
-        );
+    void deniesAdminRegisterAfterBootstrap() {
+        SecurityConfig config = configWithUserCount(3L);
 
-        UsernamePasswordAuthenticationToken adminAuth =
-                new UsernamePasswordAuthenticationToken(
-                        "admin@everest.no",
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                );
+        boolean allowed = config.isRegisterAccessAllowed(null);
 
-        boolean allowed = config.isRegisterAccessAllowed(adminAuth);
+        assertFalse(allowed);
+    }
+
+    @Test
+    void allowsOrganizationCreateWhenNoUsersExist() {
+        SecurityConfig config = configWithUserCount(0L);
+
+        boolean allowed = config.isOrganizationCreateAccessAllowed(null);
 
         assertTrue(allowed);
+    }
+
+    @Test
+    void deniesOrganizationCreateAfterBootstrap() {
+        SecurityConfig config = configWithUserCount(3L);
+
+        boolean allowed = config.isOrganizationCreateAccessAllowed(null);
+
+        assertFalse(allowed);
+    }
+
+    private SecurityConfig configWithUserCount(long count) {
+        return new SecurityConfig(
+                new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+                repositoryWithCount(count),
+                new BCryptPasswordEncoder()
+        );
     }
 
     private UserRepository repositoryWithCount(long count) {
