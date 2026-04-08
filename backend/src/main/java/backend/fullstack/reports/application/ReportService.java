@@ -9,8 +9,8 @@ import java.util.OptionalDouble;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import backend.fullstack.readings.domain.TemperatureReading;
-import backend.fullstack.readings.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.temperature.domain.TemperatureReading;
+import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
 import backend.fullstack.reports.api.dto.ChartAlert;
 import backend.fullstack.reports.api.dto.ChartDataset;
 import backend.fullstack.reports.api.dto.ChartResponse;
@@ -49,7 +49,7 @@ public class ReportService {
         for (int i = 0; i < units.size(); i++) {
             TemperatureUnit unit = units.get(i);
             List<TemperatureReading> readings = readingRepository
-                    .findByUnit_IdAndOrganization_IdOrderByRecordedAtDesc(unit.getId(), organizationId);
+                    .findByOrganization_IdAndUnit_IdOrderByRecordedAtDesc(organizationId, unit.getId());
 
             List<TemperatureReading> periodReadings = readings.stream()
                     .filter(r -> !r.getRecordedAt().isBefore(since))
@@ -113,7 +113,7 @@ public class ReportService {
         LocalDate day = today.minusDays(days - 1L - dayIdx);
 
         periodReadings.stream()
-                .filter(r -> r.isOutOfRange() && r.getRecordedAt().toLocalDate().equals(day))
+                .filter(r -> r.isDeviation() && r.getRecordedAt().toLocalDate().equals(day))
                 .findFirst()
                 .ifPresent(r -> alerts.add(new ChartAlert(dayIdx, unitName, r.getTemperature(), "OPEN")));
     }

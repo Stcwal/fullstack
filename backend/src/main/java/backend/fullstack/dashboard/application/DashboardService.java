@@ -22,7 +22,7 @@ import backend.fullstack.deviations.domain.Deviation;
 import backend.fullstack.deviations.domain.DeviationSeverity;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
-import backend.fullstack.readings.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -48,7 +48,7 @@ public class DashboardService {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
         long tempAlerts = readingRepository
-                .countByOrganization_IdAndIsOutOfRangeTrueAndRecordedAtAfter(organizationId, startOfToday);
+                .countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(organizationId, startOfToday);
         long openDeviations = deviationRepository
                 .countByOrganization_IdAndStatus(organizationId, DeviationStatus.OPEN);
 

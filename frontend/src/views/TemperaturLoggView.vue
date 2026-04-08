@@ -107,16 +107,16 @@ onMounted(async () => {
               <tr
                 v-for="reading in pagedReadings(unit.id)"
                 :key="reading.id"
-                :class="{ 'row-alert': reading.isOutOfRange }"
+                :class="{ 'row-alert': reading.isDeviation }"
               >
                 <td class="col-time">{{ formatDateTime(reading.recordedAt) }}</td>
-                <td class="col-temp" :class="reading.isOutOfRange ? 'text-danger' : 'text-success'">
+                <td class="col-temp" :class="reading.isDeviation ? 'text-danger' : 'text-success'">
                   {{ reading.temperature >= 0 ? '+' : '' }}{{ reading.temperature.toFixed(1) }}&nbsp;°C
                 </td>
-                <td class="col-user">{{ reading.recordedBy }}</td>
+                <td class="col-user">{{ reading.recordedBy.name }}</td>
                 <td class="col-note text-muted">{{ reading.note || '—' }}</td>
                 <td class="col-status">
-                  <span v-if="reading.isOutOfRange" class="status-badge status-alert">Avvik</span>
+                  <span v-if="reading.isDeviation" class="status-badge status-alert">Avvik</span>
                   <span v-else class="status-badge status-ok">OK</span>
                 </td>
               </tr>

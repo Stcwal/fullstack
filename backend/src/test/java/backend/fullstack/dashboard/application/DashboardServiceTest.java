@@ -20,7 +20,7 @@ import backend.fullstack.checklist.infrastructure.ChecklistInstanceRepository;
 import backend.fullstack.dashboard.api.dto.DashboardResponse;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
-import backend.fullstack.readings.infrastructure.TemperatureReadingRepository;
+import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
@@ -45,7 +45,7 @@ class DashboardServiceTest {
     void getDashboard_returnsStatsWithOpenDeviationCount() {
         Long orgId = 1L;
 
-        when(readingRepository.countByOrganization_IdAndIsOutOfRangeTrueAndRecordedAtAfter(
+        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
                 org.mockito.ArgumentMatchers.eq(orgId),
                 org.mockito.ArgumentMatchers.any(LocalDateTime.class)
         )).thenReturn(0L);
@@ -68,7 +68,7 @@ class DashboardServiceTest {
     void getDashboard_tasksListEmptyWhenNoInstances() {
         Long orgId = 2L;
 
-        when(readingRepository.countByOrganization_IdAndIsOutOfRangeTrueAndRecordedAtAfter(
+        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
                 org.mockito.ArgumentMatchers.eq(orgId),
                 org.mockito.ArgumentMatchers.any(LocalDateTime.class)
         )).thenReturn(0L);
@@ -96,7 +96,7 @@ class DashboardServiceTest {
         // Instance for yesterday — should be excluded
         ChecklistInstance yesterdayInstance = buildInstance(2L, orgId, LocalDate.now().minusDays(1), ChecklistInstanceStatus.PENDING);
 
-        when(readingRepository.countByOrganization_IdAndIsOutOfRangeTrueAndRecordedAtAfter(
+        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
                 org.mockito.ArgumentMatchers.eq(orgId),
                 org.mockito.ArgumentMatchers.any(LocalDateTime.class)
         )).thenReturn(0L);

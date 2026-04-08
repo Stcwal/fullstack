@@ -120,7 +120,7 @@ function cardState(unitId: number): 'active' | 'ok' | 'alert' | 'empty' {
   if (activeUnitId.value === unitId) return 'active'
   const r = lastReading(unitId)
   if (!r) return 'empty'
-  return r.isOutOfRange ? 'alert' : 'ok'
+  return r.isDeviation ? 'alert' : 'ok'
 }
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -209,14 +209,14 @@ watch(tempUnits, (units) => {
             <div class="card-temp card-temp--ok">
               {{ lastReading(unit.id)!.temperature >= 0 ? '+' : '' }}{{ lastReading(unit.id)!.temperature.toFixed(1) }}°
             </div>
-            <div class="card-meta">✓ {{ formatTime(lastReading(unit.id)!.recordedAt) }} · {{ lastReading(unit.id)!.recordedBy }}</div>
+            <div class="card-meta">✓ {{ formatTime(lastReading(unit.id)!.recordedAt) }} · {{ lastReading(unit.id)!.recordedBy.name }}</div>
           </template>
 
           <template v-else-if="cardState(unit.id) === 'alert'">
             <div class="card-temp card-temp--alert">
               {{ lastReading(unit.id)!.temperature >= 0 ? '+' : '' }}{{ lastReading(unit.id)!.temperature.toFixed(1) }}°
             </div>
-            <div class="card-meta card-meta--alert">⚠️ Avvik · {{ formatTime(lastReading(unit.id)!.recordedAt) }} · {{ lastReading(unit.id)!.recordedBy }}</div>
+            <div class="card-meta card-meta--alert">⚠️ Avvik · {{ formatTime(lastReading(unit.id)!.recordedAt) }} · {{ lastReading(unit.id)!.recordedBy.name }}</div>
           </template>
 
           <template v-else-if="cardState(unit.id) === 'active'">
@@ -373,14 +373,14 @@ watch(tempUnits, (units) => {
               v-for="reading in recentReadings"
               :key="reading.id"
               class="status-row"
-              :class="{ 'is-alert': reading.isOutOfRange }"
+              :class="{ 'is-alert': reading.isDeviation }"
             >
               <div class="flex-1 min-w-0">
                 <div class="text-sm">{{ formatDateTime(reading.recordedAt) }}</div>
-                <div class="text-xs text-muted">{{ reading.recordedBy }}</div>
+                <div class="text-xs text-muted">{{ reading.recordedBy.name }}</div>
                 <div v-if="reading.note" class="text-xs text-muted mt-1">{{ reading.note }}</div>
               </div>
-              <div class="reading-temp" :class="reading.isOutOfRange ? 'text-danger' : 'text-success'">
+              <div class="reading-temp" :class="reading.isDeviation ? 'text-danger' : 'text-success'">
                 {{ reading.temperature.toFixed(1) }}&nbsp;°C
               </div>
             </div>

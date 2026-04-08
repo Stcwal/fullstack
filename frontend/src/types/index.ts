@@ -56,14 +56,25 @@ export interface Unit {
 // ============================================================
 // Temperature Readings
 // ============================================================
+export interface RecordedBy {
+  id: number
+  name: string
+}
+
 export interface TemperatureReading {
   id: number
   unitId: number
+  unitName?: string
   temperature: number
+  targetTemperature?: number
+  minThreshold?: number
+  maxThreshold?: number
   recordedAt: string
-  recordedBy: string
+  recordedBy: RecordedBy
   note?: string
-  isOutOfRange: boolean
+  isDeviation: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface NewReading {
