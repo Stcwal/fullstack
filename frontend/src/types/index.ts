@@ -1,7 +1,7 @@
 // ============================================================
 // Auth
 // ============================================================
-export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF'
+export type UserRole = 'ADMIN' | 'SUPERVISOR' | 'MANAGER' | 'STAFF'
 
 export interface UserPermissions {
   temperatureLogging: boolean
@@ -35,32 +35,46 @@ export interface AuthResponse {
 // ============================================================
 // Units
 // ============================================================
-export type UnitType = 'FREEZER' | 'FRIDGE' | 'COOLER' | 'OTHER'
-export type ModuleType = 'IK_MAT' | 'IK_ALKOHOL'
+export type UnitType = 'FREEZER' | 'FRIDGE' | 'COOLER' | 'DISPLAY' | 'OTHER'
+export type ModuleType = 'IK_MAT' | 'IK_ALKOHOL' | 'SHARED'
 
 export interface Unit {
   id: number
   name: string
   type: UnitType
-  targetTemp: number
-  minTemp: number
-  maxTemp: number
-  contents: string
+  targetTemperature: number
+  minThreshold: number
+  maxThreshold: number
+  description: string
   active: boolean
   hasAlert?: boolean
+  organizationId?: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 // ============================================================
 // Temperature Readings
 // ============================================================
+export interface RecordedBy {
+  id: number
+  name: string
+}
+
 export interface TemperatureReading {
   id: number
   unitId: number
+  unitName?: string
   temperature: number
+  targetTemperature?: number
+  minThreshold?: number
+  maxThreshold?: number
   recordedAt: string
-  recordedBy: string
+  recordedBy: RecordedBy
   note?: string
-  isOutOfRange: boolean
+  isDeviation: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface NewReading {
@@ -97,7 +111,7 @@ export interface Checklist {
 // Deviations
 // ============================================================
 export type DeviationStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'
-export type DeviationSeverity = 'CRITICAL' | 'MEDIUM' | 'LOW'
+export type DeviationSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
 
 export interface Deviation {
   id: number
@@ -198,7 +212,7 @@ export interface SettingsUser {
   lastName: string
   email: string
   role: UserRole
-  active: boolean
+  isActive: boolean
   colorBg: string
   colorText: string
   permissions: UserPermissions
@@ -211,10 +225,10 @@ export interface SettingsUnit {
   id: number
   name: string
   type: UnitType
-  targetTemp: number
-  minTemp: number
-  maxTemp: number
-  contents: string
+  targetTemperature: number
+  minThreshold: number
+  maxThreshold: number
+  description: string
   active: boolean
 }
 
@@ -222,3 +236,52 @@ export interface SettingsUnit {
 // Temperature Chart
 // ============================================================
 export type ChartPeriod = 'WEEK' | 'MONTH'
+
+// ============================================================
+// IK-Alkohol
+// ============================================================
+
+export type AgeVerificationOutcome = 'APPROVED' | 'DENIED' | 'UNSURE'
+
+export interface AlderskontrollEntry {
+  id: number
+  recordedAt: string        // ISO 8601
+  recordedBy: string        // staff member name
+  outcome: AgeVerificationOutcome
+  note?: string
+}
+
+export interface NewAlderskontrollEntry {
+  outcome: AgeVerificationOutcome
+  note?: string
+  recordedAt?: string       // defaults to now if omitted
+}
+
+export type AlkoholIncidentType =
+  | 'NEKTET_SERVERING'
+  | 'BERUSET_GJEST'
+  | 'POLITIKONTAKT'
+  | 'ANNET'
+
+export interface AlkoholIncident {
+  id: number
+  incidentType: AlkoholIncidentType
+  description: string
+  occurredAt: string        // ISO 8601
+  reportedBy: string
+  followUpRequired: boolean
+  relatedDeviationId?: number
+}
+
+export interface NewAlkoholIncident {
+  incidentType: AlkoholIncidentType
+  description: string
+  followUpRequired: boolean
+  occurredAt?: string       // defaults to now
+}
+
+export interface AlkoholStats {
+  ageChecksToday: number
+  incidentsThisWeek: number
+  checklistCompletionPct: number
+}

@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useChecklistsStore } from '@/stores/checklists'
 import type { ChecklistFrequency, Checklist } from '@/types'
 

@@ -86,4 +86,6 @@ public interface TemperatureReadingRepository extends JpaRepository<TemperatureR
     );
 
     long countByOrganization_IdAndIsDeviationTrue(Long organizationId);
+
+    long countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(Long organizationId, LocalDateTime since);
 }

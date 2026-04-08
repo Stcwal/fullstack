@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useAlkoholStore } from '@/stores/alkohol'
 import AppAlert from '@/components/AppAlert.vue'
 import type { DashboardTask } from '@/types'
 
 const dashboardStore = useDashboardStore()
+const alkoholStore = useAlkoholStore()
 
 onMounted(() => {
   dashboardStore.fetchDashboard()
+  alkoholStore.fetchStats()
 })
 
 // ---- Date formatting ----
@@ -277,6 +280,35 @@ function formatCompletedAt(iso?: string): string {
           </div>
         </div>
       </div>
+
+      <!-- IK-Alkohol summary — shown when module is active -->
+      <section
+        v-if="alkoholStore.stats"
+        class="alkohol-summary module-ik-alkohol"
+        aria-label="IK-Alkohol oversikt"
+      >
+        <div class="alkohol-summary__header">
+          <span class="alkohol-summary__dot" aria-hidden="true"></span>
+          <h2 class="alkohol-summary__title">IK-Alkohol</h2>
+          <router-link :to="{ name: 'alkohol-alderskontroll' }" class="alkohol-summary__link">
+            Se alle →
+          </router-link>
+        </div>
+        <div class="alkohol-summary__stats">
+          <div class="alkohol-stat">
+            <span class="alkohol-stat__value">{{ alkoholStore.stats.ageChecksToday }}</span>
+            <span class="alkohol-stat__label">ID-kontroller i dag</span>
+          </div>
+          <div class="alkohol-stat">
+            <span class="alkohol-stat__value">{{ alkoholStore.stats.incidentsThisWeek }}</span>
+            <span class="alkohol-stat__label">Hendelser denne uken</span>
+          </div>
+          <div class="alkohol-stat">
+            <span class="alkohol-stat__value">{{ alkoholStore.stats.checklistCompletionPct }}%</span>
+            <span class="alkohol-stat__label">Sjekkliste fullført</span>
+          </div>
+        </div>
+      </section>
     </template>
   </div>
 </template>
@@ -452,6 +484,63 @@ function formatCompletedAt(iso?: string): string {
 .skeleton-row-right {
   height: 14px;
   width: 20%;
+}
+
+/* ---- IK-Alkohol summary ---- */
+.alkohol-summary {
+  background: hsl(var(--ik-alkohol-hue, 38), 100%, 97%);
+  border: 1.5px solid hsl(var(--ik-alkohol-hue, 38), 90%, 75%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.alkohol-summary__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.alkohol-summary__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--ik-alkohol-hue, 38), 85%, 45%);
+  flex-shrink: 0;
+}
+.alkohol-summary__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: hsl(var(--ik-alkohol-hue, 38), 80%, 20%);
+  flex: 1;
+}
+.alkohol-summary__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--ik-alkohol-hue, 38), 80%, 35%);
+  text-decoration: none;
+}
+.alkohol-summary__link:hover { text-decoration: underline; }
+.alkohol-summary__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.alkohol-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.alkohol-stat__value {
+  font-size: 24px;
+  font-weight: 800;
+  color: hsl(var(--ik-alkohol-hue, 38), 80%, 25%);
+  line-height: 1;
+}
+.alkohol-stat__label {
+  font-size: 10px;
+  color: hsl(var(--ik-alkohol-hue, 38), 50%, 45%);
+  text-align: center;
 }
 
 /* ---- Responsive ---- */

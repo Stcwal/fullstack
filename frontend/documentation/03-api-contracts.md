@@ -177,7 +177,7 @@ Invalidate the refresh token server-side. Requires `Authorization` header.
 
 ---
 
-### GET `/api/auth/me`
+### GET `/api/users/me`
 
 Return the currently authenticated user, re-reading from the database (useful for permission changes taking effect).
 
@@ -564,94 +564,61 @@ ADMIN only. Soft delete — marks the unit as deleted. Historical readings are p
 
 ---
 
-## 4. Temperature Readings — `/api/units/{unitId}/readings` and `/api/readings`
+## 4. Temperature Readings — `/api/units/{unitId}/readings`
 
 Role access: all roles can create and read.
 
 ### GET `/api/units/{unitId}/readings`
 
-Returns all readings for a single unit, newest first.
-
-**Query params:** `page`, `size`, `from` (ISO date string), `to` (ISO date string), `deviationsOnly` (boolean)
+Returns all readings for a single unit, newest first (flat array, no pagination).
 
 **Response `200 OK`:**
 
 ```json
-{
-  "content": [
-    {
-      "id": 1,
-      "unitId": 1,
-      "temperature": -18.4,
-      "recordedAt": "2026-03-30T08:15:00",
-      "recordedBy": {
-        "id": 1,
-        "name": "Kari Larsen"
-      },
-      "note": null,
-      "isDeviation": false
-    },
-    {
-      "id": 2,
-      "unitId": 1,
-      "temperature": -18.2,
-      "recordedAt": "2026-03-29T20:00:00",
-      "recordedBy": {
-        "id": 3,
-        "name": "Per Martinsen"
-      },
-      "note": null,
-      "isDeviation": false
-    }
-  ],
-  "totalElements": 11,
-  "totalPages": 1,
-  "page": 0,
-  "size": 20
-}
+[
+  {
+    "id": 1,
+    "unitId": 1,
+    "temperature": -18.4,
+    "recordedAt": "2026-03-30T08:15:00",
+    "recordedBy": "Kari Larsen",
+    "note": null,
+    "isOutOfRange": false
+  },
+  {
+    "id": 2,
+    "unitId": 1,
+    "temperature": -18.2,
+    "recordedAt": "2026-03-29T20:00:00",
+    "recordedBy": "Per Martinsen",
+    "note": null,
+    "isOutOfRange": false
+  }
+]
 ```
 
-`isDeviation` is computed by the backend: `temperature < unit.minTemp || temperature > unit.maxTemp`. The frontend displays deviation readings highlighted in red and they feed into the dashboard alert count.
+`isOutOfRange` is computed by the backend: `temperature < unit.minThreshold || temperature > unit.maxThreshold`.
+`recordedBy` is the full name string of the user resolved from the JWT.
 
-Note: `recordedBy` is an object `{ id, name }`, not a plain string. The current mock has it as a string — the backend should return the object shape to allow future links to user profiles.
-
----
-
-### GET `/api/readings`
-
-Returns readings across all units, filterable. Used by the stats/graph screens.
-
-**Query params:**
-
-| Param | Type | Description |
-|---|---|---|
-| `unitId` | number | Filter to one unit |
-| `from` | ISO date string | Start of range (inclusive) |
-| `to` | ISO date string | End of range (inclusive) |
-| `deviationsOnly` | boolean | Return only out-of-range readings |
-| `page` | number | Zero-indexed page (default 0) |
-| `size` | number | Page size (default 20) |
-
-**Response `200 OK`:** Same paginated shape as GET `/api/units/{unitId}/readings`.
+**Error `404`:** Unit not found or does not belong to this organization.
 
 ---
 
-### POST `/api/readings`
+### POST `/api/units/{unitId}/readings`
 
-Create a new temperature reading. Available to all authenticated roles.
+Create a new temperature reading. `unitId` is a path parameter — do **not** include it in the request body.
 
 **Request body:**
 
 ```json
 {
-  "unitId": 2,
   "temperature": -12.1,
   "recordedAt": "2026-03-30T08:10:00",
   "note": "Dør sto åpen"
 }
 ```
 
-`note` is optional. `recordedAt` is the timestamp of the actual measurement (may differ from submission time if the user recorded on paper first). The backend resolves `recordedBy` from the JWT.
+`note` is optional. `recordedAt` is the timestamp of the actual measurement. The backend resolves `recordedBy` from the JWT.
 
 **Response `201 Created`:**
 
@@ -661,20 +628,15 @@ Create a new temperature reading. Available to all authenticated roles.
   "unitId": 2,
   "temperature": -12.1,
   "recordedAt": "2026-03-30T08:10:00",
-  "recordedBy": {
-    "id": 1,
-    "name": "Kari Larsen"
-  },
+  "recordedBy": "Kari Larsen",
   "note": "Dør sto åpen",
-  "isDeviation": true
+  "isOutOfRange": true
 }
 ```
 
-If `isDeviation` is `true`, the backend should also automatically create a deviation record with `severity: CRITICAL` and `moduleType: IK_MAT`. This links the temperature event to the deviation workflow without requiring the user to file separately.
-
 **Error `404`:** Unit not found.
 
-**Error `400`:** `temperature` is not a valid number, or `unitId` is missing.
+**Error `400`:** `temperature` is null, or `recordedAt` is null.
 
 ---
 
@@ -990,15 +952,11 @@ Returns all deviations in the organization.
       "status": "OPEN",
       "severity": "CRITICAL",
       "moduleType": "IK_MAT",
-      "reportedBy": {
-        "id": 1,
-        "name": "Kari Larsen"
-      },
+      "reportedBy": "Kari Larsen",
       "reportedAt": "2026-03-30T08:12:00",
+      "resolvedBy": null,
       "resolvedAt": null,
-      "resolution": null,
-      "relatedReadingId": 4,
-      "comments": []
+      "resolution": null
     },
     {
       "id": 2,
@@ -1007,23 +965,11 @@ Returns all deviations in the organization.
       "status": "IN_PROGRESS",
       "severity": "MEDIUM",
       "moduleType": "IK_ALKOHOL",
-      "reportedBy": {
-        "id": 3,
-        "name": "Per Martinsen"
-      },
+      "reportedBy": "Per Martinsen",
       "reportedAt": "2026-03-29T22:00:00",
+      "resolvedBy": null,
       "resolvedAt": null,
-      "resolution": null,
-      "relatedReadingId": null,
-      "comments": [
-        {
-          "id": 1,
-          "text": "Har tatt det opp med barsjef.",
-          "authorId": 2,
-          "authorName": "Ola Nordmann",
-          "createdAt": "2026-03-29T22:30:00"
-        }
-      ]
+      "resolution": null
     },
     {
       "id": 3,
@@ -1032,25 +978,17 @@ Returns all deviations in the organization.
       "status": "RESOLVED",
       "severity": "LOW",
       "moduleType": "IK_MAT",
-      "reportedBy": {
-        "id": 2,
-        "name": "Ola Nordmann"
-      },
+      "reportedBy": "Ola Nordmann",
       "reportedAt": "2026-03-27T14:30:00",
+      "resolvedBy": "Kari Larsen",
       "resolvedAt": "2026-03-28T09:00:00",
-      "resolution": "Vare kastet, leverandør varslet. FIFO gjennomgått.",
-      "relatedReadingId": null,
-      "comments": []
+      "resolution": "Vare kastet, leverandør varslet. FIFO gjennomgått."
     }
-  ],
-  "totalElements": 3,
-  "totalPages": 1,
-  "page": 0,
-  "size": 20
+  ]
 }
 ```
 
-`relatedReadingId` links back to the temperature reading that triggered the deviation (if auto-created). May be `null` for manually filed deviations.
+`reportedBy` and `resolvedBy` are full name strings resolved from the JWT. `resolvedBy` is `null` for unresolved deviations.
 
 ---
 
@@ -1107,7 +1045,7 @@ Status flow: `OPEN` → `IN_PROGRESS` → `RESOLVED`. To resolve, use the dedica
 
 ### PATCH `/api/deviations/{id}/resolve`
 
-ADMIN or MANAGER only. Mark as resolved with a resolution note.
+ADMIN, MANAGER, or SUPERVISOR only. Mark as resolved with a resolution note.
 
 **Request body:**
 
@@ -1164,9 +1102,9 @@ Returns a combined summary of today's status. All roles.
   "stats": {
     "tasksCompleted": 7,
     "tasksTotal": 12,
-    "temperatureAlerts": 2,
+    "tempAlerts": 2,
     "openDeviations": 3,
-    "compliancePercentage": 87
+    "compliancePercent": 87
   },
   "tasks": [
     {
@@ -1205,7 +1143,7 @@ Returns a combined summary of today's status. All roles.
       "completedAt": null
     }
   ],
-  "notifications": [
+  "alerts": [
     {
       "id": 1,
       "message": "Fryser #2 over grenseverdi — 15 min siden",
@@ -1214,7 +1152,7 @@ Returns a combined summary of today's status. All roles.
     },
     {
       "id": 2,
-      "message": "Ukentlig renholdssjekkliste forfalt — 2t siden",
+      "message": "Manglende alderskontroll-logg — 2t siden",
       "type": "warning",
       "time": "06:00"
     }
@@ -1226,11 +1164,11 @@ Returns a combined summary of today's status. All roles.
 
 | Field | Description |
 |---|---|
-| `tasksCompleted` | Checklists with status `COMPLETED` today |
-| `tasksTotal` | Total active checklist instances for today |
-| `temperatureAlerts` | Units with `hasAlert: true` (most recent reading out of range) |
-| `openDeviations` | Deviations with status `OPEN` or `IN_PROGRESS` |
-| `compliancePercentage` | `(tasksCompleted / tasksTotal) * 100`, rounded to nearest integer |
+| `tasksCompleted` | Checklist instances with status `COMPLETED` today |
+| `tasksTotal` | Total checklist instances for today |
+| `tempAlerts` | Today's temperature readings where `isOutOfRange = true` |
+| `openDeviations` | Deviations with status `OPEN` |
+| `compliancePercent` | `(tasksCompleted / tasksTotal) * 100`, rounded to nearest integer |
 
 **Task statuses:** `COMPLETED | PENDING | NOT_STARTED`
 - `COMPLETED` — all checklist items done

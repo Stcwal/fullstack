@@ -22,8 +22,8 @@
             </div>
             <div class="text-muted text-sm mt-1">
               {{ unitTypeLabel(unit.type) }} &middot;
-              Måltemp: {{ unit.targetTemp }}&deg;C &middot;
-              Min/maks: {{ unit.minTemp }}&deg;C / {{ unit.maxTemp }}&deg;C
+              Måltemp: {{ unit.targetTemperature }}&deg;C &middot;
+              Min/maks: {{ unit.minThreshold }}&deg;C / {{ unit.maxThreshold }}&deg;C
             </div>
           </div>
           <div class="flex items-center gap-3">
@@ -69,6 +69,7 @@
           <option value="FREEZER">Fryser</option>
           <option value="FRIDGE">Kjøleskap</option>
           <option value="COOLER">Kjøler</option>
+          <option value="DISPLAY">Visningsenhet</option>
           <option value="OTHER">Annet</option>
         </select>
       </div>
@@ -77,7 +78,7 @@
         <div class="form-group">
           <label class="font-medium text-sm">Måltemperatur (&deg;C)</label>
           <input
-            v-model.number="form.targetTemp"
+            v-model.number="form.targetTemperature"
             type="number"
             step="0.1"
             class="form-control"
@@ -86,7 +87,7 @@
         <div class="form-group">
           <label class="font-medium text-sm">Minimumstemperatur (&deg;C)</label>
           <input
-            v-model.number="form.minTemp"
+            v-model.number="form.minThreshold"
             type="number"
             step="0.1"
             class="form-control"
@@ -95,7 +96,7 @@
         <div class="form-group">
           <label class="font-medium text-sm">Maksimumstemperatur (&deg;C)</label>
           <input
-            v-model.number="form.maxTemp"
+            v-model.number="form.maxThreshold"
             type="number"
             step="0.1"
             class="form-control"
@@ -106,7 +107,7 @@
       <div class="form-group mt-3">
         <label class="font-medium text-sm">Innhold</label>
         <textarea
-          v-model="form.contents"
+          v-model="form.description"
           class="form-control"
           rows="1"
           placeholder="Hva lagres i enheten?"
@@ -145,10 +146,10 @@ const editingId = ref<number | null>(null)
 const emptyForm = (): Omit<SettingsUnit, 'id'> => ({
   name: '',
   type: 'FRIDGE',
-  targetTemp: 4,
-  minTemp: 0,
-  maxTemp: 8,
-  contents: '',
+  targetTemperature: 4,
+  minThreshold: 0,
+  maxThreshold: 8,
+  description: '',
   active: true,
 })
 
@@ -168,6 +169,7 @@ function unitTypeLabel(type: UnitType): string {
     FREEZER: 'Fryser',
     FRIDGE: 'Kjøleskap',
     COOLER: 'Kjøler',
+    DISPLAY: 'Visningsenhet',
     OTHER: 'Annet',
   }
   return labels[type]
@@ -186,10 +188,10 @@ function openEditModal(unit: SettingsUnit) {
   Object.assign(form, {
     name: unit.name,
     type: unit.type,
-    targetTemp: unit.targetTemp,
-    minTemp: unit.minTemp,
-    maxTemp: unit.maxTemp,
-    contents: unit.contents,
+    targetTemperature: unit.targetTemperature,
+    minThreshold: unit.minThreshold,
+    maxThreshold: unit.maxThreshold,
+    description: unit.description,
     active: unit.active,
   })
   showModal.value = true

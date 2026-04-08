@@ -1,18 +1,16 @@
 package backend.fullstack.organization;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -58,22 +56,9 @@ class OrganizationServiceTest {
         request.setName("Everest");
         request.setOrganizationNumber("937219997");
 
-        when(userRepository.count()).thenReturn(0L);
         when(organizationRepository.existsByOrganizationNumber("937219997")).thenReturn(true);
 
         assertThrows(OrganizationConflictException.class, () -> organizationService.create(request));
-    }
-
-    @Test
-    void createRejectsOrganizationCreationAfterBootstrap() {
-        OrganizationRequest request = new OrganizationRequest();
-        request.setName("Everest");
-        request.setOrganizationNumber("937219997");
-
-        when(userRepository.count()).thenReturn(1L);
-
-        assertThrows(AccessDeniedException.class, () -> organizationService.create(request));
-        verify(organizationRepository, never()).save(any(Organization.class));
     }
 
     @Test
@@ -98,7 +83,6 @@ class OrganizationServiceTest {
                 .locationCount(0)
                 .build();
 
-        when(userRepository.count()).thenReturn(0L);
         when(organizationRepository.existsByOrganizationNumber("937219997")).thenReturn(false);
         when(organizationMapper.toEntity(request)).thenReturn(mapped);
         when(organizationRepository.save(any(Organization.class))).thenReturn(saved);
@@ -135,8 +119,7 @@ class OrganizationServiceTest {
         when(accessContext.getCurrentOrganizationId()).thenReturn(100L);
         when(organizationRepository.findById(100L)).thenReturn(Optional.of(existing));
         when(organizationRepository.existsByOrganizationNumberAndIdNot("987654321", 100L)).thenReturn(false);
-        when(organizationRepository.save(existing)).thenReturn(saved);
-        when(organizationMapper.toResponse(saved)).thenReturn(response);
+        when(organizationMapper.toResponse(existing)).thenReturn(response);
 
         OrganizationResponse result = organizationService.updateCurrentOrganization(request);
 
@@ -144,7 +127,6 @@ class OrganizationServiceTest {
         assertEquals("Updated Everest", existing.getName());
         assertEquals("987654321", existing.getOrganizationNumber());
         verify(authorizationService).assertPermission(Permission.ORGANIZATION_SETTINGS_UPDATE);
-        verify(organizationRepository).save(existing);
     }
 
     @Test

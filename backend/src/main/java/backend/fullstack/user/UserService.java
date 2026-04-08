@@ -14,6 +14,7 @@ import backend.fullstack.permission.profile.PermissionProfile;
 import backend.fullstack.permission.profile.PermissionProfileRepository;
 import backend.fullstack.permission.profile.UserProfileAssignment;
 import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
+import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.user.dto.ChangePasswordRequest;
 import backend.fullstack.user.dto.CreateUserRequest;
 import backend.fullstack.user.dto.UpdateUserProfileRequest;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Service for managing users within an organization.
@@ -52,6 +54,7 @@ public class UserService {
     private final UserPermissionOverrideRepository userPermissionOverrideRepository;
     private final UserLocationScopeAssignmentRepository userLocationScopeAssignmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserInviteService userInviteService;
 
     /**
      * Returns all users belonging to the caller's organization.
@@ -101,7 +104,6 @@ public class UserService {
 
     /**
      * Creates a new user within the caller's organization.
-     * The password is hashed with BCrypt before persisting.
      * MANAGER and STAFF roles require a locationId in the request.
      *
      * @param request the user creation request
@@ -122,13 +124,16 @@ public class UserService {
         // 2. Build the entity from the DTO
         User user = userMapper.toEntity(request);
         user.setOrganization(accessContext.getCurrentUser().getOrganization());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setActive(true);
+        // Temporary random password hash; user sets real password via invite link.
+        user.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+        user.setActive(false);
 
         // 3. Resolve location based on role
         assignLocationForRole(user, request.getRole(), request.getLocationId(), orgId);
 
-        return toResponseWithLocations(userRepository.save(user));
+        User saved = userRepository.save(user);
+        userInviteService.createAndSendInvite(saved);
+        return toResponseWithLocations(saved);
     }
 
 
@@ -288,6 +293,21 @@ public class UserService {
 
         user.setActive(true);
         userRepository.save(user);
+    }
+
+    /**
+     * Resends invite email for a user in the current organization.
+     * Only ADMIN can perform this operation.
+     *
+     * @param id the target user id
+     */
+    @Transactional
+    public void resendInvite(Long id) {
+        accessContext.assertHasRole(Role.ADMIN);
+
+        User user = findInCurrentOrg(id);
+        authorizationService.assertCanManageUser(user);
+        userInviteService.createAndSendInvite(user);
     }
 
     @Transactional

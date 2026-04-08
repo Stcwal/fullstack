@@ -44,9 +44,6 @@ onMounted(loadData)
 const lineChartData = computed(() => {
   if (!chartData.value) return { labels: [], datasets: [] }
 
-  // Build a Set of alert indices that are open, keyed by dataset label+index
-  const alertSet = new Set(chartData.value.alerts.map(a => `${a.index}`))
-
   return {
     labels: chartData.value.labels,
     datasets: chartData.value.datasets.map(ds => ({

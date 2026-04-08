@@ -40,6 +40,7 @@ import backend.fullstack.permission.profile.PermissionProfile;
 import backend.fullstack.permission.profile.PermissionProfileRepository;
 import backend.fullstack.permission.profile.UserProfileAssignment;
 import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
+import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.user.dto.UserMapper;
 import backend.fullstack.user.role.Role;
 
@@ -62,6 +63,8 @@ class UserServicePermissionFlowTest {
     private UserLocationScopeAssignmentRepository userLocationScopeAssignmentRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+        @Mock
+        private UserInviteService userInviteService;
 
         private AccessContextService accessContext;
         private AuthorizationService authorizationService;
@@ -81,7 +84,8 @@ class UserServicePermissionFlowTest {
                 userProfileAssignmentRepository,
                 userPermissionOverrideRepository,
                 userLocationScopeAssignmentRepository,
-                passwordEncoder
+                passwordEncoder,
+                userInviteService
         );
 
         setAdminPrincipal();
@@ -217,6 +221,24 @@ class UserServicePermissionFlowTest {
         assertThrows(AccessDeniedException.class,
                 () -> userService.assignProfiles(50L, List.of(1L), null, null, null, true));
     }
+
+        @Test
+        void resendInviteRequiresAdminRole() {
+                setPrincipal(Role.MANAGER);
+
+                assertThrows(AccessDeniedException.class, () -> userService.resendInvite(50L));
+                verify(userInviteService, never()).createAndSendInvite(any());
+        }
+
+        @Test
+        void resendInviteAsAdminDelegatesToInviteService() {
+                User target = targetUser();
+                when(userRepository.findById(50L)).thenReturn(Optional.of(target));
+
+                userService.resendInvite(50L);
+
+                verify(userInviteService).createAndSendInvite(target);
+        }
 
     private static User targetUser() {
         Organization organization = Organization.builder()

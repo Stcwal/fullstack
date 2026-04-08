@@ -13,6 +13,29 @@ const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
+// DEV ONLY — tree-shaken from production builds
+const isDev = import.meta.env.DEV
+const devAccounts = isDev ? [
+  { label: 'Admin',  email: 'kari@everestsushi.no', password: 'admin123' },
+  { label: 'Leder',  email: 'ola@everestsushi.no',  password: 'leder123' },
+  { label: 'Ansatt', email: 'per@everestsushi.no',  password: 'ansatt123' },
+] : []
+
+async function quickLogin(e: string, p: string) {
+  email.value = e
+  password.value = p
+  errorMessage.value = ''
+  loading.value = true
+  try {
+    await authStore.login(e, p)
+    router.push({ name: 'dashboard' })
+  } catch {
+    errorMessage.value = 'Mock login feilet — sjekk konsollet.'
+  } finally {
+    loading.value = false
+  }
+}
+
 async function handleLogin() {
   errorMessage.value = ''
 
@@ -111,28 +134,19 @@ async function handleLogin() {
       </form>
     </div>
 
-    <!-- Dev credentials -->
-    <div class="dev-creds">
-      <p class="text-muted text-sm" style="margin-bottom: 6px; font-weight: 500;">Demo-kontoer (utvikling)</p>
-      <div class="cred-list">
-        <div class="cred-item">
-          <span class="cred-role">Admin</span>
-          <span class="cred-email">kari@everestsushi.no</span>
-          <span class="cred-sep">/</span>
-          <span class="cred-pass">admin123</span>
-        </div>
-        <div class="cred-item">
-          <span class="cred-role">Leder</span>
-          <span class="cred-email">ola@everestsushi.no</span>
-          <span class="cred-sep">/</span>
-          <span class="cred-pass">leder123</span>
-        </div>
-        <div class="cred-item">
-          <span class="cred-role">Ansatt</span>
-          <span class="cred-email">per@everestsushi.no</span>
-          <span class="cred-sep">/</span>
-          <span class="cred-pass">ansatt123</span>
-        </div>
+    <!-- DEV ONLY: quick-login buttons — not included in production builds -->
+    <div v-if="isDev" class="dev-creds">
+      <p class="text-muted text-sm" style="margin-bottom: 8px; font-weight: 500;">Hurtiglogg inn (kun utvikling)</p>
+      <div class="quick-login-row">
+        <button
+          v-for="acc in devAccounts"
+          :key="acc.label"
+          class="quick-login-btn"
+          :disabled="loading"
+          @click="quickLogin(acc.email, acc.password)"
+        >
+          {{ acc.label }}
+        </button>
       </div>
     </div>
   </div>
@@ -342,7 +356,25 @@ async function handleLogin() {
   color: #475569;
 }
 
-.cred-pass {
-  color: #7DD3A8;
+.quick-login-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
+
+.quick-login-btn {
+  padding: 7px 18px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+  min-height: 36px;
+}
+.quick-login-btn:hover { background: rgba(255,255,255,0.14); }
+.quick-login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

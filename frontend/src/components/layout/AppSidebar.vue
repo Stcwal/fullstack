@@ -18,7 +18,7 @@ const initials = computed(() => {
 })
 
 const roleName = computed(() => {
-  const map = { ADMIN: 'Administrator', MANAGER: 'Leder', STAFF: 'Ansatt' }
+  const map = { ADMIN: 'Administrator', SUPERVISOR: 'Veileder', MANAGER: 'Leder', STAFF: 'Ansatt' }
   return user.value ? map[user.value.role] : ''
 })
 
@@ -31,8 +31,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Oversikt',       route: 'dashboard',    icon: 'grid' },
-  { name: 'Fryser',         route: 'fryser',       icon: 'snowflake' },
-  { name: 'Kjøleskap',      route: 'kjoeleskap',   icon: 'thermometer' },
+  { name: 'Temperaturlogging', route: 'fryser',          icon: 'thermometer' },
+  { name: 'Temperaturlogg',   route: 'temperatur-logg',  icon: 'chart' },
   { name: 'Generelt',       route: 'generelt',     icon: 'checklist' },
   { name: 'Avvik',          route: 'avvik',        icon: 'warning', alert: true },
   { name: 'Temperaturgrafer', route: 'grafer',     icon: 'chart' },
@@ -40,6 +40,12 @@ const navItems: NavItem[] = [
 ]
 
 const settingsItem: NavItem = { name: 'Innstillinger', route: 'settings-units', icon: 'settings' }
+
+const alkoholNavItems = [
+  { name: 'Alderskontroll', route: 'alkohol-alderskontroll' },
+  { name: 'Sjekklister',    route: 'alkohol-sjekklister' },
+  { name: 'Hendelseslogg',  route: 'alkohol-hendelser' },
+]
 
 function isActive(routeName: string): boolean {
   if (routeName === 'settings-units') {
@@ -92,6 +98,21 @@ function logout() {
         <span v-if="item.alert && !collapsed" class="alert-dot" />
       </button>
 
+      <!-- IK-Alkohol section -->
+      <div class="sidebar-group-label">IK-Alkohol</div>
+      <button
+        v-for="item in alkoholNavItems"
+        :key="item.route"
+        class="sidebar-item sidebar-item--alkohol"
+        :class="{ active: isActive(item.route) }"
+        :aria-current="isActive(item.route) ? 'page' : undefined"
+        @click="navigate(item.route)"
+        :title="collapsed ? item.name : undefined"
+      >
+        <span class="sidebar-item-icon" aria-hidden="true">&#x1F37A;</span>
+        <span class="sidebar-item-label">{{ item.name }}</span>
+      </button>
+
       <template v-if="user?.role === 'ADMIN'">
         <div class="sidebar-group-label">Administrasjon</div>
         <button
@@ -138,20 +159,27 @@ function logout() {
 </template>
 
 <script lang="ts">
-// Inline icon component to avoid external icon library dependency
-const SidebarIcon = {
-  props: ['name'],
-  template: `
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" v-bind="$attrs">
-      <path v-if="name==='grid'" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-      <path v-else-if="name==='snowflake'" d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M12 6l-2-2m2 2l2-2M12 18l-2 2m2-2l2 2M6 12l-2-2m2 2l-2 2M18 12l2-2m-2 2l2 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-      <path v-else-if="name==='thermometer'" d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <path v-else-if="name==='checklist'" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <path v-else-if="name==='warning'" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <path v-else-if="name==='chart'" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <path v-else-if="name==='book'" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-      <path v-else-if="name==='settings'" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `
+import { h, defineComponent } from 'vue'
+
+const ICON_PATHS: Record<string, string[]> = {
+  grid:        ['M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z'],
+  snowflake:   ['M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M12 6l-2-2m2 2l2-2M12 18l-2 2m2-2l2 2M6 12l-2-2m2 2l-2 2M18 12l2-2m-2 2l2 2'],
+  thermometer: ['M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z'],
+  checklist:   ['M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+  warning:     ['M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
+  chart:       ['M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+  book:        ['M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
+  settings:    ['M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z'],
 }
+
+const SidebarIcon = defineComponent({
+  name: 'SidebarIcon',
+  props: ['name'],
+  render() {
+    const paths = ICON_PATHS[this.name] ?? []
+    return h('svg', { width: 16, height: 16, fill: 'none', viewBox: '0 0 24 24' },
+      paths.map(d => h('path', { d, stroke: 'currentColor', 'stroke-width': '1.75', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }))
+    )
+  }
+})
 </script>

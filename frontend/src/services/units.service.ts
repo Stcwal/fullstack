@@ -2,12 +2,12 @@
 import type { Unit } from '@/types'
 
 let mockUnits: Unit[] = [
-  { id: 1, name: 'Fryser #1',            type: 'FREEZER', targetTemp: -18, minTemp: -22, maxTemp: -16, contents: 'Sjømat, Kjøtt, Ferdigvarer',  active: true,  hasAlert: false },
-  { id: 2, name: 'Fryser #2',            type: 'FREEZER', targetTemp: -18, minTemp: -22, maxTemp: -16, contents: 'Grønnsaker, Desserter',        active: true,  hasAlert: true  },
-  { id: 3, name: 'Kjøleskap #1 (kjøkken)', type: 'FRIDGE', targetTemp:   3, minTemp:   1, maxTemp:   4, contents: 'Fisk, Meieriprodukter, Sauser', active: true,  hasAlert: false },
-  { id: 4, name: 'Kjøleskap #2 (bar)',   type: 'FRIDGE', targetTemp:   3, minTemp:   1, maxTemp:   4, contents: 'Juice, Melk, Frukt',            active: true,  hasAlert: false },
-  { id: 5, name: 'Visningskjøler',       type: 'COOLER', targetTemp:   5, minTemp:   3, maxTemp:   6, contents: 'Sushi-display, Drikke',         active: true,  hasAlert: false },
-  { id: 6, name: 'Kjøleskap #3 (lager)', type: 'FRIDGE', targetTemp:   3, minTemp:   1, maxTemp:   4, contents: 'Lagervarer',                    active: false, hasAlert: false }
+  { id: 1, name: 'Fryser #1',            type: 'FREEZER', targetTemperature: -18, minThreshold: -22, maxThreshold: -16, description: 'Sjømat, Kjøtt, Ferdigvarer',  active: true,  hasAlert: false },
+  { id: 2, name: 'Fryser #2',            type: 'FREEZER', targetTemperature: -18, minThreshold: -22, maxThreshold: -16, description: 'Grønnsaker, Desserter',        active: true,  hasAlert: true  },
+  { id: 3, name: 'Kjøleskap #1 (kjøkken)', type: 'FRIDGE', targetTemperature:   3, minThreshold:   1, maxThreshold:   4, description: 'Fisk, Meieriprodukter, Sauser', active: true,  hasAlert: false },
+  { id: 4, name: 'Kjøleskap #2 (bar)',   type: 'FRIDGE', targetTemperature:   3, minThreshold:   1, maxThreshold:   4, description: 'Juice, Melk, Frukt',            active: true,  hasAlert: false },
+  { id: 5, name: 'Visningskjøler',       type: 'COOLER', targetTemperature:   5, minThreshold:   3, maxThreshold:   6, description: 'Sushi-display, Drikke',         active: true,  hasAlert: false },
+  { id: 6, name: 'Kjøleskap #3 (lager)', type: 'FRIDGE', targetTemperature:   3, minThreshold:   1, maxThreshold:   4, description: 'Lagervarer',                    active: false, hasAlert: false }
 ]
 
 let nextId = 7

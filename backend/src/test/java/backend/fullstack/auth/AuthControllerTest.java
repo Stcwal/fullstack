@@ -17,8 +17,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import backend.fullstack.config.GlobalExceptionHandler;
 import backend.fullstack.config.JwtProperties;
 import backend.fullstack.config.JwtUtil;
+import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.user.User;
 import backend.fullstack.user.role.Role;
@@ -32,13 +34,16 @@ class AuthControllerTest {
     void setUp() {
         TestAuthService authService = new TestAuthService();
         TestJwtUtil jwtUtil = new TestJwtUtil();
+        UserInviteService userInviteService = new TestUserInviteService();
         AuthenticationManager authenticationManager = authentication -> {
             User principal = buildUser(42L, "admin@everest.no", 10L);
             return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
         };
 
-        AuthController controller = new AuthController(authService, jwtUtil, authenticationManager);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        AuthController controller = new AuthController(authService, userInviteService, jwtUtil, authenticationManager);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
         objectMapper = new ObjectMapper();
     }
 
@@ -57,7 +62,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("Login successful"))
                 .andExpect(jsonPath("$.data.userId").value(42))
                 .andExpect(jsonPath("$.data.organizationId").value(10))
-                .andExpect(jsonPath("$.data.allowedLocationIds[0]").value(1));
+                .andExpect(jsonPath("$.data.allowedLocationIds[0]").value(1))
+                .andExpect(jsonPath("$.data.token").value("test-token"));
     }
 
     @Test
@@ -86,6 +92,19 @@ class AuthControllerTest {
                 .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Logged out"));
+    }
+
+    @Test
+    void acceptInviteReturnsForbiddenForInvalidToken() throws Exception {
+        AcceptInviteRequest request = new AcceptInviteRequest();
+        request.setToken("invalid-token");
+        request.setPassword("Password1");
+
+        mockMvc.perform(post("/api/auth/invite/accept")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("ACCESS_DENIED"));
     }
 
     private static User buildUser(Long userId, String email, Long orgId) {
@@ -137,6 +156,16 @@ class AuthControllerTest {
         }
 
         @Override
+        public String generateToken(String email, Long userId, String role, Long organizationId, List<Long> locationIds) {
+            return "test-token";
+        }
+
+        @Override
+        public ResponseCookie generateJwtCookieFromToken(String token) {
+            return ResponseCookie.from("jwt", token).build();
+        }
+
+        @Override
         public ResponseCookie generateJwtCookie(
                 String email,
                 Long userId,
@@ -158,6 +187,20 @@ class AuthControllerTest {
                     .path("/api")
                     .maxAge(0)
                     .build();
+        }
+    }
+
+    private static final class TestUserInviteService extends UserInviteService {
+
+        private TestUserInviteService() {
+            super(null, null, null, null, null);
+        }
+
+        @Override
+        public void acceptInvite(String token, String password) {
+            if ("invalid-token".equals(token)) {
+                throw new org.springframework.security.access.AccessDeniedException("Invalid invite token");
+            }
         }
     }
 }

@@ -8,6 +8,10 @@
    Design Tokens
    ============================================================ */
 :root {
+  /* Module hue values — change one integer to retheme the entire module */
+  --ik-mat-hue: 142;
+  --ik-alkohol-hue: 38;
+
   /* Brand — green evokes food safety, freshness */
   --c-primary:        #16A34A;
   --c-primary-dark:   #15803D;
@@ -89,6 +93,24 @@
   /* Transition */
   --t: 0.15s ease;
   --t-slow: 0.3s ease;
+}
+
+/* IK-Mat module tokens (currently just aliases to existing green tokens) */
+.module-ik-mat {
+  --mod-bg:     hsl(var(--ik-mat-hue), 100%, 97%);
+  --mod-border: hsl(var(--ik-mat-hue), 60%,  75%);
+  --mod-accent: hsl(var(--ik-mat-hue), 70%,  40%);
+  --mod-text:   hsl(var(--ik-mat-hue), 80%,  20%);
+  --mod-dark:   hsl(var(--ik-mat-hue), 90%,  12%);
+}
+
+/* IK-Alkohol module tokens — amber by default */
+.module-ik-alkohol {
+  --mod-bg:     hsl(var(--ik-alkohol-hue), 100%, 97%);
+  --mod-border: hsl(var(--ik-alkohol-hue), 90%,  70%);
+  --mod-accent: hsl(var(--ik-alkohol-hue), 85%,  45%);
+  --mod-text:   hsl(var(--ik-alkohol-hue), 80%,  25%);
+  --mod-dark:   hsl(var(--ik-alkohol-hue), 90%,  15%);
 }
 
 /* ============================================================
@@ -848,6 +870,11 @@ label {
 }
 
 .sidebar-item.active .sidebar-item-icon { color: var(--c-primary); }
+
+.sidebar-item--alkohol.active {
+  background: hsl(var(--ik-alkohol-hue, 38), 90%, 15%);
+  color: hsl(var(--ik-alkohol-hue, 38), 90%, 75%);
+}
 
 .sidebar-item-icon {
   width: 18px;

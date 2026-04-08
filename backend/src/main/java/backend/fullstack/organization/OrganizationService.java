@@ -11,6 +11,7 @@ import backend.fullstack.organization.dto.OrganizationMapper;
 import backend.fullstack.permission.core.AuthorizationService;
 import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.AccessContextService;
+import backend.fullstack.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 
@@ -26,11 +27,15 @@ import lombok.RequiredArgsConstructor;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
     private final AccessContextService accessContext;
     private final AuthorizationService authorizationService;
     private final OrganizationMapper organizationMapper;
 
     public OrganizationResponse create(OrganizationRequest request) {
+        if (userRepository.count() > 0) {
+            throw new AccessDeniedException("Organization registration is closed after initial bootstrap");
+        }
         if (organizationRepository.existsByOrganizationNumber(request.getOrganizationNumber())) {
             throw new OrganizationConflictException(
                     "An organization with org number " + request.getOrganizationNumber() + " already exists"

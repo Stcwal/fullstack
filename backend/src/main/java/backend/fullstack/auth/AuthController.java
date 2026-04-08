@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtUtil;
+import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.user.User;
 import jakarta.validation.Valid;
 
@@ -29,21 +30,24 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+        private final UserInviteService userInviteService;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
     public AuthController(
             AuthService authService,
+                        UserInviteService userInviteService,
             JwtUtil jwtUtil,
             AuthenticationManager authenticationManager
     ) {
         this.authService = authService;
+                this.userInviteService = userInviteService;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
     }
 
     /**
-     * Authenticates the user and returns a JWT token in an HTTP-only cookie. The response body contains user details and allowed location IDs.
+     * Authenticates the user and returns a JWT token in an HTTP-only cookie and also in the response body as {@code data.token} for Bearer auth fallback. The response body contains user details and allowed location IDs.
      * The JWT cookie is set with the following claims: email, userId, role, organizationId, and allowedLocationIds. The cookie is HTTP-only and has a max age of 24 hours.
      *
      * @param request The login request containing email and password.
@@ -65,13 +69,15 @@ public class AuthController {
         User user = (User) authentication.getPrincipal();
         LoginResponse loginResponse = authService.buildLoginResponse(user);
 
-        ResponseCookie jwtCookie = jwtUtil.generateJwtCookie(
+        String jwtToken = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getId(),
                 user.getRole().name(),
                 user.getOrganizationId(),
                 loginResponse.getAllowedLocationIds()
         );
+        ResponseCookie jwtCookie = jwtUtil.generateJwtCookieFromToken(jwtToken);
+        loginResponse.setToken(jwtToken);
 
         return ResponseEntity.ok()
                 .header("Set-Cookie", jwtCookie.toString())
@@ -114,5 +120,20 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header("Set-Cookie", cleanCookie.toString())
                 .body(ApiResponse.success("Logged out", null));
+    }
+
+    /**
+     * Accepts a one-time invite token and sets the initial account password.
+     */
+    @PostMapping("/invite/accept")
+    @Operation(summary = "Accept invite", description = "Sets initial password using one-time invite token")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite accepted"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Invalid or expired invite token")
+    })
+    public ResponseEntity<ApiResponse<Void>> acceptInvite(@Valid @RequestBody AcceptInviteRequest request) {
+        userInviteService.acceptInvite(request.getToken(), request.getPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password set successfully", null));
     }
 }

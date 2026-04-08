@@ -85,11 +85,26 @@ export const checklistsService = {
   async getByFrequency(frequency: ChecklistFrequency): Promise<Checklist[]> {
     await delay()
     return mockChecklists.filter(c => c.frequency === frequency)
-    // Real: return (await api.get<Checklist[]>(`/checklists?frequency=${frequency}`)).data
+    // Real:
+    // const res = await api.get(`/checklists/instances?frequency=${frequency}`)
+    // return res.data.map((inst: any) => ({
+    //   id: inst.id,
+    //   title: inst.title,
+    //   frequency: inst.frequency,
+    //   moduleType: 'IK_MAT' as const,
+    //   items: inst.items.map((item: any) => ({
+    //     id: item.id,
+    //     text: item.text,
+    //     completed: item.completed,
+    //     completedBy: item.completedBy?.name,   // backend returns {id, name} object
+    //     completedAt: item.completedAt,
+    //   }))
+    // }))
   },
 
-  async toggleItem(checklistId: number, itemId: number, completed: boolean): Promise<void> {
+  async toggleItem(_checklistId: number, _itemId: number, _completed: boolean): Promise<void> {
     await delay(150)
-    // Real: await api.patch(`/checklists/${checklistId}/items/${itemId}`, { completed })
+    // TODO: Replace mock with real API call
+    // Real: await api.patch(`/checklists/instances/${_checklistId}/items/${_itemId}`, { completed: _completed })
   }
 }

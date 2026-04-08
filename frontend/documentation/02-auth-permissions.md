@@ -41,7 +41,7 @@ export interface User {
   email: string
   role: UserRole
   organizationId?: number    // optional until multi-tenant backend scoping is implemented
-  permissions?: UserPermissions  // optional until GET /auth/me is integrated
+  permissions?: UserPermissions  // optional until GET /users/me is integrated
 }
 
 export interface LoginCredentials {
@@ -55,7 +55,7 @@ export interface AuthResponse {
 }
 ```
 
-`organizationId` and `permissions` are marked optional on `User` as a pragmatic frontend decision: the mock data provides both, but the type system should not break if the backend omits them during early integration. Once `GET /api/auth/me` is fully implemented, both fields should be made required.
+`organizationId` and `permissions` are marked optional on `User` as a pragmatic frontend decision: the mock data provides both, but the type system should not break if the backend omits them during early integration. Once `GET /api/users/me` is fully implemented, both fields should be made required.
 
 ---
 
@@ -93,7 +93,7 @@ These are the real Spring Boot endpoints the service layer will call once integr
 | POST | /api/auth/login | Submit credentials, receive token + user | No |
 | POST | /api/auth/refresh | Exchange refresh token for new access token | No (uses refresh token) |
 | POST | /api/auth/logout | Invalidate the refresh token server-side | Yes |
-| GET | /api/auth/me | Fetch full User object with current permissions | Yes |
+| GET | /api/users/me | Fetch full User object with current permissions | Yes |
 
 **Login response shape** (AuthResponse):
 
@@ -322,7 +322,7 @@ Enforced by the router guard and by conditional rendering in the navigation comp
 
 ### Layer 2 — UserPermissions (fine-grained, feature-level)
 
-A `UserPermissions` object is returned as part of the `User` object from `GET /api/auth/me` (and embedded in the mock `AuthResponse`). These permissions are configurable per-user by an ADMIN in the `/innstillinger/brukere` tab.
+A `UserPermissions` object is returned as part of the `User` object from `GET /api/users/me` (and embedded in the mock `AuthResponse`). These permissions are configurable per-user by an ADMIN in the `/innstillinger/brukere` tab.
 
 ```typescript
 interface UserPermissions {
@@ -346,9 +346,9 @@ interface UserPermissions {
 | `userAdmin` | UsersTab in settings — creating and editing users |
 | `settings` | Entire `/innstillinger` area — units, users, organisation |
 
-**Why permissions come from `/auth/me` and not the JWT**:
+**Why permissions come from `/users/me` and not the JWT**:
 
-Permissions are configurable by ADMIN at any time. If permissions were embedded in the JWT, they would be stale until the token expired and was refreshed. By fetching them from `GET /api/auth/me`, the system reflects permission changes immediately on the next page load or session. The JWT remains lightweight (identity + role + expiry only).
+Permissions are configurable by ADMIN at any time. If permissions were embedded in the JWT, they would be stale until the token expired and was refreshed. By fetching them from `GET /api/users/me`, the system reflects permission changes immediately on the next page load or session. The JWT remains lightweight (identity + role + expiry only).
 
 **Admin management**: The `UsersTab` renders a permission toggle UI for each user. Toggling a permission calls `organizationService.updateUser(id, { permissions: {...} })`. Currently mocked. When the backend is integrated, this will call `PUT /api/users/:id`.
 

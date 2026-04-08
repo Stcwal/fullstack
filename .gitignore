@@ -45,7 +45,12 @@ Thumbs.db
 *.orig
 .cache/
 
+# Local dev
+docker-compose.yml
+application-local.properties
+
 priv/
 
 # Claude Code
 CLAUDE.md
+.superpowers/

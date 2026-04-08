@@ -37,15 +37,15 @@
           <div class="unit-info-grid">
             <div class="info-item">
               <span class="text-muted text-sm">Måltemperatur</span>
-              <span class="info-value">{{ selectedUnit.targetTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ selectedUnit.targetTemperature }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Akseptabelt område</span>
-              <span class="info-value">{{ selectedUnit.minTemp }}&nbsp;°C – {{ selectedUnit.maxTemp }}&nbsp;°C</span>
+              <span class="info-value">{{ selectedUnit.minThreshold }}&nbsp;°C – {{ selectedUnit.maxThreshold }}&nbsp;°C</span>
             </div>
             <div class="info-item">
               <span class="text-muted text-sm">Innhold</span>
-              <span class="info-value">{{ selectedUnit.contents || '—' }}</span>
+              <span class="info-value">{{ selectedUnit.description || '—' }}</span>
             </div>
           </div>
         </div>
@@ -122,16 +122,16 @@
               v-for="reading in recentReadings"
               :key="reading.id"
               class="status-row"
-              :class="{ 'is-alert': reading.isOutOfRange }"
+              :class="{ 'is-alert': reading.isDeviation }"
             >
               <div class="flex-1 min-w-0">
                 <div class="text-sm">{{ formatDateTime(reading.recordedAt) }}</div>
-                <div class="text-xs text-muted">{{ reading.recordedBy }}</div>
+                <div class="text-xs text-muted">{{ reading.recordedBy.name }}</div>
                 <div v-if="reading.note" class="text-xs text-muted mt-1">{{ reading.note }}</div>
               </div>
               <div
                 class="reading-temp"
-                :class="reading.isOutOfRange ? 'text-danger' : 'text-success'"
+                :class="reading.isDeviation ? 'text-danger' : 'text-success'"
               >
                 {{ reading.temperature.toFixed(1) }}&nbsp;°C
               </div>
