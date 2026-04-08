@@ -17,13 +17,12 @@ class FlywayDeviationsMigrationIntegrationTest {
     @Test
     void flywayMigrationCreatesDeviationsTable() throws Exception {
         DataSource dataSource = createDataSource();
-        createPrerequisiteTables(dataSource);
 
+        // V0 now creates all foundation tables (organizations, users, etc.)
+        // so no pre-created stubs are needed.
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
-                .baselineOnMigrate(true)
-                .baselineVersion("0")
                 .load();
         flyway.migrate();
 
@@ -37,28 +36,6 @@ class FlywayDeviationsMigrationIntegrationTest {
         dataSource.setUser("sa");
         dataSource.setPassword("");
         return dataSource;
-    }
-
-    /**
-     * Creates stub tables referenced by FK constraints in V3 and V4 migrations.
-     * V3 references organizations(id), users(id), and temperature_units(id).
-     * V4 references organizations(id) and users(id).
-     * These are created outside Flyway so they exist before Flyway runs.
-     */
-    private void createPrerequisiteTables(DataSource dataSource) throws Exception {
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.execute("""
-                    CREATE TABLE IF NOT EXISTS organizations (
-                        id BIGINT PRIMARY KEY AUTO_INCREMENT
-                    )
-                    """);
-            statement.execute("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        id BIGINT PRIMARY KEY AUTO_INCREMENT
-                    )
-                    """);
-        }
     }
 
     private boolean v4MigrationWasApplied(DataSource dataSource) throws Exception {

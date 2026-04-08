@@ -124,7 +124,7 @@ class OrganizationControllerTest {
         private Long lastId;
 
         private TestOrganizationService() {
-            super(null, null, null, null);
+            super(null, null, null, null, null);
         }
 
         @Override

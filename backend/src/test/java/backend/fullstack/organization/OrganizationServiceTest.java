@@ -21,12 +21,15 @@ import backend.fullstack.organization.dto.OrganizationResponse;
 import backend.fullstack.permission.core.AuthorizationService;
 import backend.fullstack.permission.model.Permission;
 import backend.fullstack.user.AccessContextService;
+import backend.fullstack.user.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationServiceTest {
 
     @Mock
     private OrganizationRepository organizationRepository;
+    @Mock
+    private UserRepository userRepository;
     @Mock
     private AccessContextService accessContext;
     @Mock
@@ -40,6 +43,7 @@ class OrganizationServiceTest {
     void setUp() {
         organizationService = new OrganizationService(
                 organizationRepository,
+                userRepository,
                 accessContext,
                 authorizationService,
                 organizationMapper

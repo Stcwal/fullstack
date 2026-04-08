@@ -17,9 +17,10 @@ CREATE TABLE IF NOT EXISTS locations (
     name            VARCHAR(255) NOT NULL,
     address         VARCHAR(255),
     created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_locations_organization FOREIGN KEY (organization_id) REFERENCES organizations(id),
-    INDEX idx_locations_organization_id (organization_id)
+    CONSTRAINT fk_locations_organization FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_locations_organization_id ON locations(organization_id);
 
 CREATE TABLE IF NOT EXISTS users (
     id               BIGINT       PRIMARY KEY AUTO_INCREMENT,
