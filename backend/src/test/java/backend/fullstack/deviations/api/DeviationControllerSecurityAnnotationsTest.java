@@ -25,6 +25,21 @@ class DeviationControllerSecurityAnnotationsTest {
         assertPreAuthorize("resolveDeviation", "hasAnyRole('ADMIN','MANAGER','SUPERVISOR')");
     }
 
+    @Test
+    void updateDeviationStatusRequiresAdminManagerOrSupervisor() {
+        assertPreAuthorize("updateDeviationStatus", "hasAnyRole('ADMIN','MANAGER','SUPERVISOR')");
+    }
+
+    @Test
+    void addDeviationCommentAllowsAllAuthenticatedRoles() {
+        assertPreAuthorize("addDeviationComment", "hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')");
+    }
+
+    @Test
+    void getDeviationByIdAllowsAllAuthenticatedRoles() {
+        assertPreAuthorize("getDeviationById", "hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')");
+    }
+
     private void assertPreAuthorize(String methodName, String expectedValue) {
         Method method = Arrays.stream(DeviationController.class.getDeclaredMethods())
                 .filter(candidate -> methodName.equals(candidate.getName()))
