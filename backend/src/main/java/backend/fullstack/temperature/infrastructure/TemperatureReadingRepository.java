@@ -55,6 +55,36 @@ public interface TemperatureReadingRepository extends JpaRepository<TemperatureR
             @Param("to") LocalDateTime to
     );
 
+    @Query("""
+            SELECT r
+            FROM TemperatureReading r
+            WHERE r.organization.id = :organizationId
+              AND (:from IS NULL OR r.recordedAt >= :from)
+              AND (:to IS NULL OR r.recordedAt <= :to)
+            ORDER BY r.unit.name ASC, r.recordedAt ASC
+            """)
+    List<TemperatureReading> findForStatsByOrganizationAndRange(
+            @Param("organizationId") Long organizationId,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
+    @Query("""
+            SELECT r
+            FROM TemperatureReading r
+            WHERE r.organization.id = :organizationId
+              AND r.unit.id IN :unitIds
+              AND (:from IS NULL OR r.recordedAt >= :from)
+              AND (:to IS NULL OR r.recordedAt <= :to)
+            ORDER BY r.unit.name ASC, r.recordedAt ASC
+            """)
+    List<TemperatureReading> findForStatsByOrganizationAndUnitIdsAndRange(
+            @Param("organizationId") Long organizationId,
+            @Param("unitIds") List<Long> unitIds,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
     long countByOrganization_IdAndIsDeviationTrue(Long organizationId);
 
     long countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(Long organizationId, LocalDateTime since);

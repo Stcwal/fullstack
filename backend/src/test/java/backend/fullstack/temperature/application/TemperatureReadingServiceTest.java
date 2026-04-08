@@ -28,9 +28,12 @@ import backend.fullstack.exceptions.UnitInactiveException;
 import backend.fullstack.exceptions.UnitNotFoundException;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.temperature.api.dto.RecordedByResponse;
+import backend.fullstack.temperature.api.dto.TemperatureReadingDeviationResponse;
 import backend.fullstack.temperature.api.dto.TemperatureReadingMapper;
 import backend.fullstack.temperature.api.dto.TemperatureReadingRequest;
 import backend.fullstack.temperature.api.dto.TemperatureReadingResponse;
+import backend.fullstack.temperature.api.dto.TemperatureReadingStatsGroupBy;
+import backend.fullstack.temperature.api.dto.TemperatureReadingStatsResponse;
 import backend.fullstack.temperature.domain.TemperatureReading;
 import backend.fullstack.temperature.infrastructure.TemperatureReadingRepository;
 import backend.fullstack.units.domain.TemperatureUnit;
@@ -176,6 +179,58 @@ class TemperatureReadingServiceTest {
         assertFalse(results.get(0).isDeviation());
     }
 
+    @Test
+    void getReadingStatsBuildsSeriesAndDeviationList() {
+        TemperatureReading freezerMorning = readingAt(11L, 5L, "Freezer A", 2.0, false, LocalDateTime.of(2026, 3, 20, 8, 10));
+        TemperatureReading freezerEveningDeviation = readingAt(12L, 5L, "Freezer A", 6.0, true, LocalDateTime.of(2026, 3, 20, 20, 15));
+        TemperatureReading fridgeDayTwo = readingAt(13L, 9L, "Fridge B", 3.0, false, LocalDateTime.of(2026, 3, 21, 9, 30));
+
+        when(readingRepository.findForStatsByOrganizationAndRange(1L, null, null))
+                .thenReturn(List.of(freezerMorning, freezerEveningDeviation, fridgeDayTwo));
+
+        TemperatureReadingStatsResponse stats = service.getReadingStats(
+                1L,
+                null,
+                null,
+                null,
+                TemperatureReadingStatsGroupBy.DAY
+        );
+
+        assertEquals(2, stats.series().size());
+
+        var freezerSeries = stats.series().stream()
+                .filter(series -> series.unitId().equals(5L))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(1, freezerSeries.dataPoints().size());
+        assertTrue(freezerSeries.dataPoints().get(0).isDeviation());
+        assertEquals(4.0, freezerSeries.dataPoints().get(0).avgTemperature());
+
+        assertEquals(1, stats.deviations().size());
+        TemperatureReadingDeviationResponse deviation = stats.deviations().get(0);
+        assertEquals(12L, deviation.id());
+        assertEquals(5.0, deviation.threshold());
+    }
+
+    @Test
+    void getReadingStatsUsesUnitFilterWhenUnitIdsProvided() {
+        TemperatureReading freezerDeviation = readingAt(22L, 5L, "Freezer A", 6.0, true, LocalDateTime.of(2026, 3, 20, 8, 10));
+
+        when(readingRepository.findForStatsByOrganizationAndUnitIdsAndRange(1L, List.of(5L), null, null))
+                .thenReturn(List.of(freezerDeviation));
+
+        TemperatureReadingStatsResponse stats = service.getReadingStats(
+                1L,
+                List.of(5L, 5L),
+                null,
+                null,
+                TemperatureReadingStatsGroupBy.HOUR
+        );
+
+        verify(readingRepository).findForStatsByOrganizationAndUnitIdsAndRange(1L, List.of(5L), null, null);
+        assertEquals(1, stats.series().size());
+    }
+
     private static TemperatureUnit unit(Long id, Long organizationId, boolean active, double min, double max) {
         Organization organization = Organization.builder()
                 .id(organizationId)
@@ -231,6 +286,42 @@ class TemperatureReadingServiceTest {
                 .temperature(2.5)
                 .recordedAt(LocalDateTime.of(2026, 3, 20, 8, 10))
                 .note("OK")
+                .isDeviation(deviation)
+                .build();
+    }
+
+    private static TemperatureReading readingAt(
+            Long id,
+            Long unitId,
+            String unitName,
+            Double temperature,
+            boolean deviation,
+            LocalDateTime recordedAt
+    ) {
+        Organization organization = Organization.builder()
+                .id(1L)
+                .name("Everest")
+                .organizationNumber("123456789")
+                .build();
+
+        TemperatureUnit unit = TemperatureUnit.builder()
+                .id(unitId)
+                .organization(organization)
+                .name(unitName)
+                .type(UnitType.FREEZER)
+                .targetTemperature(3.0)
+                .minThreshold(1.0)
+                .maxThreshold(5.0)
+                .active(true)
+                .build();
+
+        return TemperatureReading.builder()
+                .id(id)
+                .organization(organization)
+                .unit(unit)
+                .recordedBy(user(10L, 1L))
+                .temperature(temperature)
+                .recordedAt(recordedAt)
                 .isDeviation(deviation)
                 .build();
     }
