@@ -1,5 +1,7 @@
 ALTER TABLE deviations
-    ADD COLUMN related_reading_id BIGINT NULL,
+    ADD COLUMN related_reading_id BIGINT NULL;
+
+ALTER TABLE deviations
     ADD CONSTRAINT fk_deviations_related_reading
         FOREIGN KEY (related_reading_id) REFERENCES temperature_readings(id);
 
