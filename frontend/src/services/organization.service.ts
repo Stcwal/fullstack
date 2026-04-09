@@ -1,95 +1,116 @@
-// TODO: Replace mock with real API calls — /api/organization
-import type { Organization, SettingsUser } from '@/types'
+import type { Organization, SettingsUser, UserPermissions, UserRole } from '@/types'
+import api from './api'
 
-let mockOrg: Organization = {
-  name: 'Everest Sushi & Fusion AS',
-  orgNumber: '937 219 997',
+// ── Colour tokens per role (frontend-only display) ──────────────────────────
+const ROLE_COLORS: Record<UserRole, { colorBg: string; colorText: string }> = {
+  ADMIN:      { colorBg: '#EDE9FE', colorText: '#5B21B6' },
+  SUPERVISOR: { colorBg: '#FEF3C7', colorText: '#92400E' },
+  MANAGER:    { colorBg: '#F0FDF4', colorText: '#15803D' },
+  STAFF:      { colorBg: '#F1F5F9', colorText: '#475569' },
+}
+
+// ── Default permissions per role (frontend-only, backend has none) ───────────
+const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
+  ADMIN:      { temperatureLogging: true,  checklists: true,  reports: true,  deviations: true,  userAdmin: true,  settings: true  },
+  SUPERVISOR: { temperatureLogging: true,  checklists: true,  reports: true,  deviations: true,  userAdmin: false, settings: false },
+  MANAGER:    { temperatureLogging: true,  checklists: true,  reports: true,  deviations: true,  userAdmin: false, settings: false },
+  STAFF:      { temperatureLogging: true,  checklists: true,  reports: false, deviations: true,  userAdmin: false, settings: false },
+}
+
+interface BackendUser {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: UserRole
+  isActive: boolean
+}
+
+interface BackendOrg {
+  id: number
+  name: string
+  organizationNumber: string
+}
+
+// Frontend-only org fields that the backend does not persist
+const ORG_DEFAULTS = {
   industry: 'Restaurant',
   address: 'Innherredsveien 1, 7014 Trondheim',
   modules: { ikMat: true, ikAlkohol: true },
   notifications: {
     emailOnTempDeviation: true,
     dailySummaryToManagers: true,
-    smsOnCritical: false
-  }
-}
-
-let mockUsers: SettingsUser[] = [
-  {
-    id: 1, firstName: 'Kari',  lastName: 'Larsen',    email: 'kari@everestsushi.no',
-    role: 'ADMIN',   isActive: true, colorBg: '#EDE9FE', colorText: '#5B21B6',
-    permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: true, settings: true }
+    smsOnCritical: false,
   },
-  {
-    id: 2, firstName: 'Ola',   lastName: 'Nordmann',  email: 'ola@everestsushi.no',
-    role: 'MANAGER', isActive: true, colorBg: '#F0FDF4', colorText: '#15803D',
-    permissions: { temperatureLogging: true, checklists: true, reports: true, deviations: true, userAdmin: false, settings: false }
-  },
-  {
-    id: 3, firstName: 'Per',   lastName: 'Martinsen', email: 'per@everestsushi.no',
-    role: 'STAFF',   isActive: true, colorBg: '#F1F5F9', colorText: '#475569',
-    permissions: { temperatureLogging: true, checklists: true, reports: false, deviations: true, userAdmin: false, settings: false }
-  }
-]
-
-function delay(ms = 300) { return new Promise(r => setTimeout(r, ms)) }
+} as const
 
 export const organizationService = {
   async getOrg(): Promise<Organization> {
-    await delay()
-    return { ...mockOrg }
-    // Real:
-    // const res = await api.get('/organization/me')
-    // return {
-    //   name: res.data.name,
-    //   orgNumber: res.data.organizationNumber,    // backend uses organizationNumber
-    //   industry: '',                               // not in backend yet
-    //   address: '',                                // not in backend yet
-    //   modules: { ikMat: true, ikAlkohol: true },  // frontend-only, not persisted
-    //   notifications: {                            // frontend-only, not persisted
-    //     emailOnTempDeviation: false,
-    //     dailySummaryToManagers: false,
-    //     smsOnCritical: false
-    //   }
-    // }
+    const res = await api.get<BackendOrg>('/organization/me')
+    return {
+      name: res.data.name,
+      orgNumber: res.data.organizationNumber,
+      ...ORG_DEFAULTS,
+    }
   },
 
   async updateOrg(data: Partial<Organization>): Promise<Organization> {
-    await delay()
-    mockOrg = { ...mockOrg, ...data }
-    return { ...mockOrg }
-    // Real:
-    // await api.put('/organization/me', {
-    //   name: data.name,
-    //   organizationNumber: data.orgNumber    // map frontend orgNumber → backend organizationNumber
-    // })
-    // return this.getOrg()    // re-fetch to merge frontend-only fields
+    await api.put('/organization/me', {
+      name: data.name,
+      organizationNumber: data.orgNumber?.replace(/\s/g, ''),
+    })
+    return this.getOrg()
   },
 
   async getUsers(): Promise<SettingsUser[]> {
-    await delay()
-    return [...mockUsers]
-    // Real: return (await api.get('/users')).data
-    // Note: backend UserResponse uses isActive (not active) and has no permissions object.
-    // Map isActive → isActive (matches), derive permissions from role using usePermission defaults.
+    const res = await api.get<BackendUser[]>('/users')
+    return res.data.map(u => ({
+      id: u.id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      role: u.role,
+      isActive: u.isActive,
+      ...ROLE_COLORS[u.role],
+      permissions: ROLE_PERMISSIONS[u.role],
+    }))
   },
 
   async updateUser(id: number, data: Partial<SettingsUser>): Promise<SettingsUser> {
-    await delay()
-    const idx = mockUsers.findIndex(u => u.id === id)
-    if (idx === -1) throw new Error('Bruker ikke funnet')
-    mockUsers[idx] = { ...mockUsers[idx], ...data }
-    return { ...mockUsers[idx] }
-    // Real: await api.put(`/users/${id}`, { firstName: data.firstName, lastName: data.lastName })
-    // Note: backend PUT /users/{id} only accepts firstName and lastName.
-    // Role changes go to PUT /users/{id}/role. Password changes via POST /users/me/change-password.
+    // Name update
+    if (data.firstName !== undefined || data.lastName !== undefined) {
+      await api.put(`/users/${id}`, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+      })
+    }
+    // Role update (separate endpoint)
+    if (data.role !== undefined) {
+      await api.put(`/users/${id}/role`, { role: data.role })
+    }
+    // Re-fetch the updated user from the list
+    const users = await this.getUsers()
+    const updated = users.find(u => u.id === id)
+    if (!updated) throw new Error('Bruker ikke funnet etter oppdatering')
+    return updated
   },
 
   async createUser(data: Omit<SettingsUser, 'id'>): Promise<SettingsUser> {
-    await delay()
-    const user: SettingsUser = { ...data, id: Date.now() }
-    mockUsers.push(user)
-    return user
-    // Real: return (await api.post<SettingsUser>('/users', data)).data
-  }
+    const res = await api.post<BackendUser>('/users', {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      role: data.role,
+    })
+    return {
+      id: res.data.id,
+      firstName: res.data.firstName,
+      lastName: res.data.lastName,
+      email: res.data.email,
+      role: res.data.role,
+      isActive: res.data.isActive,
+      ...ROLE_COLORS[res.data.role],
+      permissions: ROLE_PERMISSIONS[res.data.role],
+    }
+  },
 }

@@ -8,7 +8,20 @@ interface LoginResponseData {
   lastName: string
   role: User['role']
   organizationId: number
+  primaryLocationId?: number
   token: string
+}
+
+// Shape returned by GET /api/users/me
+interface BackendUserResponse {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: User['role']
+  organizationId: number
+  homeLocationId?: number
+  isActive: boolean
 }
 
 export const authService = {
@@ -23,14 +36,24 @@ export const authService = {
         lastName: data.lastName,
         email: data.email,
         role: data.role,
-        organizationId: data.organizationId
+        organizationId: data.organizationId,
+        primaryLocationId: data.primaryLocationId
       }
     }
   },
 
+  /** Fetches the current user's fresh profile from GET /api/users/me */
   async me(): Promise<User> {
-    const stored = sessionStorage.getItem('user')
-    if (!stored) throw new Error('Not authenticated')
-    return JSON.parse(stored)
+    const response = await api.get<BackendUserResponse>('/users/me')
+    const d = response.data
+    return {
+      id: d.id,
+      firstName: d.firstName,
+      lastName: d.lastName,
+      email: d.email,
+      role: d.role,
+      organizationId: d.organizationId,
+      primaryLocationId: d.homeLocationId,
+    }
   }
 }

@@ -214,6 +214,11 @@ function formatCompletedAt(iso?: string): string {
             :key="task.id"
             class="status-row"
             :class="{ 'is-alert': isAlertTask(task) }"
+            role="button"
+            tabindex="0"
+            :aria-label="`Merk oppgave som ${task.status === 'COMPLETED' ? 'ikke fullført' : 'fullført'}: ${task.name}`"
+            @click="dashboardStore.toggleTask(task.id)"
+            @keydown.enter.space.prevent="dashboardStore.toggleTask(task.id)"
           >
             <!-- Left: indicator + name -->
             <div class="flex items-center gap-3 flex-1">
@@ -357,6 +362,19 @@ function formatCompletedAt(iso?: string): string {
 .task-list {
   display: flex;
   flex-direction: column;
+}
+
+.status-row[role="button"] {
+  cursor: pointer;
+}
+
+.status-row[role="button"]:hover {
+  background: var(--c-surface-2);
+}
+
+.status-row[role="button"]:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: -2px;
 }
 
 .task-indicator {
