@@ -34,16 +34,12 @@ export const reportsService = {
   },
 
   async exportPdf(from: string, to: string): Promise<void> {
-    const response = await api.get(`/reports/export/pdf?from=${from}&to=${to}`, {
-      responseType: 'blob',
-    })
-    triggerDownload(response.data as Blob, `rapport-${to}.pdf`)
+    const response = await api.post('/export', { module: 'TEMPERATURE_LOGS', format: 'PDF', from, to }, { responseType: 'blob' })
+    triggerDownload(response.data as Blob, `temperatur-rapport-${to}.pdf`)
   },
 
   async exportJson(from: string, to: string): Promise<void> {
-    const response = await api.get(`/reports/export/json?from=${from}&to=${to}`, {
-      responseType: 'blob',
-    })
-    triggerDownload(response.data as Blob, `rapport-${to}.json`)
+    const response = await api.post('/export', { module: 'TEMPERATURE_LOGS', format: 'JSON', from, to }, { responseType: 'blob' })
+    triggerDownload(response.data as Blob, `temperatur-rapport-${to}.json`)
   },
 }

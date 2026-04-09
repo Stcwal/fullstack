@@ -54,14 +54,14 @@ VALUES
   (5002, 1, 'Fryser A2', 'FREEZER', -18.0, -22.0, -15.0, 'Main freezer line A2', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (5003, 1, 'Fryser B1', 'FREEZER', -18.0, -22.0, -15.0, 'Storage freezer B1', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (5004, 1, 'Fryser B2', 'FREEZER', -18.0, -22.0, -15.0, 'Storage freezer B2', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (5005, 1, 'Kjoleskap Sushibar 1', 'FRIDGE', 4.0, 1.0, 6.0, 'Cold prep station', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (5006, 1, 'Kjoleskap Sushibar 2', 'FRIDGE', 4.0, 1.0, 6.0, 'Cold prep station', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (5007, 1, 'Kjolerom Lager', 'COOLER', 4.0, 1.0, 6.0, 'Backroom cooler', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (5008, 1, 'Kjolerom Drikke', 'COOLER', 5.0, 2.0, 8.0, 'Beverage cooler', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (5005, 1, 'Kjøleskap Sushibar 1', 'FRIDGE', 4.0, 1.0, 6.0, 'Cold prep station', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (5006, 1, 'Kjøleskap Sushibar 2', 'FRIDGE', 4.0, 1.0, 6.0, 'Cold prep station', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (5007, 1, 'Kjølerom Lager', 'COOLER', 4.0, 1.0, 6.0, 'Backroom cooler', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+  (5008, 1, 'Kjølerom Drikke', 'COOLER', 5.0, 2.0, 8.0, 'Beverage cooler', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (5009, 1, 'Utstilling Disk 1', 'DISPLAY', 6.0, 2.0, 8.0, 'Front display', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (5010, 1, 'Utstilling Disk 2', 'DISPLAY', 6.0, 2.0, 8.0, 'Front display', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
   (5011, 1, 'Sausstasjon', 'OTHER', 8.0, 4.0, 10.0, 'Prepared sauces', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-  (5012, 1, 'Ravarer Kaldsone', 'OTHER', 5.0, 2.0, 7.0, 'Raw ingredients zone', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  (5012, 1, 'Råvarer Kaldsone', 'OTHER', 5.0, 2.0, 7.0, 'Raw ingredients zone', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = CURRENT_TIMESTAMP;
 
 INSERT INTO temperature_readings
@@ -108,8 +108,8 @@ ON DUPLICATE KEY UPDATE updated_at = VALUES(updated_at);
 INSERT INTO deviations
   (id, organization_id, title, description, status, severity, module_type, reported_by_id, related_reading_id, resolved_by_id, resolved_at, resolution, created_at, updated_at)
 VALUES
-  (8001, 1, 'Fryser A1 over terskel', 'Malt temperatur var for hoy i 20 min.', 'OPEN',        'HIGH',     'IK_MAT',     2, 7023, NULL, NULL, NULL, TIMESTAMPADD(HOUR, -30, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -30, CURRENT_TIMESTAMP)),
-  (8002, 1, 'Kjolerom Drikke ustabil', 'Store variasjoner i temperatur siste dogn.', 'IN_PROGRESS', 'MEDIUM',   'IK_MAT',     4, 7046, NULL, NULL, NULL, TIMESTAMPADD(HOUR, -48, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -12, CURRENT_TIMESTAMP)),
+  (8001, 1, 'Fryser A1 over terskel', 'Målt temperatur var for høy i 20 min.', 'OPEN',        'HIGH',     'IK_MAT',     2, 7023, NULL, NULL, NULL, TIMESTAMPADD(HOUR, -30, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -30, CURRENT_TIMESTAMP)),
+  (8002, 1, 'Kjølerom Drikke ustabil', 'Store variasjoner i temperatur siste døgn.', 'IN_PROGRESS', 'MEDIUM',   'IK_MAT',     4, 7046, NULL, NULL, NULL, TIMESTAMPADD(HOUR, -48, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -12, CURRENT_TIMESTAMP)),
   (8003, 1, 'Manglende alderskontroll', 'Gjesten ble servert uten gyldig legitimasjon.', 'RESOLVED',    'CRITICAL', 'IK_ALKOHOL', 8, NULL, 1, TIMESTAMPADD(HOUR, -18, CURRENT_TIMESTAMP), 'Personale fikk oppfriskningskurs og ny dobbelkontrollrutine.', TIMESTAMPADD(HOUR, -72, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -18, CURRENT_TIMESTAMP)),
   (8004, 1, 'Utstilling Disk 2 for varm', 'Visningsdisk holdt over 8C i rushperiode.', 'RESOLVED',    'HIGH',     'SHARED',     5, 7069, 4, TIMESTAMPADD(HOUR, -8, CURRENT_TIMESTAMP), 'Byttet vifte og justerte luftstrom.', TIMESTAMPADD(HOUR, -26, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -8, CURRENT_TIMESTAMP)),
   (8005, 1, 'Dokumentasjon ikke oppdatert', 'Siste internrevisjon mangler signatur.', 'OPEN',        'LOW',      'SHARED',     1, NULL, NULL, NULL, NULL, TIMESTAMPADD(DAY, -2, CURRENT_TIMESTAMP), TIMESTAMPADD(DAY, -2, CURRENT_TIMESTAMP)),
@@ -119,9 +119,9 @@ ON DUPLICATE KEY UPDATE status = VALUES(status), resolution = VALUES(resolution)
 INSERT INTO deviation_comments
   (id, organization_id, deviation_id, created_by_id, comment_text, created_at, updated_at)
 VALUES
-  (8101, 1, 8001, 2, 'Venter pa servicepartner for fysisk kontroll.', TIMESTAMPADD(HOUR, -28, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -28, CURRENT_TIMESTAMP)),
+  (8101, 1, 8001, 2, 'Venter på servicepartner for fysisk kontroll.', TIMESTAMPADD(HOUR, -28, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -28, CURRENT_TIMESTAMP)),
   (8102, 1, 8002, 4, 'La inn midlertidig kontroll hver 30. minutt.', TIMESTAMPADD(HOUR, -24, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -24, CURRENT_TIMESTAMP)),
-  (8103, 1, 8003, 1, 'Gjennomfort samtale med involvert ansatt.', TIMESTAMPADD(HOUR, -20, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -20, CURRENT_TIMESTAMP)),
+  (8103, 1, 8003, 1, 'Gjennomført samtale med involvert ansatt.', TIMESTAMPADD(HOUR, -20, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -20, CURRENT_TIMESTAMP)),
   (8104, 1, 8004, 4, 'Sjekket at ny vifte holder stabil temperatur.', TIMESTAMPADD(HOUR, -7, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -7, CURRENT_TIMESTAMP)),
   (8105, 1, 8006, 2, 'Oppdaterer vaktplan for kommende helg.', TIMESTAMPADD(HOUR, -5, CURRENT_TIMESTAMP), TIMESTAMPADD(HOUR, -5, CURRENT_TIMESTAMP))
 ON DUPLICATE KEY UPDATE comment_text = VALUES(comment_text), updated_at = VALUES(updated_at);
