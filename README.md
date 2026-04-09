@@ -6,7 +6,7 @@ Built for **Everest Sushi & Fusion AS**, Innherredsveien 1, Trondheim, as part o
 
 **Team:** Dennis Moe · Oleander Tengesdal · Stian Walmann · Sindre Jentoft Bøe
 
-**Live demo:** https://stain.no — log in with the test credentials below.
+**Live demo:** https://stain.no hosted on Railway — log in with the test credentials below.
 
 ---
 
