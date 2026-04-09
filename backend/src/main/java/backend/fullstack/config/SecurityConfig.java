@@ -32,17 +32,20 @@ import backend.fullstack.user.UserRepository;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final SecurityErrorHandler securityErrorHandler;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(
             JwtAuthFilter jwtAuthFilter,
+            RateLimitFilter rateLimitFilter,
             SecurityErrorHandler securityErrorHandler,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitFilter = rateLimitFilter;
         this.securityErrorHandler = securityErrorHandler;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -68,6 +71,7 @@ public class SecurityConfig {
                         .access(this::canAccessBootstrapSetup)
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

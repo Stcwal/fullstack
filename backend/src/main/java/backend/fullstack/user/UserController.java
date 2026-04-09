@@ -2,6 +2,7 @@ package backend.fullstack.user;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,30 +53,35 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
     @Operation(summary = "Get users in current organization")
     public ApiResponse<List<UserResponse>> getAllInOrganization() {
         return ApiResponse.success("Users retrieved", userService.getAllInOrganization());
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Get current user profile")
     public ApiResponse<UserResponse> getMyProfile() {
         return ApiResponse.success("Profile retrieved", userService.getMyProfile());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
     @Operation(summary = "Get user by ID")
     public ApiResponse<UserResponse> getById(@PathVariable Long id) {
         return ApiResponse.success("User retrieved", userService.getById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @Operation(summary = "Create user")
     public ApiResponse<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
         return ApiResponse.success("User created", userService.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @Operation(summary = "Update user profile")
     public ApiResponse<UserResponse> updateProfile(
             @PathVariable Long id,
@@ -85,6 +91,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update user role")
     public ApiResponse<UserResponse> updateRole(
             @PathVariable Long id,
@@ -94,6 +101,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/locations")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @Operation(summary = "Assign additional user locations")
     public ApiResponse<UserResponse> assignAdditionalLocations(
             @PathVariable Long id,
@@ -103,6 +111,7 @@ public class UserController {
     }
 
     @PostMapping("/me/change-password")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Change current user password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);
@@ -110,6 +119,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Deactivate user")
     public ApiResponse<Void> deactivate(@PathVariable Long id) {
         userService.deactivate(id);
@@ -117,6 +127,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/reactivate")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Reactivate user")
     public ApiResponse<Void> reactivate(@PathVariable Long id) {
         userService.reactivate(id);
@@ -124,6 +135,7 @@ public class UserController {
     }
 
     @PostMapping("/{id}/resend-invite")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @Operation(summary = "Resend invite")
     public ApiResponse<Void> resendInvite(@PathVariable Long id) {
         userService.resendInvite(id);

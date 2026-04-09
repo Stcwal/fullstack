@@ -3,6 +3,7 @@ package backend.fullstack.training;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +34,7 @@ public class TrainingController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
     @Operation(summary = "Create training record")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Training record created"),
@@ -46,6 +48,7 @@ public class TrainingController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "List visible training records")
     public ApiResponse<List<TrainingRecordResponse>> getVisibleRecords(
             @RequestParam(required = false) Long userId,
@@ -59,12 +62,14 @@ public class TrainingController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Get training record by id")
     public ApiResponse<TrainingRecordResponse> getById(@PathVariable Long id) {
         return ApiResponse.success("Training record fetched", trainingService.getById(id));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
     @Operation(summary = "Update training record")
     public ApiResponse<TrainingRecordResponse> update(
             @PathVariable Long id,

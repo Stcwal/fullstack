@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,24 +40,28 @@ public class LocationController {
     private final LocationService locationService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new location")
     public ApiResponse<LocationResponse> create(@Valid @RequestBody LocationRequest request) {
         return ApiResponse.success("Location created", locationService.create(request));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Get all accessible locations")
     public ApiResponse<List<LocationResponse>> getAllAccessible() {
         return ApiResponse.success("Accessible locations retrieved", locationService.getAllAccessible());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Get location by ID")
     public ApiResponse<LocationResponse> getById(@PathVariable Long id) {
         return ApiResponse.success("Location retrieved", locationService.getById(id));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update location")
     public ApiResponse<LocationResponse> update(
             @PathVariable Long id,
@@ -66,6 +71,7 @@ public class LocationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete location")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         locationService.delete(id);

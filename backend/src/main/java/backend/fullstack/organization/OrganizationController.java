@@ -14,6 +14,7 @@ import backend.fullstack.organization.dto.OrganizationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Controller for managing organizations.
@@ -41,6 +42,7 @@ public class OrganizationController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Get current organization")
     public ApiResponse<OrganizationResponse> getCurrentOrganization() {
         return ApiResponse.success(
@@ -50,6 +52,7 @@ public class OrganizationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get organization by ID")
     public ApiResponse<OrganizationResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(
@@ -59,6 +62,7 @@ public class OrganizationController {
     }
 
     @PutMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update current organization")
     public ApiResponse<OrganizationResponse> updateCurrentOrganization(
             @Valid @RequestBody OrganizationRequest request) {

@@ -59,6 +59,7 @@ class SecurityConfigRegisterAccessTest {
     private SecurityConfig configWithUserCount(long count) {
         return new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+                new RateLimitFilter(),
                 new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
                 repositoryWithCount(count),
                 new BCryptPasswordEncoder()
