@@ -13,13 +13,11 @@ const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-// DEV ONLY — tree-shaken from production builds
-const isDev = import.meta.env.DEV
-const devAccounts = isDev ? [
+const devAccounts = [
   { label: 'Admin',  email: 'kari@everestsushi.no', password: 'admin123' },
   { label: 'Leder',  email: 'ola@everestsushi.no',  password: 'leder123' },
   { label: 'Ansatt', email: 'per@everestsushi.no',  password: 'ansatt123' },
-] : []
+]
 
 async function quickLogin(e: string, p: string) {
   email.value = e
@@ -134,9 +132,8 @@ async function handleLogin() {
       </form>
     </div>
 
-    <!-- DEV ONLY: quick-login buttons — not included in production builds -->
-    <div v-if="isDev" class="dev-creds">
-      <p class="text-muted text-sm" style="margin-bottom: 8px; font-weight: 500;">Hurtiglogg inn (kun utvikling)</p>
+    <div class="dev-creds">
+      <p class="text-muted text-sm" style="margin-bottom: 8px; font-weight: 500;">Testkontoer</p>
       <div class="quick-login-row">
         <button
           v-for="acc in devAccounts"
