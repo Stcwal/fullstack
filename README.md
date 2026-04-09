@@ -4,6 +4,8 @@ Digital internal control system for Norwegian restaurants. Replaces paper-based 
 
 Built for **Everest Sushi & Fusion AS**, Innherredsveien 1, Trondheim, as part of IDATT2105 Full-Stack Application Development at NTNU.
 
+**Team:** Dennis Moe · Oleander Tengesdal · Stian Walmann · Sindre Jentoft Bøe
+
 ---
 
 ## What it does
