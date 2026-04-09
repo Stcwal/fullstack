@@ -1,6 +1,6 @@
 INSERT INTO checklist_templates (id, organization_id, title, frequency)
 VALUES
-    (1001, 1, 'Aapning kjokken', 'DAILY'),
+    (1001, 1, 'Åpning kjøkken', 'DAILY'),
     (1002, 1, 'Ukentlig stenging', 'WEEKLY'),
     (2001, 2, 'Daglig bar-sjekk', 'DAILY');
 
@@ -16,7 +16,7 @@ VALUES
 
 INSERT INTO checklist_instances (id, template_id, organization_id, title, frequency, date, status)
 VALUES
-    (3001, 1001, 1, 'Aapning kjokken', 'DAILY', CURRENT_DATE, 'IN_PROGRESS'),
+    (3001, 1001, 1, 'Åpning kjøkken', 'DAILY', CURRENT_DATE, 'IN_PROGRESS'),
     (3002, 1002, 1, 'Ukentlig stenging', 'WEEKLY', CURRENT_DATE, 'PENDING'),
     (3003, 2001, 2, 'Daglig bar-sjekk', 'DAILY', CURRENT_DATE, 'COMPLETED');
 

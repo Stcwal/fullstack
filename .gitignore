@@ -54,3 +54,4 @@ priv/
 # Claude Code
 CLAUDE.md
 .superpowers/
+coverage/

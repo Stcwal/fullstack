@@ -80,7 +80,7 @@ public class Document {
     private Long fileSize;
 
     @Lob
-    @Column(name = "file_data", nullable = false)
+    @Column(name = "file_data", nullable = false, columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
     @CreationTimestamp

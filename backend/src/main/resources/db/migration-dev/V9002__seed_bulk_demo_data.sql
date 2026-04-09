@@ -132,10 +132,10 @@ ON DUPLICATE KEY UPDATE comment_text = VALUES(comment_text), updated_at = VALUES
 
 INSERT INTO checklist_templates (id, organization_id, title, frequency)
 VALUES
-  (4101, 1, 'Daglig aapning kjokken', 'DAILY'),
-  (4102, 1, 'Daglig stenging kjokken', 'DAILY'),
+  (4101, 1, 'Daglig åpning kjøkken', 'DAILY'),
+  (4102, 1, 'Daglig stenging kjøkken', 'DAILY'),
   (4103, 1, 'Ukentlig renhold fryserom', 'WEEKLY'),
-  (4104, 1, 'Maanedlig HACCP gjennomgang', 'MONTHLY'),
+  (4104, 1, 'Månedlig HACCP gjennomgang', 'MONTHLY'),
   (4105, 1, 'Daglig alderskontroll bar', 'DAILY')
 ON DUPLICATE KEY UPDATE title = VALUES(title), frequency = VALUES(frequency);
 
@@ -144,28 +144,28 @@ VALUES
   (4201, 4101, 'Desinfiser alle arbeidsflater'),
   (4202, 4101, 'Kalibrer termometer'),
   (4203, 4101, 'Kontroller leveringstemperatur for fisk'),
-  (4204, 4102, 'Logg slutt-temperatur pa alle enheter'),
+  (4204, 4102, 'Logg slutt-temperatur på alle enheter'),
   (4205, 4102, 'Lukk avvik i systemet'),
-  (4206, 4103, 'Tin og rengjor fordamper'),
-  (4207, 4103, 'Kontroller pakninger og dorlister'),
+  (4206, 4103, 'Tin og rengjør fordamper'),
+  (4207, 4103, 'Kontroller pakninger og dørlister'),
   (4208, 4104, 'Signer intern revisjonsprotokoll'),
   (4209, 4104, 'Oppdater risikovurdering'),
-  (4210, 4105, 'Brief ansatte pa legitimasjonsrutiner'),
-  (4211, 4105, 'Test avviksflyt for underaarige')
+  (4210, 4105, 'Brief ansatte på legitimasjonsrutiner'),
+  (4211, 4105, 'Test avviksflyt for underårige')
 ON DUPLICATE KEY UPDATE item_text = VALUES(item_text);
 
 INSERT INTO checklist_instances (id, template_id, organization_id, title, frequency, date, status)
 VALUES
-  (4301, 4101, 1, 'Daglig aapning kjokken', 'DAILY', CURRENT_DATE, 'IN_PROGRESS'),
-  (4302, 4102, 1, 'Daglig stenging kjokken', 'DAILY', CURRENT_DATE, 'PENDING'),
+  (4301, 4101, 1, 'Daglig åpning kjøkken', 'DAILY', CURRENT_DATE, 'IN_PROGRESS'),
+  (4302, 4102, 1, 'Daglig stenging kjøkken', 'DAILY', CURRENT_DATE, 'PENDING'),
   (4303, 4103, 1, 'Ukentlig renhold fryserom', 'WEEKLY', CURRENT_DATE, 'IN_PROGRESS'),
   (4304, 4105, 1, 'Daglig alderskontroll bar', 'DAILY', CURRENT_DATE, 'COMPLETED'),
-  (4305, 4101, 1, 'Daglig aapning kjokken', 'DAILY', TIMESTAMPADD(DAY, -1, CURRENT_DATE), 'COMPLETED'),
-  (4306, 4102, 1, 'Daglig stenging kjokken', 'DAILY', TIMESTAMPADD(DAY, -1, CURRENT_DATE), 'COMPLETED'),
-  (4307, 4101, 1, 'Daglig aapning kjokken', 'DAILY', TIMESTAMPADD(DAY, -2, CURRENT_DATE), 'COMPLETED'),
-  (4308, 4102, 1, 'Daglig stenging kjokken', 'DAILY', TIMESTAMPADD(DAY, -2, CURRENT_DATE), 'COMPLETED'),
+  (4305, 4101, 1, 'Daglig åpning kjøkken', 'DAILY', TIMESTAMPADD(DAY, -1, CURRENT_DATE), 'COMPLETED'),
+  (4306, 4102, 1, 'Daglig stenging kjøkken', 'DAILY', TIMESTAMPADD(DAY, -1, CURRENT_DATE), 'COMPLETED'),
+  (4307, 4101, 1, 'Daglig åpning kjøkken', 'DAILY', TIMESTAMPADD(DAY, -2, CURRENT_DATE), 'COMPLETED'),
+  (4308, 4102, 1, 'Daglig stenging kjøkken', 'DAILY', TIMESTAMPADD(DAY, -2, CURRENT_DATE), 'COMPLETED'),
   (4309, 4103, 1, 'Ukentlig renhold fryserom', 'WEEKLY', TIMESTAMPADD(DAY, -7, CURRENT_DATE), 'COMPLETED'),
-  (4310, 4104, 1, 'Maanedlig HACCP gjennomgang', 'MONTHLY', TIMESTAMPADD(DAY, -14, CURRENT_DATE), 'IN_PROGRESS')
+  (4310, 4104, 1, 'Månedlig HACCP gjennomgang', 'MONTHLY', TIMESTAMPADD(DAY, -14, CURRENT_DATE), 'IN_PROGRESS')
 ON DUPLICATE KEY UPDATE status = VALUES(status), date = VALUES(date);
 
 INSERT INTO checklist_instance_items (id, instance_id, item_text, completed, completed_by_user_id, completed_at)
@@ -173,11 +173,11 @@ VALUES
   (4401, 4301, 'Desinfiser alle arbeidsflater', TRUE, 3, TIMESTAMPADD(HOUR, -3, CURRENT_TIMESTAMP)),
   (4402, 4301, 'Kalibrer termometer', TRUE, 3, TIMESTAMPADD(HOUR, -2, CURRENT_TIMESTAMP)),
   (4403, 4301, 'Kontroller leveringstemperatur for fisk', FALSE, NULL, NULL),
-  (4404, 4302, 'Logg slutt-temperatur pa alle enheter', FALSE, NULL, NULL),
+  (4404, 4302, 'Logg slutt-temperatur på alle enheter', FALSE, NULL, NULL),
   (4405, 4302, 'Lukk avvik i systemet', FALSE, NULL, NULL),
   (4406, 4303, 'Tin og rengjor fordamper', TRUE, 4, TIMESTAMPADD(HOUR, -8, CURRENT_TIMESTAMP)),
   (4407, 4303, 'Kontroller pakninger og dorlister', FALSE, NULL, NULL),
-  (4408, 4304, 'Brief ansatte pa legitimasjonsrutiner', TRUE, 8, TIMESTAMPADD(HOUR, -9, CURRENT_TIMESTAMP)),
+  (4408, 4304, 'Brief ansatte på legitimasjonsrutiner', TRUE, 8, TIMESTAMPADD(HOUR, -9, CURRENT_TIMESTAMP)),
   (4409, 4304, 'Test avviksflyt for underaarige', TRUE, 8, TIMESTAMPADD(HOUR, -8, CURRENT_TIMESTAMP)),
   (4410, 4310, 'Signer intern revisjonsprotokoll', TRUE, 1, TIMESTAMPADD(DAY, -10, CURRENT_TIMESTAMP)),
   (4411, 4310, 'Oppdater risikovurdering', FALSE, NULL, NULL)
