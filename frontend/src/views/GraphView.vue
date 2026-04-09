@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
+import { useAuthStore } from '@/stores/auth'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,6 +17,11 @@ import type { ChartPeriod } from '@/types'
 import type { ChartData as ServiceChartData } from '@/services/reports.service'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+
+const authStore = useAuthStore()
+const canExport = computed(() =>
+  authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'
+)
 
 // ── State ────────────────────────────────────────────────────────────────────
 const period    = ref<ChartPeriod>('WEEK')
@@ -186,7 +192,7 @@ const lineChartOptions = computed(() => ({
   <!-- ── Page header ─────────────────────────────────────────────────────── -->
   <div class="flex items-center justify-between mb-4">
     <h1 class="page-title">Temperaturgrafer</h1>
-    <div class="flex gap-2">
+    <div v-if="canExport" class="flex gap-2">
       <button class="btn btn-secondary btn-sm" :disabled="!!exporting" @click="handleExport('pdf')">
         {{ exporting === 'pdf' ? 'Laster…' : 'Eksporter PDF' }}
       </button>
