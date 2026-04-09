@@ -25,6 +25,10 @@ import lombok.Setter;
  * 
  * Each permission profile belongs to a specific organization and has a unique name within that organization. The profile can be active or inactive, allowing for flexible management of user permissions over time.
  *
+ * <p>Lombok generates standard accessors/mutators, a no-args constructor, an all-args constructor,
+ * and a builder for this entity. When not explicitly set in the builder, {@code isActive}
+ * defaults to {@code true}.</p>
+ *
  * @version 1.0
  * @since 31.03.26
  */
@@ -42,27 +46,49 @@ import lombok.Setter;
 @Builder
 public class PermissionProfile {
 
+    /**
+     * Surrogate primary key for this profile.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Organization that owns this permission profile.
+     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
+    /**
+     * Human-readable profile name, unique within one organization.
+     */
     @Column(name = "name", nullable = false, length = 120)
     private String name;
 
+    /**
+     * Optional description of the profile's intended use.
+     */
     @Column(name = "description", length = 255)
     private String description;
 
+    /**
+     * Flag indicating whether the profile is active and assignable.
+     * Defaults to {@code true} when omitted in the builder.
+     */
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private boolean isActive = true;
 
+    /**
+     * Creation timestamp set automatically when the entity is first persisted.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * Lifecycle callback that assigns a creation timestamp before first persist.
+     */
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
