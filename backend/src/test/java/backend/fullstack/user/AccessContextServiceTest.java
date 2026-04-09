@@ -1,20 +1,21 @@
 package backend.fullstack.user;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -110,6 +111,97 @@ class AccessContextServiceTest {
 
         assertThrows(org.springframework.security.access.AccessDeniedException.class,
                 () -> accessContextService.assertCanAccess(11L));
+    }
+
+    @Test
+    void assertCanAccessThrowsWhenLocationIsNull() {
+        assertThrows(AccessDeniedException.class, () -> accessContextService.assertCanAccess(null));
+    }
+
+    @Test
+    void getCurrentOrganizationIdAndRolePreferJwtClaims() {
+        JwtPrincipal principal = new JwtPrincipal(
+                77L,
+                "jwt@everest.no",
+                Role.SUPERVISOR,
+                555L,
+                List.of(9L)
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+
+        assertEquals(555L, accessContextService.getCurrentOrganizationId());
+        assertEquals(Role.SUPERVISOR, accessContextService.getCurrentRole());
+    }
+
+    @Test
+    void assertHasRoleAllowsMatchingRoleAndRejectsOthers() {
+        JwtPrincipal principal = new JwtPrincipal(
+                88L,
+                "manager@everest.no",
+                Role.MANAGER,
+                100L,
+                List.of(1L)
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+
+        accessContextService.assertHasRole(Role.MANAGER, Role.ADMIN);
+
+        assertThrows(AccessDeniedException.class, () -> accessContextService.assertHasRole(Role.ADMIN));
+    }
+
+    @Test
+    void getCurrentUserResolvesFromJwtUserIdWhenPrincipalHasNoEntity() {
+        JwtPrincipal principal = new JwtPrincipal(
+                123L,
+                "jwt-user@everest.no",
+                Role.STAFF,
+                100L,
+                List.of()
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+
+        User stored = user(123L, 100L, Role.STAFF, "jwt-user@everest.no");
+        when(userRepository.findById(123L)).thenReturn(Optional.of(stored));
+
+        User resolved = accessContextService.getCurrentUser();
+
+        assertEquals(123L, resolved.getId());
+        assertEquals("jwt-user@everest.no", resolved.getEmail());
+    }
+
+    @Test
+    void getCurrentUserThrowsWhenUnauthenticated() {
+        SecurityContextHolder.clearContext();
+
+        assertThrows(AccessDeniedException.class, () -> accessContextService.getCurrentUser());
+    }
+
+    @Test
+    void getAllowedLocationIdsDeduplicatesOverlappingScopes() {
+        JwtPrincipal principal = new JwtPrincipal(
+                2L,
+                "manager@everest.no",
+                Role.MANAGER,
+                100L,
+                List.of(4L, 5L)
+        );
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(2L), any()))
+                .thenReturn(List.of(5L, 6L));
+
+        List<Long> allowed = accessContextService.getAllowedLocationIds();
+
+        assertEquals(List.of(4L, 5L, 6L), allowed);
+        assertTrue(allowed.stream().distinct().count() == allowed.size());
     }
 
     private static void setAuthenticatedEmail(String email) {
