@@ -17,6 +17,34 @@ const canManage = computed(() => {
   return r === 'ADMIN' || r === 'MANAGER' || r === 'SUPERVISOR'
 })
 
+// ── Filters ───────────────────────────────────────────────────────────────────
+type StatusFilter   = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'
+type ModuleFilter   = 'ALL' | 'IK_MAT' | 'IK_ALKOHOL'
+type SeverityFilter = 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+
+const filterStatus   = ref<StatusFilter>('ALL')
+const filterModule   = ref<ModuleFilter>('ALL')
+const filterSeverity = ref<SeverityFilter>('ALL')
+
+const filteredDeviations = computed(() =>
+  deviationsStore.deviations.filter(d => {
+    if (filterStatus.value   !== 'ALL' && d.status     !== filterStatus.value)   return false
+    if (filterModule.value   !== 'ALL' && d.moduleType !== filterModule.value)   return false
+    if (filterSeverity.value !== 'ALL' && d.severity   !== filterSeverity.value) return false
+    return true
+  })
+)
+
+const hasActiveFilter = computed(
+  () => filterStatus.value !== 'ALL' || filterModule.value !== 'ALL' || filterSeverity.value !== 'ALL'
+)
+
+function clearFilters() {
+  filterStatus.value   = 'ALL'
+  filterModule.value   = 'ALL'
+  filterSeverity.value = 'ALL'
+}
+
 // ── Expand / comments ─────────────────────────────────────────────────────────
 const expanded = ref<Record<number, boolean>>({})
 const commentsMap = ref<Record<number, DeviationComment[]>>({})
@@ -171,6 +199,69 @@ onMounted(() => deviationsStore.fetchAll())
     <button class="btn btn-primary" @click="openModal">Rapporter nytt avvik</button>
   </div>
 
+  <!-- ── Filters ─────────────────────────────────────────────────────────── -->
+  <div v-if="!deviationsStore.loading" class="filter-bar">
+    <!-- Status -->
+    <div class="filter-group">
+      <button
+        v-for="opt in ([
+          { value: 'ALL',         label: 'Alle' },
+          { value: 'OPEN',        label: 'Åpen' },
+          { value: 'IN_PROGRESS', label: 'Under arbeid' },
+          { value: 'RESOLVED',    label: 'Løst' },
+        ] as const)"
+        :key="opt.value"
+        class="filter-pill"
+        :class="{ 'filter-pill--active': filterStatus === opt.value }"
+        @click="filterStatus = opt.value"
+      >{{ opt.label }}</button>
+    </div>
+
+    <!-- Module -->
+    <div class="filter-group">
+      <button
+        v-for="opt in ([
+          { value: 'ALL',        label: 'Alle moduler' },
+          { value: 'IK_MAT',     label: 'IK-Mat' },
+          { value: 'IK_ALKOHOL', label: 'IK-Alkohol' },
+        ] as const)"
+        :key="opt.value"
+        class="filter-pill"
+        :class="{ 'filter-pill--active': filterModule === opt.value }"
+        @click="filterModule = opt.value"
+      >{{ opt.label }}</button>
+    </div>
+
+    <!-- Severity -->
+    <div class="filter-group">
+      <button
+        v-for="opt in ([
+          { value: 'ALL',      label: 'Alle' },
+          { value: 'CRITICAL', label: 'Kritisk' },
+          { value: 'HIGH',     label: 'Høy' },
+          { value: 'MEDIUM',   label: 'Medium' },
+          { value: 'LOW',      label: 'Lav' },
+        ] as const)"
+        :key="opt.value"
+        class="filter-pill"
+        :class="{ 'filter-pill--active': filterSeverity === opt.value }"
+        @click="filterSeverity = opt.value"
+      >{{ opt.label }}</button>
+    </div>
+
+    <!-- Clear + count -->
+    <div class="filter-meta">
+      <span class="text-muted text-xs">
+        {{ filteredDeviations.length }} av {{ deviationsStore.deviations.length }} avvik
+      </span>
+      <button
+        v-if="hasActiveFilter"
+        class="filter-clear"
+        @click="clearFilters"
+      >Nullstill</button>
+    </div>
+  </div>
+
   <!-- ── Loading ──────────────────────────────────────────────────────────── -->
   <div v-if="deviationsStore.loading" class="text-muted text-sm">Laster avvik…</div>
 
@@ -184,10 +275,20 @@ onMounted(() => deviationsStore.fetchAll())
     <p class="text-xs text-muted">Trykk «Rapporter nytt avvik» for å opprette det første.</p>
   </div>
 
+  <!-- ── No results after filtering ──────────────────────────────────────── -->
+  <div
+    v-else-if="filteredDeviations.length === 0"
+    class="card"
+    style="text-align: center; padding: 2rem 1.5rem;"
+  >
+    <p class="text-muted text-sm">Ingen avvik matcher filteret.</p>
+    <button class="filter-clear" style="margin-top: 0.5rem;" @click="clearFilters">Nullstill filter</button>
+  </div>
+
   <!-- ── Deviation list ───────────────────────────────────────────────────── -->
   <template v-else>
     <div
-      v-for="dev in deviationsStore.deviations"
+      v-for="dev in filteredDeviations"
       :key="dev.id"
       class="card mb-3 dev-card"
     >
@@ -540,4 +641,59 @@ onMounted(() => deviationsStore.fetchAll())
 .comment-compose {
   margin-top: 0.75rem;
 }
+
+/* ── Filters ── */
+.filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+.filter-pill:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+.filter-pill--active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+}
+
+.filter-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-clear {
+  background: none;
+  border: none;
+  color: var(--c-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.filter-clear:hover { opacity: 0.75; }
 </style>
