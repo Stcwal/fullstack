@@ -62,7 +62,11 @@ export const useAlkoholStore = defineStore('alkohol', () => {
   }
 
   async function fetchStats() {
-    stats.value = await alkoholService.getStats()
+    try {
+      stats.value = await alkoholService.getStats()
+    } catch {
+      // stats remain at defaults if endpoint is unavailable
+    }
   }
 
   return {

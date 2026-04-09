@@ -2,89 +2,125 @@ import type {
   AlderskontrollEntry,
   NewAlderskontrollEntry,
   AlkoholIncident,
+  AlkoholIncidentType,
   NewAlkoholIncident,
-  AlkoholStats
+  AlkoholStats,
 } from '@/types'
+import api from './api'
+import { useAuthStore } from '@/stores/auth'
 
-// Mock data
-const mockEntries: AlderskontrollEntry[] = [
-  {
-    id: 1,
-    recordedAt: new Date(Date.now() - 3600000).toISOString(),
-    recordedBy: 'Kari Larsen',
-    outcome: 'APPROVED'
-  },
-  {
-    id: 2,
-    recordedAt: new Date(Date.now() - 7200000).toISOString(),
-    recordedBy: 'Per Hansen',
-    outcome: 'DENIED',
-    note: 'Manglende legitimasjon'
-  }
-]
+// ── Incident type mapping: Norwegian frontend ↔ English backend ──────────────
+const INCIDENT_TO_BACKEND: Record<AlkoholIncidentType, string> = {
+  NEKTET_SERVERING: 'REFUSED_SERVICE',
+  BERUSET_GJEST:    'INTOXICATED_PERSON',
+  POLITIKONTAKT:    'DISTURBANCE',
+  ANNET:            'OTHER',
+}
 
-const mockIncidents: AlkoholIncident[] = [
-  {
-    id: 1,
-    incidentType: 'BERUSET_GJEST',
-    description: 'Gjest virket beruset, ble bedt om å forlate lokalet.',
-    occurredAt: new Date(Date.now() - 86400000).toISOString(),
-    reportedBy: 'Kari Larsen',
-    followUpRequired: false
-  }
-]
+const INCIDENT_FROM_BACKEND: Record<string, AlkoholIncidentType> = {
+  REFUSED_SERVICE:   'NEKTET_SERVERING',
+  INTOXICATED_PERSON:'BERUSET_GJEST',
+  UNDERAGE_ATTEMPT:  'ANNET',
+  OVER_SERVING:      'ANNET',
+  DISTURBANCE:       'POLITIKONTAKT',
+  OTHER:             'ANNET',
+}
+
+// ── Backend response shapes ───────────────────────────────────────────────────
+interface BackendVerification {
+  id: number
+  verifiedByName: string
+  wasRefused: boolean
+  note?: string
+  verifiedAt: string
+}
+
+interface BackendIncident {
+  id: number
+  incidentType: string
+  description: string
+  occurredAt: string
+  reportedByName: string
+  status: string  // OPEN | RESOLVED | IN_PROGRESS
+}
+
+function getLocationId(): number {
+  const auth = useAuthStore()
+  return auth.user?.primaryLocationId ?? 1
+}
 
 export const alkoholService = {
-  // TODO: Replace mock with real API call — GET /api/alkohol/age-verifications
   async getAlderskontrollEntries(): Promise<AlderskontrollEntry[]> {
-    await new Promise(r => setTimeout(r, 300))
-    return [...mockEntries]
+    const res = await api.get<BackendVerification[]>('/alcohol/age-verifications')
+    return res.data.map(v => ({
+      id: v.id,
+      recordedAt: v.verifiedAt,
+      recordedBy: v.verifiedByName,
+      outcome: v.wasRefused ? 'DENIED' : 'APPROVED',
+      note: v.note,
+    }))
   },
 
-  // TODO: Replace mock with real API call — POST /api/alkohol/age-verifications
   async createAlderskontrollEntry(data: NewAlderskontrollEntry): Promise<AlderskontrollEntry> {
-    await new Promise(r => setTimeout(r, 200))
-    const entry: AlderskontrollEntry = {
-      id: Date.now(),
-      recordedAt: data.recordedAt ?? new Date().toISOString(),
-      recordedBy: 'Innlogget bruker', // TODO: Replace with auth.user name
-      outcome: data.outcome,
-      note: data.note
+    const res = await api.post<BackendVerification>('/alcohol/age-verifications', {
+      locationId: getLocationId(),
+      verificationMethod: 'ID_CHECKED',
+      guestAppearedUnderage: true,
+      idWasValid: data.outcome === 'APPROVED' ? true : data.outcome === 'DENIED' ? false : null,
+      wasRefused: data.outcome === 'DENIED',
+      note: data.note,
+      verifiedAt: data.recordedAt ?? new Date().toISOString(),
+    })
+    return {
+      id: res.data.id,
+      recordedAt: res.data.verifiedAt,
+      recordedBy: res.data.verifiedByName,
+      outcome: res.data.wasRefused ? 'DENIED' : 'APPROVED',
+      note: res.data.note,
     }
-    mockEntries.unshift(entry)
-    return entry
   },
 
-  // TODO: Replace mock with real API call — GET /api/alkohol/incidents
   async getIncidents(): Promise<AlkoholIncident[]> {
-    await new Promise(r => setTimeout(r, 300))
-    return [...mockIncidents]
+    const res = await api.get<BackendIncident[]>('/alcohol/incidents')
+    return res.data.map(i => ({
+      id: i.id,
+      incidentType: INCIDENT_FROM_BACKEND[i.incidentType] ?? 'ANNET',
+      description: i.description,
+      occurredAt: i.occurredAt,
+      reportedBy: i.reportedByName,
+      followUpRequired: i.status === 'OPEN',
+    }))
   },
 
-  // TODO: Replace mock with real API call — POST /api/alkohol/incidents
   async createIncident(data: NewAlkoholIncident): Promise<AlkoholIncident> {
-    await new Promise(r => setTimeout(r, 200))
-    const incident: AlkoholIncident = {
-      id: Date.now(),
-      incidentType: data.incidentType,
+    const res = await api.post<BackendIncident>('/alcohol/incidents', {
+      locationId: getLocationId(),
+      incidentType: INCIDENT_TO_BACKEND[data.incidentType] ?? 'OTHER',
+      severity: data.followUpRequired ? 'HIGH' : 'MEDIUM',
       description: data.description,
       occurredAt: data.occurredAt ?? new Date().toISOString(),
-      reportedBy: 'Innlogget bruker', // TODO: Replace with auth.user name
-      followUpRequired: data.followUpRequired
+    })
+    return {
+      id: res.data.id,
+      incidentType: INCIDENT_FROM_BACKEND[res.data.incidentType] ?? 'ANNET',
+      description: res.data.description,
+      occurredAt: res.data.occurredAt,
+      reportedBy: res.data.reportedByName,
+      followUpRequired: res.data.status === 'OPEN',
     }
-    mockIncidents.unshift(incident)
-    return incident
   },
 
-  // TODO: Replace mock with real API call — GET /api/alkohol/stats (or derive from dashboard)
   async getStats(): Promise<AlkoholStats> {
-    await new Promise(r => setTimeout(r, 200))
+    const [entries, incidents] = await Promise.all([
+      this.getAlderskontrollEntries().catch(() => [] as AlderskontrollEntry[]),
+      this.getIncidents().catch(() => [] as AlkoholIncident[]),
+    ])
+    const today = new Date().toDateString()
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
     return {
-      ageChecksToday: mockEntries.filter(e =>
-        new Date(e.recordedAt).toDateString() === new Date().toDateString()
-      ).length,
-      incidentsThisWeek: mockIncidents.length,
-      checklistCompletionPct: 75
+      ageChecksToday: entries.filter(e => new Date(e.recordedAt).toDateString() === today).length,
+      incidentsThisWeek: incidents.filter(i => new Date(i.occurredAt).getTime() >= weekAgo).length,
+      checklistCompletionPct: 0,
     }
-  }
+  },
 }
