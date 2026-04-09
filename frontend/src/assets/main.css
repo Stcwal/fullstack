@@ -69,13 +69,13 @@
   --shadow-md: 0 8px 16px -4px rgba(0,0,0,0.08), 0 3px 6px -2px rgba(0,0,0,0.04);
   --shadow-lg: 0 16px 32px -8px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.06);
 
-  /* Radii — slightly more angular for institutional feel */
-  --r-xs:   3px;
-  --r-sm:   5px;
-  --r:      8px;
-  --r-lg:   10px;
-  --r-xl:   14px;
-  --r-2xl:  20px;
+  /* Radii */
+  --r-xs:   1px;
+  --r-sm:   2px;
+  --r:      3px;
+  --r-lg:   3px;
+  --r-xl:   4px;
+  --r-2xl:  6px;
   --r-full: 9999px;
 
   /* Layout */
@@ -344,7 +344,7 @@ label {
   height: 94vh;
   max-height: 1080px;
   background: var(--c-bg);
-  border-radius: 24px;
+  border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 0 0 10px #1E293B, 0 40px 80px rgba(0,0,0,0.6);
   position: relative;

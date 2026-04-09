@@ -28,7 +28,7 @@ export const deviationsService = {
   },
 
   async addComment(id: number, text: string): Promise<DeviationComment> {
-    const response = await api.post<DeviationComment>(`/deviations/${id}/comments`, { text })
+    const response = await api.post<DeviationComment>(`/deviations/${id}/comments`, { comment: text })
     return response.data
   },
 }

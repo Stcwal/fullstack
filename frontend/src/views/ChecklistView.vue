@@ -58,18 +58,22 @@
             class="checklist-item"
             :class="{ 'is-done': item.completed }"
           >
-            <label class="checklist-label">
+            <label class="checklist-row">
+              <div class="checklist-body">
+                <span class="checklist-text">{{ item.text }}</span>
+                <span class="text-xs text-muted completed-by" :class="{ 'completed-by--hidden': !(item.completed && item.completedBy) }">
+                  <template v-if="item.completed && item.completedBy">{{ item.completedBy }}<template v-if="item.completedAt">&nbsp;·&nbsp;{{ formatDateTime(item.completedAt) }}</template></template>
+                  <template v-else>&nbsp;</template>
+                </span>
+              </div>
               <input
                 type="checkbox"
-                class="checklist-checkbox"
+                class="checklist-checkbox-input"
                 :checked="item.completed"
                 @change="checklistsStore.toggleItem(checklist.id, item.id, shiftStore.activeWorkerId ?? undefined)"
               />
-              <span class="checklist-text">{{ item.text }}</span>
+              <span class="checklist-check-box" aria-hidden="true" />
             </label>
-            <span v-if="item.completed && item.completedBy" class="text-xs text-muted completed-by">
-              {{ item.completedBy }}<template v-if="item.completedAt">&nbsp;·&nbsp;{{ formatDateTime(item.completedAt) }}</template>
-            </span>
           </li>
         </ul>
 
@@ -77,8 +81,10 @@
         <template v-if="isFullyCompleted(checklist)">
           <div class="divider" />
           <p class="text-sm text-muted completed-footer">
-            Fullført av:
-            <strong>{{ checklist.completedBy ?? '—' }}</strong>
+            <template v-if="resolvedCompletedBy(checklist)">
+              Fullført av: <strong>{{ resolvedCompletedBy(checklist) }}</strong>
+            </template>
+            <template v-else>Fullført</template>
             <template v-if="checklist.completedAt">
               &nbsp;—&nbsp;{{ formatDateTime(checklist.completedAt) }}
             </template>
@@ -139,6 +145,12 @@ function progressClass(checklist: Checklist): string {
 
 function isFullyCompleted(checklist: Checklist): boolean {
   return checklist.items.length > 0 && completedCount(checklist) === checklist.items.length
+}
+
+function resolvedCompletedBy(checklist: Checklist): string {
+  if (checklist.completedBy) return checklist.completedBy
+  const last = [...checklist.items].reverse().find(i => i.completed && i.completedBy)
+  return last?.completedBy ?? ''
 }
 
 // ─── Datetime helper ───────────────────────────────────────────────────────
@@ -209,9 +221,9 @@ onMounted(() => {
 
 .checklist-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: 0.6rem 0;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
   border-bottom: 1px solid var(--c-border);
   transition: opacity 0.2s;
 }
@@ -225,19 +237,76 @@ onMounted(() => {
   color: var(--c-text-3);
 }
 
-.checklist-label {
+/* Left body: text + attribution stacked */
+.checklist-body {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+/* Full-row label — entire line is clickable */
+.checklist-row {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.75rem;
+  width: 100%;
   cursor: pointer;
 }
 
-.checklist-checkbox {
-  width: 1.1rem;
-  height: 1.1rem;
+/* Visually hidden real checkbox */
+.checklist-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Visual square block */
+.checklist-check-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  accent-color: var(--c-primary);
-  cursor: pointer;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--c-surface, #fff);
+  border: 1.5px solid var(--c-border-2, #94a3b8);
+  border-radius: var(--r-sm);
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.checklist-row:hover .checklist-check-box {
+  border-color: var(--c-primary);
+}
+
+.checklist-checkbox-input:focus-visible + .checklist-check-box {
+  outline: 2px solid var(--c-primary);
+  outline-offset: -2px;
+}
+
+/* Checked: green background */
+.checklist-checkbox-input:checked + .checklist-check-box {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+}
+
+/* Checkmark symbol — sized relative to the box */
+.checklist-checkbox-input:checked + .checklist-check-box::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 45%;
+  height: 25%;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: translate(-50%, -62%) rotate(-45deg);
 }
 
 .checklist-text {
@@ -247,7 +316,11 @@ onMounted(() => {
 }
 
 .completed-by {
-  padding-left: 1.85rem;
+  text-decoration: none;
+}
+
+.completed-by--hidden {
+  visibility: hidden;
 }
 
 .completed-footer {

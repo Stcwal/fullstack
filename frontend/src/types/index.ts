@@ -117,9 +117,9 @@ export type DeviationSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
 
 export interface DeviationComment {
   id: number
-  text: string
-  authorId: number
-  authorName: string
+  comment: string
+  createdById: number
+  createdBy: string
   createdAt: string
 }
 

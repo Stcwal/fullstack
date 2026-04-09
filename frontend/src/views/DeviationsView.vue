@@ -409,10 +409,10 @@ onMounted(() => deviationsStore.fetchAll())
                   class="comment-item"
                 >
                   <div class="comment-meta">
-                    <span class="font-medium" style="font-size: 0.8125rem;">{{ comment.authorName }}</span>
+                    <span class="font-medium" style="font-size: 0.8125rem;">{{ comment.createdBy }}</span>
                     <span class="text-muted text-xs">{{ fmtDate(comment.createdAt) }}</span>
                   </div>
-                  <p class="text-sm" style="line-height: 1.5;">{{ comment.text }}</p>
+                  <p class="text-sm" style="line-height: 1.5;">{{ comment.comment }}</p>
                 </div>
               </template>
 
