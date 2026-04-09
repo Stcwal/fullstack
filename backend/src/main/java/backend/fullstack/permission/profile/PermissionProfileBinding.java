@@ -25,6 +25,10 @@ import lombok.Setter;
  * Entity representing the binding of a permission to a permission profile. This defines which permissions are included in each profile, along with the scope and any conditions that apply to the permission.
  * 
  * Each instance of PermissionProfileBinding represents a single permission assignment to a specific profile. The combination of profile, permission, scope, location, and condition type is unique, ensuring that a profile cannot have duplicate bindings for the same permission and scope.
+ *
+ * <p>The entity is typically created via Lombok's generated builder. When values are not provided,
+ * {@code scope} defaults to {@link PermissionScope#ORGANIZATION} and {@code conditionType} defaults
+ * to {@link PermissionConditionType#NONE}.</p>
  * 
  * @version 1.0
  * @since 31.03.26
@@ -46,26 +50,46 @@ import lombok.Setter;
 @Builder
 public class PermissionProfileBinding {
 
+        /**
+         * Surrogate primary key for this binding.
+         */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+        /**
+         * The permission profile that owns this binding.
+         */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "profile_id", nullable = false)
     private PermissionProfile profile;
 
+        /**
+         * The permission key granted by this binding.
+         */
     @Enumerated(EnumType.STRING)
     @Column(name = "permission_key", nullable = false, length = 80)
     private Permission permission;
 
+        /**
+         * Scope for where the permission applies.
+         * Defaults to {@link PermissionScope#ORGANIZATION} when omitted in the builder.
+         */
     @Enumerated(EnumType.STRING)
     @Column(name = "scope", nullable = false, length = 20)
     @Builder.Default
     private PermissionScope scope = PermissionScope.ORGANIZATION;
 
+        /**
+         * Optional location identifier used when {@link #scope} is location-scoped.
+         */
     @Column(name = "location_id")
     private Long locationId;
 
+        /**
+         * Optional runtime condition attached to this binding.
+         * Defaults to {@link PermissionConditionType#NONE} when omitted in the builder.
+         */
     @Enumerated(EnumType.STRING)
     @Column(name = "condition_type", nullable = false, length = 30)
     @Builder.Default

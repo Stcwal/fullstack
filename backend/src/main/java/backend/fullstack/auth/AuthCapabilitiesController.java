@@ -12,6 +12,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/auth")
+/**
+ * Controller exposing the current caller's resolved authorization capabilities.
+ *
+ * <p>The endpoint is intended for frontend bootstrap after authentication so
+ * navigation and feature flags can be derived from effective permissions.
+ */
 public class AuthCapabilitiesController {
 
     private final AuthorizationService authorizationService;

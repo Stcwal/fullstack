@@ -1,7 +1,5 @@
 package backend.fullstack.exceptions;
 
-import backend.fullstack.exceptions.AppException;
-
 /**
  * Exception thrown when a user attempts to access a resource or perform an action for which they do not have the necessary permissions.
  *
