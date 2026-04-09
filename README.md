@@ -43,22 +43,26 @@ Built for **Everest Sushi & Fusion AS**, Innherredsveien 1, Trondheim, as part o
 
 ## Running the project
 
-### Docker (recommended — runs everything)
+### Docker (recommended — runs everything with one command)
+
+Requirements: Docker Desktop (or Docker Engine + Compose plugin).
 
 ```bash
-# Copy and fill in environment variables
-cp .env.example .env   # edit as needed (DB credentials, JWT secret)
-
+cp .env.example .env
 docker compose up --build
 ```
 
-Services:
+The `.env.example` file contains working defaults — no edits needed for a local demo run. The first build takes a few minutes while Maven downloads dependencies.
+
+Services after startup:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8080
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - MySQL: localhost:3306
 
-### Local development
+> **Note:** Seed data (demo users, units, readings, deviations) is loaded automatically on first startup via Flyway migrations. Login credentials are listed below.
+
+### Local development (without Docker)
 
 **Backend**
 
@@ -72,14 +76,14 @@ CREATE USER 'ik_user'@'localhost' IDENTIFIED BY 'ik_pass';
 GRANT ALL PRIVILEGES ON ik_kontroll.* TO 'ik_user'@'localhost';
 ```
 
-Start with the `local` and `dev` Spring profiles (the `dev` profile runs seed migrations):
+Start with the `local` and `dev` Spring profiles (`dev` runs seed migrations, `local` provides the datasource URL):
 
 ```bash
 cd backend
 mvn spring-boot:run -Dspring-boot.run.profiles=local,dev
 ```
 
-The backend starts on port 8080. Flyway runs schema migrations automatically. With the `dev` profile, seed data is also applied (users, units, checklist templates, temperature readings, deviations).
+The backend starts on port 8080. Flyway runs schema and seed migrations automatically on first start.
 
 **Frontend**
 
@@ -92,6 +96,33 @@ npm run dev
 ```
 
 The frontend starts on http://localhost:5173. Vite proxies all `/api` requests to `http://localhost:8080`, so no CORS configuration is needed in development.
+
+### Environment variables reference
+
+| Variable | Required | Description |
+|---|---|---|
+| `MYSQL_ROOT_PASSWORD` | Docker only | MySQL root password for the database container |
+| `MYSQL_DATABASE` | Docker only | Database name (default: `ik_kontroll`) |
+| `MYSQL_USER` | Docker only | App database user (default: `ik_user`) |
+| `MYSQL_PASSWORD` | Docker only | App database password (default: `ik_pass`) |
+| `JWT_SECRET` | Production | JWT signing secret — must be 32+ characters |
+| `MAIL_USERNAME` | Optional | Gmail address for sending invite emails |
+| `MAIL_PASSWORD` | Optional | Gmail App Password (not your account password) |
+
+### Deploying to Railway (or other cloud platforms)
+
+Set the following environment variables on the backend service. If using Railway's MySQL plugin, reference its variables for the datasource:
+
+```
+SPRING_PROFILES_ACTIVE=dev
+SPRING_DATASOURCE_URL=jdbc:mysql://<host>:<port>/<database>?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true
+SPRING_DATASOURCE_USERNAME=<db-user>
+SPRING_DATASOURCE_PASSWORD=<db-password>
+SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+JWT_SECRET=<random-32-char-secret>
+MAIL_USERNAME=noreply.iksys@gmail.com
+MAIL_PASSWORD=<gmail-app-password>
+```
 
 ---
 

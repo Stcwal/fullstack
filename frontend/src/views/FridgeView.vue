@@ -216,18 +216,21 @@ async function submitReading() {
   const [h, m] = form.value.recordedAt.split(':').map(Number)
   today.setHours(h, m, 0, 0)
 
-  await readingsStore.addReading({
-    unitId: selectedUnit.value.id,
-    temperature: form.value.temperature as number,
-    recordedAt: today.toISOString(),
-    note: form.value.note || undefined,
-  })
-
-  resetForm()
-  successFlash.value = true
-  if (flashTimer) clearTimeout(flashTimer)
-  flashTimer = setTimeout(() => { successFlash.value = false }, 3000)
-  readingsStore.fetchByUnit(selectedUnit.value.id)
+  try {
+    await readingsStore.addReading({
+      unitId: selectedUnit.value.id,
+      temperature: form.value.temperature as number,
+      recordedAt: today.toISOString(),
+      note: form.value.note || undefined,
+    })
+    resetForm()
+    successFlash.value = true
+    if (flashTimer) clearTimeout(flashTimer)
+    flashTimer = setTimeout(() => { successFlash.value = false }, 3000)
+    readingsStore.fetchByUnit(selectedUnit.value.id)
+  } catch {
+    formError.value = 'Noe gikk galt. Prøv igjen.'
+  }
 }
 
 // ─── Readings ──────────────────────────────────────────────────────────────

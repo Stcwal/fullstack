@@ -87,6 +87,6 @@ public class OrganizationService {
         org.setName(request.getName());
         org.setOrganizationNumber(request.getOrganizationNumber());
 
-        return organizationMapper.toResponse(org);
+        return organizationMapper.toResponse(organizationRepository.save(org));
     }
 }

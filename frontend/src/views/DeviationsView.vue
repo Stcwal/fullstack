@@ -155,11 +155,15 @@ function openModal() {
 
 async function submitDeviation() {
   if (!form.value.title.trim() || !form.value.description.trim()) return
-  await deviationsStore.report({
-    ...form.value,
-    performedByUserId: shiftStore.activeWorkerId ?? undefined,
-  })
-  showModal.value = false
+  try {
+    await deviationsStore.report({
+      ...form.value,
+      performedByUserId: shiftStore.activeWorkerId ?? undefined,
+    })
+    showModal.value = false
+  } catch {
+    // store sets its own error state; modal stays open so the user can retry
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

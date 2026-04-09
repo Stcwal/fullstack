@@ -6,15 +6,15 @@ services:
     env_file:
       - .env
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
-      MYSQL_USER: ${MYSQL_USER:-app}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ik_kontroll}
+      MYSQL_USER: ${MYSQL_USER:-ik_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ik_pass}
     ports:
       - '3306:3306'
     volumes:
       - db_data_mysql80:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -24,6 +24,12 @@ services:
       dockerfile: backend/Dockerfile
     env_file:
       - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE:-ik_kontroll}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&useUnicode=true"
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ik_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ik_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
     depends_on:
       db:
         condition: service_healthy
