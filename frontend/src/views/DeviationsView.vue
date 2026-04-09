@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useDeviationsStore } from '@/stores/deviations'
+import { useShiftStore } from '@/stores/shift'
 import AppModal from '@/components/AppModal.vue'
 import type { NewDeviation } from '@/types'
 
 const deviationsStore = useDeviationsStore()
+const shiftStore = useShiftStore()
 
 // ── Modal state ──────────────────────────────────────────────────────────────
 const showModal = ref(false)
@@ -27,7 +29,10 @@ function closeModal() {
 
 async function submitDeviation() {
   if (!form.value.title.trim() || !form.value.description.trim()) return
-  await deviationsStore.report({ ...form.value })
+  await deviationsStore.report({
+    ...form.value,
+    performedByUserId: shiftStore.activeWorkerId ?? undefined,
+  })
   closeModal()
 }
 

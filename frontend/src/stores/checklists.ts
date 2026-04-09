@@ -18,7 +18,7 @@ export const useChecklistsStore = defineStore('checklists', () => {
     }
   }
 
-  async function toggleItem(checklistId: number, itemId: number) {
+  async function toggleItem(checklistId: number, itemId: number, performedByUserId?: number) {
     const checklist = checklists.value.find(c => c.id === checklistId)
     if (!checklist) return
     const item = checklist.items.find(i => i.id === itemId)
@@ -28,8 +28,7 @@ export const useChecklistsStore = defineStore('checklists', () => {
     item.completed = !item.completed
 
     try {
-      // TODO: POST /api/checklists/:checklistId/items/:itemId/toggle
-      await checklistsService.toggleItem(checklistId, itemId, item.completed)
+      await checklistsService.toggleItem(checklistId, itemId, item.completed, performedByUserId)
     } catch {
       // Revert on error
       item.completed = !item.completed

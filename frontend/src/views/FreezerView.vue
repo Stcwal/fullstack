@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useUnitsStore } from '@/stores/units'
 import { useReadingsStore } from '@/stores/readings'
-import { useAuthStore } from '@/stores/auth'
 import { useLayoutStore } from '@/stores/layout'
+import { useShiftStore } from '@/stores/shift'
 import type { UnitType } from '@/types'
 
 const unitsStore    = useUnitsStore()
 const readingsStore = useReadingsStore()
-const authStore     = useAuthStore()
 const layout        = useLayoutStore()
+const shiftStore    = useShiftStore()
 
 const isTablet = computed(() => layout.isTabletMode)
 
@@ -24,6 +24,8 @@ const activeUnit = computed(() =>
   tempUnits.value.find(u => u.id === activeUnitId.value) ?? null
 )
 
+const loggerPanelRef = ref<HTMLElement | null>(null)
+
 function selectUnit(id: number) {
   activeUnitId.value = id
   readingsStore.fetchByUnit(id)
@@ -35,15 +37,15 @@ function openLogger(id: number) {
   if (activeUnitId.value === id) { activeUnitId.value = null; return }
   activeUnitId.value = id
   resetForm()
+  nextTick(() => {
+    loggerPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 function cancelLog() { activeUnitId.value = null }
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
-const loggedInName = computed(() => {
-  const u = authStore.user
-  return u ? ([u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || '—') : '—'
-})
+// ── Auth / active shift worker ────────────────────────────────────────────────
+const loggedInName = computed(() => shiftStore.activeWorkerName)
 
 // ── Form (shared) ─────────────────────────────────────────────────────────────
 function currentTimeHHMM(): string {
@@ -66,7 +68,7 @@ function resetForm() {
 
 async function submitReading() {
   formError.value = ''
-  if (form.value.temperature === null || isNaN(form.value.temperature)) {
+  if (!Number.isFinite(form.value.temperature as number)) {
     formError.value = 'Temperatur er påkrevd.'
     return
   }
@@ -89,6 +91,7 @@ async function submitReading() {
       temperature: form.value.temperature,
       recordedAt,
       note: form.value.note || undefined,
+      performedByUserId: shiftStore.activeWorkerId ?? undefined,
     })
     if (isTablet.value) {
       activeUnitId.value = null
@@ -231,7 +234,7 @@ watch(tempUnits, (units) => {
       </div>
 
       <!-- Inline logger -->
-      <div v-if="activeUnit" class="logger-panel" role="form" :aria-label="`Logger for ${activeUnit.name}`">
+      <div v-if="activeUnit" ref="loggerPanelRef" class="logger-panel" role="form" :aria-label="`Logger for ${activeUnit.name}`">
         <div class="logger-header">🌡️ Logger — {{ activeUnit.name }}</div>
         <div class="logger-row">
           <div class="temp-side">
@@ -340,7 +343,6 @@ watch(tempUnits, (units) => {
                   step="0.1"
                   placeholder="-18.0"
                   :class="{ 'input-error': formError }"
-                  required
                 />
                 <span v-if="formError" class="text-danger text-xs">{{ formError }}</span>
               </div>
@@ -368,6 +370,7 @@ watch(tempUnits, (units) => {
             <span class="section-title">Siste målinger</span>
           </div>
           <div v-if="readingsStore.loading" class="text-muted text-sm">Laster målinger…</div>
+          <div v-else-if="readingsStore.error" class="text-xs" style="color: var(--c-danger)">{{ readingsStore.error }}</div>
           <template v-else-if="recentReadings.length">
             <div
               v-for="reading in recentReadings"

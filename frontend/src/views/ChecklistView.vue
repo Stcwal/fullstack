@@ -1,5 +1,5 @@
 <template>
-  <div class="checklist-view">
+  <div class="checklist-view" :class="{ 'checklist-view--tablet': isTablet }">
     <div class="mb-4">
       <h1 class="page-title">Sjekklister</h1>
     </div>
@@ -63,7 +63,7 @@
                 type="checkbox"
                 class="checklist-checkbox"
                 :checked="item.completed"
-                @change="checklistsStore.toggleItem(checklist.id, item.id)"
+                @change="checklistsStore.toggleItem(checklist.id, item.id, shiftStore.activeWorkerId ?? undefined)"
               />
               <span class="checklist-text">{{ item.text }}</span>
             </label>
@@ -95,12 +95,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useChecklistsStore } from '@/stores/checklists'
+import { useLayoutStore } from '@/stores/layout'
+import { useShiftStore } from '@/stores/shift'
 import type { ChecklistFrequency, Checklist } from '@/types'
 
 // ─── Store ─────────────────────────────────────────────────────────────────
 const checklistsStore = useChecklistsStore()
+const shiftStore = useShiftStore()
+const isTablet = computed(() => useLayoutStore().isTabletMode)
 
 // ─── Frequency filter ──────────────────────────────────────────────────────
 const frequencyOptions: { label: string; value: ChecklistFrequency }[] = [
@@ -157,6 +161,10 @@ onMounted(() => {
 <style scoped>
 .checklist-view {
   max-width: 720px;
+}
+
+.checklist-view--tablet {
+  max-width: none;
 }
 
 .checklist-title {

@@ -19,6 +19,7 @@ export interface User {
   email: string
   role: UserRole
   organizationId?: number
+  primaryLocationId?: number
   permissions?: UserPermissions
 }
 
@@ -82,6 +83,7 @@ export interface NewReading {
   temperature: number
   recordedAt: string
   note?: string
+  performedByUserId?: number
 }
 
 // ============================================================
@@ -131,6 +133,7 @@ export interface NewDeviation {
   description: string
   severity: DeviationSeverity
   moduleType: ModuleType
+  performedByUserId?: number
 }
 
 // ============================================================
