@@ -115,6 +115,14 @@ export interface Checklist {
 export type DeviationStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'
 export type DeviationSeverity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
 
+export interface DeviationComment {
+  id: number
+  text: string
+  authorId: number
+  authorName: string
+  createdAt: string
+}
+
 export interface Deviation {
   id: number
   title: string
@@ -124,8 +132,10 @@ export interface Deviation {
   reportedBy: string
   reportedAt: string
   moduleType: ModuleType
+  resolvedBy?: string
   resolvedAt?: string
   resolution?: string
+  comments?: DeviationComment[]
 }
 
 export interface NewDeviation {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Deviation, NewDeviation } from '@/types'
+import type { Deviation, DeviationComment, DeviationStatus, NewDeviation } from '@/types'
 import { deviationsService } from '@/services/deviations.service'
 
 export const useDeviationsStore = defineStore('deviations', () => {
@@ -28,17 +28,23 @@ export const useDeviationsStore = defineStore('deviations', () => {
     }
   }
 
+  async function updateStatus(id: number, status: DeviationStatus): Promise<void> {
+    const updated = await deviationsService.updateStatus(id, status)
+    const idx = deviations.value.findIndex(d => d.id === id)
+    if (idx !== -1) deviations.value[idx] = { ...deviations.value[idx], ...updated }
+  }
+
   async function resolve(id: number, resolution: string): Promise<void> {
-    await deviationsService.resolve(id, resolution)
-    const dev = deviations.value.find(d => d.id === id)
-    if (dev) {
-      dev.status = 'RESOLVED'
-      dev.resolution = resolution
-      dev.resolvedAt = new Date().toISOString()
-    }
+    const updated = await deviationsService.resolve(id, resolution)
+    const idx = deviations.value.findIndex(d => d.id === id)
+    if (idx !== -1) deviations.value[idx] = { ...deviations.value[idx], ...updated }
+  }
+
+  async function addComment(deviationId: number, text: string): Promise<DeviationComment> {
+    return await deviationsService.addComment(deviationId, text)
   }
 
   const openCount = () => deviations.value.filter(d => d.status !== 'RESOLVED').length
 
-  return { deviations, loading, saving, fetchAll, report, resolve, openCount }
+  return { deviations, loading, saving, fetchAll, report, updateStatus, resolve, addComment, openCount }
 })

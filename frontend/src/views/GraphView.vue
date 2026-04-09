@@ -21,6 +21,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const period = ref<ChartPeriod>('WEEK')
 const chartData = ref<ServiceChartData | null>(null)
 const loading = ref(false)
+const exporting = ref<'pdf' | 'json' | null>(null)
 
 // ── Data fetching ─────────────────────────────────────────────────────────────
 async function loadData() {
@@ -39,6 +40,24 @@ async function setPeriod(p: ChartPeriod) {
 }
 
 onMounted(loadData)
+
+// ── Export ───────────────────────────────────────────────────────────────────
+async function handleExport(format: 'pdf' | 'json') {
+  if (exporting.value) return
+  const to = new Date()
+  const from = new Date()
+  if (period.value === 'WEEK') from.setDate(from.getDate() - 7)
+  else from.setDate(from.getDate() - 30)
+  const fromStr = from.toISOString().split('T')[0]
+  const toStr = to.toISOString().split('T')[0]
+  exporting.value = format
+  try {
+    if (format === 'pdf') await reportsService.exportPdf(fromStr, toStr)
+    else await reportsService.exportJson(fromStr, toStr)
+  } finally {
+    exporting.value = null
+  }
+}
 
 // ── Chart.js data & options ──────────────────────────────────────────────────
 const lineChartData = computed(() => {
@@ -103,11 +122,19 @@ const lineChartOptions = computed(() => ({
   <div class="flex items-center justify-between mb-4">
     <h1 class="page-title">Temperaturgrafer</h1>
     <div class="flex gap-2">
-      <button class="btn btn-secondary btn-sm" @click="reportsService.exportPdf()">
-        Eksporter (PDF)
+      <button
+        class="btn btn-secondary btn-sm"
+        :disabled="!!exporting"
+        @click="handleExport('pdf')"
+      >
+        {{ exporting === 'pdf' ? 'Laster…' : 'Eksporter PDF' }}
       </button>
-      <button class="btn btn-secondary btn-sm" @click="reportsService.exportJson()">
-        Eksporter (JSON)
+      <button
+        class="btn btn-secondary btn-sm"
+        :disabled="!!exporting"
+        @click="handleExport('json')"
+      >
+        {{ exporting === 'json' ? 'Laster…' : 'Eksporter JSON' }}
       </button>
     </div>
   </div>

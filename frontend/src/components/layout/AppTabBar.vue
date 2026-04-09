@@ -151,12 +151,21 @@ function closeMer() { merOpen.value = false }
 .tab-icon { display: flex; align-items: center; justify-content: center; }
 
 .tab-label {
-  font-size: 21px;
+  font-size: clamp(9px, 2.8vw, 21px);
   font-weight: 800;
   color: #fff !important;
   letter-spacing: 0.02em;
   text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.tab-icon svg {
+  width: clamp(22px, 5vw, 40px);
+  height: clamp(22px, 5vw, 40px);
 }
 
 /* ── Mer drawer ── */
