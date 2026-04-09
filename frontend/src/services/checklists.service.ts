@@ -1,6 +1,24 @@
 import type { Checklist, ChecklistFrequency } from '@/types'
 import api from './api'
 
+export interface ChecklistTemplateItem {
+  id: number
+  text: string
+}
+
+export interface ChecklistTemplate {
+  id: number
+  title: string
+  frequency: ChecklistFrequency
+  items: ChecklistTemplateItem[]
+}
+
+export interface ChecklistTemplateUpsertRequest {
+  title: string
+  frequency: ChecklistFrequency
+  itemTexts: string[]
+}
+
 interface BackendItem {
   id: number
   text: string
@@ -45,5 +63,24 @@ export const checklistsService = {
       completed,
       ...(performedByUserId !== undefined && { performedByUserId }),
     })
+  },
+
+  async getTemplates(): Promise<ChecklistTemplate[]> {
+    const res = await api.get<ChecklistTemplate[]>('/checklists/templates')
+    return res.data
+  },
+
+  async createTemplate(data: ChecklistTemplateUpsertRequest): Promise<ChecklistTemplate> {
+    const res = await api.post<ChecklistTemplate>('/checklists/templates', data)
+    return res.data
+  },
+
+  async updateTemplate(id: number, data: ChecklistTemplateUpsertRequest): Promise<ChecklistTemplate> {
+    const res = await api.put<ChecklistTemplate>(`/checklists/templates/${id}`, data)
+    return res.data
+  },
+
+  async deleteTemplate(id: number): Promise<void> {
+    await api.delete(`/checklists/templates/${id}`)
   },
 }

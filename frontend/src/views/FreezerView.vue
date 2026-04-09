@@ -88,7 +88,7 @@ async function submitReading() {
   try {
     await readingsStore.addReading({
       unitId: activeUnit.value.id,
-      temperature: form.value.temperature,
+      temperature: form.value.temperature as number,
       recordedAt,
       note: form.value.note || undefined,
       performedByUserId: shiftStore.activeWorkerId ?? undefined,

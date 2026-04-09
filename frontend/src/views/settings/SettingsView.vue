@@ -27,6 +27,13 @@
       >
         Organisasjon
       </RouterLink>
+      <RouterLink
+        to="/innstillinger/sjekklister"
+        class="sub-nav-item"
+        :class="{ active: route.path.startsWith('/innstillinger/sjekklister') }"
+      >
+        Sjekklister
+      </RouterLink>
     </nav>
 
     <RouterView />

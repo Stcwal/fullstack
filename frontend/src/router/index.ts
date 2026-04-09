@@ -103,6 +103,11 @@ const router = createRouter({
           path: 'org',
           name: 'settings-org',
           component: () => import('@/views/settings/OrgTab.vue')
+        },
+        {
+          path: 'sjekklister',
+          name: 'settings-checklists',
+          component: () => import('@/views/settings/ChecklistsTab.vue')
         }
       ]
     },
