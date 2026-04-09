@@ -1,20 +1,23 @@
 package backend.fullstack.auth.invite;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,6 +54,69 @@ class UserInviteServiceTest {
                 Optional.of(mailSender),
                 inviteProperties
         );
+    }
+
+    @Test
+    void createAndSendInviteReplacesExistingTokenAndSendsEmail() {
+        User user = User.builder()
+                .id(7L)
+                .email("user@everest.no")
+                .firstName("User")
+                .lastName("Test")
+                .role(Role.STAFF)
+                .organization(Organization.builder().id(1L).name("Everest").organizationNumber("123456789").build())
+                .build();
+
+        userInviteService.createAndSendInvite(user);
+
+        verify(userInviteTokenRepository).deleteByUserIdAndConsumedAtIsNull(7L);
+
+        ArgumentCaptor<UserInviteToken> tokenCaptor = ArgumentCaptor.forClass(UserInviteToken.class);
+        verify(userInviteTokenRepository).save(tokenCaptor.capture());
+
+        UserInviteToken savedToken = tokenCaptor.getValue();
+        assertEquals(7L, savedToken.getUserId());
+        assertEquals(64, savedToken.getTokenHash().length());
+        assertTrue(savedToken.getExpiresAt().isAfter(LocalDateTime.now().plusHours(23)));
+
+        ArgumentCaptor<SimpleMailMessage> mailCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender).send(mailCaptor.capture());
+
+        SimpleMailMessage sentMessage = mailCaptor.getValue();
+        assertEquals("Set up your account", sentMessage.getSubject());
+        assertEquals("no-reply@test.local", sentMessage.getFrom());
+        assertEquals("user@everest.no", sentMessage.getTo()[0]);
+        assertTrue(sentMessage.getText().contains("http://localhost:5173/set-password?token="));
+    }
+
+    @Test
+    void createAndSendInviteWithoutMailSenderStillCreatesToken() {
+        InviteProperties inviteProperties = new InviteProperties();
+        inviteProperties.setFrontendBaseUrl("http://localhost:5173");
+        inviteProperties.setFromAddress("no-reply@test.local");
+
+        UserInviteService serviceWithoutMail = new UserInviteService(
+                userInviteTokenRepository,
+                userRepository,
+                passwordEncoder,
+                Optional.empty(),
+                inviteProperties
+        );
+
+        User user = User.builder()
+                .id(8L)
+                .email("nomail@everest.no")
+                .firstName("No")
+                .lastName("Mail")
+                .role(Role.STAFF)
+                .organization(Organization.builder().id(1L).name("Everest").organizationNumber("123456789").build())
+                .build();
+
+        serviceWithoutMail.createAndSendInvite(user);
+
+        verify(userInviteTokenRepository).deleteByUserIdAndConsumedAtIsNull(8L);
+        verify(userInviteTokenRepository, org.mockito.Mockito.times(1)).save(org.mockito.ArgumentMatchers.any(UserInviteToken.class));
+        verify(mailSender, never()).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
     }
 
     @Test

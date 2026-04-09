@@ -107,6 +107,20 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.errorCode").value("ACCESS_DENIED"));
     }
 
+    @Test
+    void acceptInviteReturnsSuccessForValidToken() throws Exception {
+        AcceptInviteRequest request = new AcceptInviteRequest();
+        request.setToken("valid-token");
+        request.setPassword("Password1");
+
+        mockMvc.perform(post("/api/auth/invite/accept")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Password set successfully"));
+    }
+
     private static User buildUser(Long userId, String email, Long orgId) {
         Organization organization = Organization.builder()
                 .id(orgId)
@@ -192,12 +206,17 @@ class AuthControllerTest {
 
     private static final class TestUserInviteService extends UserInviteService {
 
+        private String acceptedToken;
+        private String acceptedPassword;
+
         private TestUserInviteService() {
             super(null, null, null, null, null);
         }
 
         @Override
         public void acceptInvite(String token, String password) {
+            acceptedToken = token;
+            acceptedPassword = password;
             if ("invalid-token".equals(token)) {
                 throw new org.springframework.security.access.AccessDeniedException("Invalid invite token");
             }
