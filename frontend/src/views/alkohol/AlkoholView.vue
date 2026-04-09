@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useLayoutStore } from '@/stores/layout'
 import ModuleBanner from '@/components/ModuleBanner.vue'
 
-const route = useRoute()
+const route  = useRoute()
 const router = useRouter()
+const layout = useLayoutStore()
+
+const isTablet = computed(() => layout.isTabletMode)
 
 const tabs = [
   { name: 'alkohol-alderskontroll', label: 'Alderskontroll' },
@@ -21,10 +26,11 @@ function navigate(routeName: string) {
 </script>
 
 <template>
-  <div class="alkohol-view module-ik-alkohol">
-    <ModuleBanner module="IK_ALKOHOL" />
+  <div class="alkohol-view module-ik-alkohol" :class="{ 'alkohol-view--tablet': isTablet }">
 
-    <nav class="alkohol-tabs" aria-label="IK-Alkohol navigasjon">
+    <ModuleBanner v-if="!isTablet" module="IK_ALKOHOL" />
+
+    <nav v-if="!isTablet" class="alkohol-tabs" aria-label="IK-Alkohol navigasjon">
       <button
         v-for="tab in tabs"
         :key="tab.name"
@@ -37,9 +43,10 @@ function navigate(routeName: string) {
       </button>
     </nav>
 
-    <main class="alkohol-content">
+    <main class="alkohol-content" :class="{ 'alkohol-content--tablet': isTablet }">
       <router-view />
     </main>
+
   </div>
 </template>
 
@@ -51,46 +58,52 @@ function navigate(routeName: string) {
   background: #fff;
 }
 
+.alkohol-view--tablet {
+  background: transparent;
+}
+
 .alkohol-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 2px solid #e2e8f0;
-  padding: 0 16px;
-  background: #fff;
+  padding: 0;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .alkohol-tab {
-  padding: 12px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #64748b;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.alkohol-tab:hover {
-  color: hsl(var(--ik-alkohol-hue, 38), 80%, 30%);
-}
-
-.alkohol-tab--active {
-  color: hsl(var(--ik-alkohol-hue, 38), 80%, 25%);
-  border-bottom-color: hsl(var(--ik-alkohol-hue, 38), 85%, 45%);
+  flex: 1;
+  padding: 12px 8px;
+  font-size: 13px;
   font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  min-height: 44px;
+  transition: color 0.12s, border-color 0.12s;
+  font-family: inherit;
 }
-
+.alkohol-tab:hover { color: #334155; }
+.alkohol-tab--active {
+  color: #92400e;
+  border-bottom-color: #b45309;
+}
 .alkohol-tab:focus-visible {
-  outline: 2px solid hsl(var(--ik-alkohol-hue, 38), 85%, 45%);
+  outline: 2px solid #b45309;
   outline-offset: -2px;
-  border-radius: 4px;
 }
 
 .alkohol-content {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 16px;
+  padding: 16px;
+}
+
+.alkohol-content--tablet {
+  padding: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 </style>
