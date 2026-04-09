@@ -15,7 +15,7 @@ Administration panel for managing storage units, users, and organisation configu
 
 The router guard in `src/router/index.ts` checks `to.meta.requiresAdmin && auth.user?.role !== 'ADMIN'` and redirects non-admin users to `/dashboard`. MANAGER and STAFF users cannot reach any settings route.
 
-`SettingsView.vue` is a shell component — it renders the tab navigation (Enheter / Brukere / Organisasjon) using `RouterLink` and a `<RouterView />` outlet for the active child tab.
+`SettingsView.vue` is a shell component — it renders the tab navigation (Enheter / Brukere / Organisasjon / Sjekklister) using `RouterLink` and a `<RouterView />` outlet for the active child tab.
 
 ---
 
@@ -23,11 +23,12 @@ The router guard in `src/router/index.ts` checks `to.meta.requiresAdmin && auth.
 
 Three tabs are rendered as `RouterLink` elements pointing to the child routes:
 
-| Tab label     | Route                          | Component       |
-|---------------|--------------------------------|-----------------|
-| Enheter       | `/innstillinger/enheter`       | `UnitsTab.vue`  |
-| Brukere       | `/innstillinger/brukere`       | `UsersTab.vue`  |
-| Organisasjon  | `/innstillinger/org`           | `OrgTab.vue`    |
+| Tab label     | Route                            | Component            |
+|---------------|----------------------------------|----------------------|
+| Enheter       | `/innstillinger/enheter`         | `UnitsTab.vue`       |
+| Brukere       | `/innstillinger/brukere`         | `UsersTab.vue`       |
+| Organisasjon  | `/innstillinger/org`             | `OrgTab.vue`         |
+| Sjekklister   | `/innstillinger/sjekklister`     | `ChecklistsTab.vue`  |
 
 The active class is applied with `:class="{ active: route.path.startsWith('/innstillinger/...' ) }"` using `useRoute()`.
 
@@ -381,9 +382,65 @@ Because both save actions send the entire `orgForm`, editing the org name and cl
 
 ---
 
+---
+
+## ChecklistsTab
+
+Route: `/innstillinger/sjekklister`
+Component: `src/views/settings/ChecklistsTab.vue`
+Access: ADMIN only
+
+Allows administrators to manage the checklist templates that generate daily/weekly/monthly instances for kitchen staff.
+
+### UI
+
+The tab header shows the "Sjekklistemaler" section title and a "+ Legg til ny mal" button.
+
+Each template is rendered as a `.status-row` showing:
+- Template title
+- Frequency and item count in muted text below
+- "Rediger" ghost button (blue) — opens the edit modal
+- "Slett" ghost button (red) — deletes with a confirmation dialog
+
+### Add / Edit modal
+
+Form fields:
+
+| Field     | Type     | Validation               |
+|-----------|----------|--------------------------|
+| Tittel    | text     | Required, max 120 chars  |
+| Frekvens  | select   | DAILY / WEEKLY / MONTHLY |
+| Punkter   | repeated text inputs | At least one non-empty item required, max 250 chars each |
+
+Items are managed as a dynamic list: "+ Legg til punkt" appends a new empty input row, and the × button on each row removes that item. Empty rows are filtered out on submit — they are not sent to the backend.
+
+### Save behaviour
+
+**Create**: `POST /api/checklists/templates` with `{ title, frequency, itemTexts: string[] }`. The created template is appended to the local list.
+
+**Edit**: `PUT /api/checklists/templates/:id` with the same payload. The updated template replaces its entry in the local list.
+
+**Delete**: `DELETE /api/checklists/templates/:id` after a `window.confirm()` dialog. The template is filtered out of the local list.
+
+All three operations show a "Lagrer..." button state during the request. Errors display an inline message in the modal.
+
+### API endpoints
+
+| Method | Endpoint                           | Description                    |
+|--------|------------------------------------|--------------------------------|
+| GET    | `/api/checklists/templates`        | Fetch all templates for the org |
+| POST   | `/api/checklists/templates`        | Create a new template          |
+| PUT    | `/api/checklists/templates/:id`    | Update an existing template    |
+| DELETE | `/api/checklists/templates/:id`    | Delete a template              |
+
+All endpoints require ADMIN role (`@PreAuthorize("hasRole('ADMIN')")` on the Spring controller).
+
+---
+
 ## Services summary
 
-| Service                  | File                                  | Used by tabs        |
-|--------------------------|---------------------------------------|---------------------|
-| `unitsService`           | `src/services/units.service.ts`       | UnitsTab            |
-| `organizationService`    | `src/services/organization.service.ts`| UsersTab, OrgTab    |
+| Service                  | File                                  | Used by tabs              |
+|--------------------------|---------------------------------------|---------------------------|
+| `unitsService`           | `src/services/units.service.ts`       | UnitsTab                  |
+| `organizationService`    | `src/services/organization.service.ts`| UsersTab, OrgTab          |
+| `checklistsService`      | `src/services/checklists.service.ts`  | ChecklistsTab (templates) |

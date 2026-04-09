@@ -2,7 +2,7 @@
 
 **Project**: IK-Kontrollsystem — Digital internal control system for Norwegian restaurants
 **Course**: IDATT2105 Fullstack, NTNU
-**Date**: 2026-03-30
+**Last updated**: 2026-04-09
 
 ---
 
@@ -19,7 +19,7 @@ The system replaces paper-based logbooks and spreadsheets with a structured, rol
 - **Deviations** — Reporting and tracking of non-conformances with severity classification and resolution workflow
 - **Temperature graphs** — 7-day and 30-day chart views of all storage unit readings, with alert markers
 - **Training documents** — Employee certification tracking and document library (HACCP plans, procedure PDFs, video guides)
-- **Settings (ADMIN only)** — Storage unit configuration, user management with per-user permissions, organisation profile
+- **Settings (ADMIN only)** — Storage unit configuration, user management with per-user permissions, organisation profile, and checklist template management
 
 **Modules**:
 
@@ -48,14 +48,15 @@ Data is tagged with `moduleType: 'IK_MAT' | 'IK_ALKOHOL'` so the same views serv
 │  │  ┌──────▼──────────────────────────▼──────────────────────┐ │   │
 │  │  │                      Views                             │ │   │
 │  │  │  DashboardView  FreezerView  FridgeView  ChecklistView │ │   │
-│  │  │  DeviationsView  GraphView  TrainingView               │ │   │
-│  │  │  settings/SettingsView (UnitsTab, UsersTab, OrgTab)    │ │   │
+│  │  │  DeviationsView  GraphView  TrainingView  AlkoholView  │ │   │
+│  │  │  settings/ (UnitsTab, UsersTab, OrgTab, ChecklistsTab) │ │   │
 │  │  └──────────────────────┬─────────────────────────────────┘ │   │
 │  │                         │ calls                              │   │
 │  │  ┌──────────────────────▼─────────────────────────────────┐ │   │
 │  │  │                   Pinia Stores                         │ │   │
 │  │  │  authStore  layoutStore  unitsStore  readingsStore     │ │   │
 │  │  │  checklistsStore  deviationsStore  dashboardStore      │ │   │
+│  │  │  shiftStore  alkoholStore                              │ │   │
 │  │  └──────────────────────┬─────────────────────────────────┘ │   │
 │  │                         │ calls                              │   │
 │  │  ┌──────────────────────▼─────────────────────────────────┐ │   │
@@ -146,21 +147,38 @@ frontend/
     │   │                       with optimistic update and error revert.
     │   ├── deviations.ts       useDeviationsStore — list/report/resolve deviations. openCount().
     │   └── dashboard.ts        useDashboardStore — stats, tasks, alerts snapshot for overview.
+    │   ├── shift.ts            useShiftStore — tracks the currently active shift worker. The
+    │   │                       logged-in user may record entries on behalf of the worker shown
+    │   │                       on the current shift. Exposes activeWorkerId (number | null) for
+    │   │                       inclusion in request bodies. Does not change JWT or permissions.
+    │   └── alkohol.ts          useAlkoholStore — IK-Alkohol module state: age verification
+    │                           entries, serving incidents, compliance stats. Handles 403 gracefully
+    │                           when STAFF role lacks access to alcohol endpoints.
     │
     ├── services/
     │   ├── api.ts              Axios instance. Base URL /api, 10s timeout. Request interceptor
-    │   │                       adds Bearer token. Response interceptor handles 401 auto-logout.
-    │   ├── auth.service.ts     authService.login(), authService.me(). Currently mocked.
-    │   ├── units.service.ts    unitsService CRUD: getAll, create, update, remove. Mocked.
-    │   ├── readings.service.ts readingsService: getByUnit, create (with range check). Mocked.
-    │   ├── checklists.service.ts checklistsService: getByFrequency, toggleItem. Mocked.
-    │   ├── deviations.service.ts deviationsService: getAll, create, resolve. Mocked.
-    │   ├── dashboard.service.ts dashboardService: get() returns stats+tasks+alerts. Mocked.
+    │   │                       adds Bearer token. Response interceptor unwraps ApiResponse<T>
+    │   │                       envelope and handles 401 auto-logout.
+    │   ├── auth.service.ts     authService.login(), authService.me(). Wired to real backend.
+    │   ├── units.service.ts    unitsService CRUD: getAll, create, update, remove. Wired.
+    │   ├── readings.service.ts readingsService: getByUnit, create (with range check). Wired.
+    │   ├── checklists.service.ts checklistsService: getByFrequency, toggleItem. Template CRUD:
+    │   │                       getTemplates, createTemplate, updateTemplate, deleteTemplate.
+    │   ├── deviations.service.ts deviationsService: getAll, create, resolve. Wired.
+    │   ├── dashboard.service.ts dashboardService: get() returns stats+tasks+alerts. Wired.
     │   ├── organization.service.ts organizationService: getOrg, updateOrg, getUsers,
-    │   │                       updateUser, createUser. Mocked.
+    │   │                       updateUser, createUser.
+    │   ├── alkohol.service.ts  alkoholService: getAlderskontrollEntries, getIncidents,
+    │   │                       getStats. Individual failures caught silently — 403 on
+    │   │                       STAFF role does not crash the page.
     │   ├── reports.service.ts  reportsService: getChartData(period), exportPdf(), exportJson().
-    │   │                       Chart data mocked; export stubs not yet implemented.
-    │   └── documents.service.ts documentsService: getTrainingDocs, getCertifications. Mocked.
+    │   │                       Chart data wired; export stubs not yet implemented.
+    │   └── documents.service.ts documentsService: getTrainingDocs, getCertifications.
+    │
+    ├── composables/
+    │   └── usePermission.ts    Returns a computed boolean for a named UserPermissions key.
+    │                           Falls back to role-derived defaults when permissions object is
+    │                           absent. Used to gate feature access within views.
     │
     ├── components/
     │   ├── layout/
@@ -168,7 +186,7 @@ frontend/
     │   │   │                   Shows nav items + admin section for ADMIN role. User info + logout
     │   │   │                   in footer. Inline SidebarIcon component (no external icon library).
     │   │   ├── AppTabBar.vue   Tablet bottom tab bar. Horizontally scrollable tabs with per-tab
-    │   │   │                   accent colours. Inline TabIcon component. adminOnly tabs filtered
+    │   │   │                   accent colours. All labels uppercase. adminOnly tabs filtered
     │   │   │                   by role. Sticky to bottom inside tablet device frame.
     │   │   └── TabletToggle.vue Dev tool button (always visible). Switches layoutStore between
     │   │                       desktop and tablet simulator mode.
@@ -182,20 +200,30 @@ frontend/
         ├── LoginView.vue           Login form. Calls authStore.login(). Redirects to /dashboard.
         ├── DashboardView.vue       Overview: compliance stats, today's task list, active alerts.
         ├── FreezerView.vue         Freezer unit cards. Log reading form. Recent readings table.
+        │                           Supports shift worker attribution via shiftStore.activeWorkerId.
         ├── FridgeView.vue          Refrigerator unit cards. Log reading form. Recent readings table.
+        ├── TemperaturLoggView.vue  Tablet-optimised full-screen temperature logging view.
         ├── ChecklistView.vue       DAILY / WEEKLY / MONTHLY tab filter. Checklist cards with
-        │                           individual item toggle (optimistic update).
+        │                           individual item toggle (optimistic update). Shift attribution.
         ├── DeviationsView.vue      Deviation list with severity/status filters. Report form.
         │                           Resolve workflow (modal with resolution text field).
         ├── GraphView.vue           Line chart of all unit readings. WEEK / MONTH toggle.
         │                           Alert markers on chart. Export PDF/JSON stubs.
         ├── TrainingView.vue        Training document library. Employee certification status table.
+        ├── alkohol/
+        │   ├── AlkoholView.vue         IK-Alkohol module shell with sub-tab navigation.
+        │   ├── AlderskontrollTab.vue   Age-check log: record and list age verifications.
+        │   ├── AlkoholSjekklisterTab.vue  Alcohol-module checklists.
+        │   └── HendelsesloggTab.vue    Alcohol serving incident log.
         └── settings/
-            ├── SettingsView.vue    Settings shell: sub-nav (Enheter / Brukere / Organisasjon).
+            ├── SettingsView.vue    Settings shell: sub-nav (Enheter / Brukere / Organisasjon / Sjekklister).
             │                       ADMIN-only route. Renders child RouterView.
             ├── UnitsTab.vue        Storage unit list. Add/edit/delete units via modal form.
             ├── UsersTab.vue        User list. Add/edit users. Per-user permission toggles.
-            └── OrgTab.vue          Organisation profile and notification preferences.
+            ├── OrgTab.vue          Organisation profile and notification preferences.
+            └── ChecklistsTab.vue   Checklist template CRUD. Lists all templates with frequency
+                                    and item count. Create/edit via modal with dynamic item list.
+                                    Calls POST/PUT/DELETE /api/checklists/templates. ADMIN only.
 ```
 
 ---
@@ -292,6 +320,8 @@ All application state is managed through Pinia stores using the Composition API 
 | `useChecklistsStore` | `checklists`, `loading`, `activeFrequency` | Checklists filtered by frequency. `toggleItem()` uses optimistic update with error revert. |
 | `useDeviationsStore` | `deviations`, `loading`, `saving` | Deviation lifecycle: report → in-progress → resolve. `openCount()` for sidebar badge. |
 | `useDashboardStore` | `stats`, `tasks`, `alerts`, `loading` | Dashboard snapshot data. Fetched on mount, not reactively updated. |
+| `useShiftStore` | `workers`, `activeId` | Active shift worker selection. Does not change JWT or permissions — attribution only. Exposes `activeWorkerId` for use in request bodies. |
+| `useAlkoholStore` | `stats`, `entries`, `incidents`, `loading` | IK-Alkohol module data. `fetchStats()` is wrapped in try/catch — 403 on STAFF role is silently ignored so the page does not crash. |
 
 ### Patterns
 
@@ -333,19 +363,25 @@ Services do not import from stores. If a service needs the current user (e.g. to
 
 ---
 
-## 9. Mock Data Pattern
+## 9. Backend Integration Status
 
-The backend is not yet integrated. Every service module is fully mocked with realistic Norwegian restaurant data for "Everest Sushi & Fusion AS" in Trondheim.
+The frontend services are wired to the real Spring Boot backend. The Axios instance in `api.ts` sends requests to `/api`, which Vite proxies to `http://localhost:8080` in development.
 
-**Conventions**:
+**Services fully wired to real endpoints:**
+- `auth.service.ts` — `POST /api/auth/login`, `GET /api/auth/me`
+- `units.service.ts` — CRUD on `/api/units`
+- `readings.service.ts` — `GET/POST /api/units/:unitId/readings`
+- `checklists.service.ts` — instances (`GET/PATCH`) and templates (`GET/POST/PUT/DELETE`)
+- `deviations.service.ts` — `GET/POST/PATCH /api/deviations`
+- `dashboard.service.ts` — `GET /api/dashboard/summary` and `/api/dashboard/notifications`
+- `alkohol.service.ts` — age verifications, incidents (with graceful 403 handling)
 
-1. **File header comment**: Each service file opens with `// TODO: Replace mock with real API call — [METHOD] [path]` declaring the real endpoint.
-2. **Inline comment per method**: The real Axios call is commented out immediately after the mock return statement.
-3. **Simulated latency**: A `delay(ms)` helper (default 300–400ms) wraps every mock call using `setTimeout`. This ensures the app is designed around async loading states and will not need refactoring when real network latency is introduced.
-4. **Module-level mock data**: Mock arrays are declared at module scope with a `let` or `const`. Mutations (create, update, delete) operate on these arrays so the mock is stateful within a browser session.
-5. **Auto-incrementing IDs**: Services use a `let nextId = N` counter for new records, matching the behaviour of a real database sequence.
+**Services with stub implementations (feature not fully implemented):**
+- `reports.service.ts` — chart data wired; PDF/JSON export stubs (endpoints exist but file download not implemented)
+- `documents.service.ts` — document list and certifications (read only; upload not implemented)
+- `organization.service.ts` — org settings and user management
 
-Services that read the current user from `sessionStorage` (readings, deviations) will automatically use the real session user once auth is connected — no changes needed.
+**Seed data**: The backend `dev` Spring profile runs Flyway migrations in `db/migration-dev/` which seed the demo organisation, users, units, checklist templates, temperature readings, and deviations needed for the frontend to display real data.
 
 ---
 
@@ -433,3 +469,25 @@ The `useAuthStore` re-hydrates from `sessionStorage` at the moment Pinia creates
 ### Optimistic checklist toggles
 
 Checklist item toggling uses an optimistic update strategy: the store flips the item state immediately, then calls the service in the background. On error, the flip is reverted. This is appropriate for checklist items because the operation is low-risk (a brief incorrect visual state is acceptable) and the improvement to perceived performance on a tablet with variable network is significant.
+
+### ApiResponse envelope unwrapping
+
+The Spring Boot backend wraps all responses in an `ApiResponse<T>` envelope:
+
+```json
+{ "success": true, "message": "...", "data": { ... } }
+```
+
+The Axios response interceptor in `api.ts` detects this shape and replaces `response.data` with the inner `data` field before returning to the caller. This means service methods can simply write `res.data` and receive the unwrapped payload — the envelope handling is invisible above the service layer.
+
+### Shift worker attribution
+
+Any logged-in user can select a different worker from the shift selector in `FreezerView`, `FridgeView`, and `ChecklistView`. This is an *attribution* feature — it records which worker performed an action, but it does not change the JWT, the session, or any permissions. The backend honors the `performedByUserId` field only when the JWT caller is ADMIN or MANAGER; STAFF submissions are always attributed to the JWT holder.
+
+This design allows a supervisor to log readings on behalf of a kitchen worker who does not have access to the system, without sharing session credentials.
+
+### Alcohol module graceful degradation
+
+The IK-Alkohol module endpoints (`GET /api/alcohol/age-verifications`, `GET /api/alcohol/incidents`) are restricted to ADMIN and MANAGER roles. The STAFF role receives a 403 from these endpoints.
+
+`useAlkoholStore.fetchStats()` is wrapped in a try/catch. Each individual API call within `alkoholService.getStats()` uses `.catch(() => [])` so a 403 on one endpoint does not fail the others. This prevents the IK-Alkohol page from crashing for STAFF users while still showing whatever data is accessible.

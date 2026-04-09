@@ -292,6 +292,6 @@ The PATCH body should send at minimum `{ completed: boolean }`. The response sho
 | Template vs instance model       | The frontend type `Checklist` blurs the template/instance distinction. A `ChecklistInstance` type with a `date` field needs to be introduced at integration time. |
 | Server-side completedBy/At       | After `toggleItem()` succeeds, the store does not patch `completedBy` or `completedAt` onto the item. The attribution line only shows for items that were pre-seeded with those values. |
 | Error state in the store         | `fetchAll()` and `toggleItem()` have no error state. A failed fetch leaves the previous list in place with no user feedback.               |
-| Checklist template admin         | There is no ADMIN-accessible view for creating, editing, or deactivating checklist templates. This will be needed as a tab under `/innstillinger` or as a dedicated route. |
+| Checklist template admin         | Implemented. `/innstillinger/sjekklister` (ChecklistsTab.vue) allows ADMIN users to create, edit, and delete templates. Calls `POST/PUT/DELETE /api/checklists/templates`. |
 | Per-shift instances              | If a kitchen runs multiple shifts (morning, evening), the backend may need to support multiple instances per day per template. The frontend currently has no shift concept. |
 | Offline / optimistic persistence | The optimistic toggle reverts on error, but there is no queue or retry mechanism for poor connectivity environments (tablets in kitchens may have weak Wi-Fi). |

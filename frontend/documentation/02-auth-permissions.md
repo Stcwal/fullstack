@@ -1,6 +1,6 @@
 # Authentication and Permissions — IK-Kontrollsystem
 
-**Date**: 2026-03-30
+**Last updated**: 2026-04-09
 
 ---
 
@@ -95,31 +95,26 @@ These are the real Spring Boot endpoints the service layer will call once integr
 | POST | /api/auth/logout | Invalidate the refresh token server-side | Yes |
 | GET | /api/users/me | Fetch full User object with current permissions | Yes |
 
-**Login response shape** (AuthResponse):
+**Login response shape** (actual backend `LoginResponse`):
+
+The backend returns a **flat** login response — user fields are at the top level alongside the token, not nested under a `user` key:
 
 ```json
 {
   "token": "eyJhbGci...",
-  "user": {
-    "id": 1,
-    "firstName": "Kari",
-    "lastName": "Larsen",
-    "email": "kari@everestsushi.no",
-    "role": "ADMIN",
-    "organizationId": 1,
-    "permissions": {
-      "temperatureLogging": true,
-      "checklists": true,
-      "reports": true,
-      "deviations": true,
-      "userAdmin": true,
-      "settings": true
-    }
-  }
+  "userId": 1,
+  "email": "kari@everestsushi.no",
+  "firstName": "Kari",
+  "lastName": "Larsen",
+  "role": "ADMIN",
+  "organizationId": 1,
+  "primaryLocationId": 1
 }
 ```
 
-The current frontend `AuthResponse` type uses a field named `token`. If the Spring Boot backend returns `accessToken` instead, the service layer should map it: `return { token: data.accessToken, user: data.user }`. Do not change the Pinia store or interceptor — keep `token` as the internal field name.
+The `auth.service.ts` login method reconstructs the `{ token, user }` shape that the auth store expects by mapping these flat fields into a `User` object before returning. The Pinia store and Axios interceptors only ever see the normalised `AuthResponse` shape — the backend's flat format is handled entirely within the service layer.
+
+The `cy.login()` Cypress command performs the same reconstruction from the raw API response so that Cypress tests can seed `sessionStorage` correctly without going through the UI.
 
 ---
 
