@@ -209,6 +209,8 @@ Detailed documentation lives in `frontend/documentation/`:
 
 | File | Contents |
 |---|---|
+| `08-architecture-diagrams.md` | **Architecture diagrams** — system overview, backend domain model (ER), frontend route structure, 5 user flow diagrams, JWT session sequence |
+| `10-prioritization.md` | **Prioritization and development process** — how the team approached the project, phase-by-phase decisions, what was built and why, what was intentionally left out |
 | `01-architecture.md` | System architecture, directory structure, layout modes, state management patterns, key design decisions |
 | `02-auth-permissions.md` | JWT authentication flow, role-based access control, two-layer permissions system |
 | `03-api-contracts.md` | Full REST API contract — every endpoint, request/response shape, error codes |
