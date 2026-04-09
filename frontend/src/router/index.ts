@@ -1,5 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AlkoholView from '@/views/alkohol/AlkoholView.vue'
+import AlderskontrollTab from '@/views/alkohol/AlderskontrollTab.vue'
+import AlkoholSjekklisterTab from '@/views/alkohol/AlkoholSjekklisterTab.vue'
+import HendelsesloggTab from '@/views/alkohol/HendelsesloggTab.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,24 +66,24 @@ const router = createRouter({
     },
     {
       path: '/alkohol',
-      component: () => import('@/views/alkohol/AlkoholView.vue'),
+      component: AlkoholView,
       meta: { requiresAuth: true },
       children: [
         { path: '', redirect: 'alderskontroll' },
         {
           path: 'alderskontroll',
           name: 'alkohol-alderskontroll',
-          component: () => import('@/views/alkohol/AlderskontrollTab.vue')
+          component: AlderskontrollTab
         },
         {
           path: 'sjekklister',
           name: 'alkohol-sjekklister',
-          component: () => import('@/views/alkohol/AlkoholSjekklisterTab.vue')
+          component: AlkoholSjekklisterTab
         },
         {
           path: 'hendelser',
           name: 'alkohol-hendelser',
-          component: () => import('@/views/alkohol/HendelsesloggTab.vue')
+          component: HendelsesloggTab
         }
       ]
     },
