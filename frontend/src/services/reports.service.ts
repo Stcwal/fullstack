@@ -5,6 +5,9 @@ export interface ChartDataset {
   label: string
   data: (number | null)[]
   color: string
+  minThreshold: number
+  maxThreshold: number
+  unitType: string
 }
 
 export interface ChartData {

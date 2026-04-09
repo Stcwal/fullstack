@@ -58,7 +58,7 @@ public class ReportService {
             List<Double> data = buildDailyAverages(periodReadings, days);
 
             String color = PALETTE[i % PALETTE.length];
-            datasets.add(new ChartDataset(unit.getName(), data, color));
+            datasets.add(new ChartDataset(unit.getName(), data, color, unit.getMinThreshold(), unit.getMaxThreshold(), unit.getType().name()));
 
             for (int dayIdx = 0; dayIdx < days; dayIdx++) {
                 addAlertIfOutOfRange(periodReadings, dayIdx, days, unit.getName(), alerts);
