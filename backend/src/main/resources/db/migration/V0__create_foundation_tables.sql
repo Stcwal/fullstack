@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS locations (
     CONSTRAINT fk_locations_organization FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_locations_organization_id ON locations(organization_id);
+CREATE INDEX idx_locations_organization_id ON locations(organization_id);
 
 CREATE TABLE IF NOT EXISTS users (
     id               BIGINT       PRIMARY KEY AUTO_INCREMENT,
