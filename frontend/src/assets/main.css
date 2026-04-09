@@ -80,7 +80,8 @@
 
   /* Layout */
   --sidebar-w:   240px;
-  --tabbar-h:    76px;
+  --tabbar-h:    92px;
+  --topbar-h:    44px;
 
   /* Tab accent colours — one per section */
   --tab-oversikt:      #6366F1;
@@ -356,6 +357,17 @@ label {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.tablet-topbar {
+  flex-shrink: 0;
+  height: var(--topbar-h);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 14px;
+  z-index: 10;
 }
 
 .tablet-device .app-main-tablet {
@@ -737,25 +749,18 @@ label {
 }
 
 .tab-bar-item .tab-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--r-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--t);
   flex-shrink: 0;
 }
 
 .tab-bar-item .tab-label {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  color: var(--c-text-3);
-  transition: color var(--t);
+  font-weight: 800;
+  color: #fff;
   text-align: center;
-  line-height: 1.2;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
 }
 
 .tab-bar-item.active .tab-label {
@@ -789,8 +794,8 @@ label {
 .tab-bar-item[data-tab="opplaering"]    { color: var(--tab-opplaering); }
 .tab-bar-item[data-tab="innstillinger"] { color: var(--tab-innstillinger); }
 
-.tab-bar-item:not(.active) .tab-icon svg { opacity: 0.4; }
-.tab-bar-item:not(.active) .tab-label { color: var(--c-text-3); }
+.tab-bar-item:not(.active) .tab-icon svg { opacity: 1; }
+.tab-bar-item:not(.active) .tab-label { color: #fff; }
 
 .tab-bar-item.active .tab-icon {
   background: color-mix(in srgb, currentColor 12%, transparent);
