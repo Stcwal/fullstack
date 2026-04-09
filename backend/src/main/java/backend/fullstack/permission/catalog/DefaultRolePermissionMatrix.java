@@ -38,7 +38,11 @@ public final class DefaultRolePermissionMatrix {
                 Permission.DEVIATIONS_READ,
                 Permission.DEVIATIONS_RESOLVE,
                 Permission.REPORTS_READ,
-                Permission.REPORTS_EXPORT
+                Permission.REPORTS_EXPORT,
+                Permission.ALCOHOL_VERIFICATION_READ,
+                Permission.ALCOHOL_INCIDENTS_READ,
+                Permission.ALCOHOL_INCIDENTS_RESOLVE,
+                Permission.ALCOHOL_LICENSE_READ
         ));
 
         mapping.put(Role.MANAGER, EnumSet.of(
@@ -56,13 +60,21 @@ public final class DefaultRolePermissionMatrix {
                 Permission.DEVIATIONS_CREATE,
                 Permission.DEVIATIONS_RESOLVE,
                 Permission.REPORTS_READ,
-                Permission.REPORTS_EXPORT
+                Permission.REPORTS_EXPORT,
+                Permission.ALCOHOL_VERIFICATION_READ,
+                Permission.ALCOHOL_VERIFICATION_CREATE,
+                Permission.ALCOHOL_INCIDENTS_READ,
+                Permission.ALCOHOL_INCIDENTS_CREATE,
+                Permission.ALCOHOL_INCIDENTS_RESOLVE,
+                Permission.ALCOHOL_LICENSE_READ
         ));
 
         mapping.put(Role.STAFF, EnumSet.of(
                 Permission.LOGS_TEMPERATURE_CREATE,
                 Permission.CHECKLISTS_COMPLETE,
-                Permission.DEVIATIONS_CREATE
+                Permission.DEVIATIONS_CREATE,
+                Permission.ALCOHOL_VERIFICATION_CREATE,
+                Permission.ALCOHOL_INCIDENTS_CREATE
         ));
 
         return Collections.unmodifiableMap(mapping);

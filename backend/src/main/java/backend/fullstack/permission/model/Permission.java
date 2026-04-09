@@ -43,7 +43,16 @@ public enum Permission {
 
     // Reports
     REPORTS_READ("reports.read"),
-    REPORTS_EXPORT("reports.export");
+    REPORTS_EXPORT("reports.export"),
+
+    // IK-Alkohol
+    ALCOHOL_VERIFICATION_READ("alcohol.verification.read"),
+    ALCOHOL_VERIFICATION_CREATE("alcohol.verification.create"),
+    ALCOHOL_INCIDENTS_READ("alcohol.incidents.read"),
+    ALCOHOL_INCIDENTS_CREATE("alcohol.incidents.create"),
+    ALCOHOL_INCIDENTS_RESOLVE("alcohol.incidents.resolve"),
+    ALCOHOL_LICENSE_READ("alcohol.license.read"),
+    ALCOHOL_LICENSE_MANAGE("alcohol.license.manage");
 
     private final String key;
     private static final Map<String, Permission> BY_KEY = Arrays.stream(values())
