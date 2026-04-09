@@ -60,14 +60,14 @@ async function handleLogin() {
       <!-- Logo / Brand -->
       <div class="login-brand">
         <div class="login-logo" aria-hidden="true">
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="10" fill="#16A34A"/>
-            <path d="M10 18.5L15.5 24L26 13" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12.5L10 17.5L19 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--c-primary)"/>
           </svg>
         </div>
         <h1 class="login-title">IK-Kontrollsystem</h1>
         <p class="login-subtitle">Everest Sushi &amp; Fusion AS</p>
       </div>
+      <div class="login-divider"></div>
 
       <!-- Error alert -->
       <div v-if="errorMessage" class="mb-3">
@@ -133,7 +133,7 @@ async function handleLogin() {
     </div>
 
     <div class="dev-creds">
-      <p class="text-muted text-sm" style="margin-bottom: 8px; font-weight: 500;">Testkontoer</p>
+      <p class="dev-label">Testkontoer</p>
       <div class="quick-login-row">
         <button
           v-for="acc in devAccounts"
@@ -150,6 +150,7 @@ async function handleLogin() {
 </template>
 
 <style scoped>
+/* ---- Page background — deep navy slate, intentional contrast vs light app ---- */
 .login-page {
   min-height: 100dvh;
   display: flex;
@@ -157,18 +158,20 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 24px 16px 32px;
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  background:
+    radial-gradient(ellipse at 50% 20%, oklch(0.19 0.04 255) 0%, oklch(0.12 0.025 255) 65%),
+    oklch(0.12 0.025 255);
 }
 
 /* ---- Card ---- */
 .login-card {
   width: 100%;
-  max-width: 400px;
-  background: #ffffff;
+  max-width: 388px;
+  background: var(--c-surface);
   border-radius: var(--r-xl);
-  box-shadow: var(--shadow-lg, 0 20px 40px rgba(0,0,0,0.3));
-  padding: 40px 36px 36px;
-  border: none;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.06) inset;
+  padding: 36px 32px 32px;
+  border: 1px solid var(--c-border);
 }
 
 /* ---- Brand section ---- */
@@ -181,42 +184,59 @@ async function handleLogin() {
 }
 
 .login-logo {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  /* Stamp-like presentation */
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r);
+  background: oklch(0.975 0.025 145);
+  border: 1.5px solid oklch(0.86 0.09 145);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .login-title {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--c-text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
   line-height: 1.2;
   margin-bottom: 4px;
 }
 
 .login-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--c-text-2);
   font-weight: 400;
+}
+
+/* ---- Divider ---- */
+.login-divider {
+  height: 1px;
+  background: var(--c-border);
+  margin: 0 0 24px;
 }
 
 /* ---- Form ---- */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .field-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   color: var(--c-text-2);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .field-input {
@@ -225,11 +245,11 @@ async function handleLogin() {
   padding: 0 14px;
   font-size: 0.9375rem;
   color: var(--c-text);
-  background: var(--c-surface-2, #F8FAFC);
+  background: var(--c-surface-2);
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-sm);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   font-family: inherit;
 }
 
@@ -239,8 +259,8 @@ async function handleLogin() {
 
 .field-input:focus {
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
-  background: #ffffff;
+  box-shadow: 0 0 0 3px oklch(0.52 0.17 145 / 0.14);
+  background: var(--c-surface);
 }
 
 .field-input:disabled {
@@ -275,9 +295,7 @@ async function handleLogin() {
   line-height: 0;
 }
 
-.password-toggle:hover {
-  color: var(--c-text-2);
-}
+.password-toggle:hover { color: var(--c-text-2); }
 
 /* ---- Submit button ---- */
 .login-submit {
@@ -287,6 +305,7 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 0.9375rem;
 }
 
 .login-submit:disabled {
@@ -297,9 +316,9 @@ async function handleLogin() {
 /* ---- Loading spinner ---- */
 .loading-spinner {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255,255,255,0.3);
   border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.65s linear infinite;
@@ -312,66 +331,45 @@ async function handleLogin() {
 
 /* ---- Dev credentials ---- */
 .dev-creds {
-  margin-top: 28px;
+  margin-top: 24px;
   text-align: center;
-  opacity: 0.7;
-}
-
-.cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.cred-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: #94A3B8;
-  font-family: 'SF Mono', 'Fira Code', ui-monospace, monospace;
-}
-
-.cred-role {
-  color: #64748B;
-  font-family: inherit;
-  font-weight: 500;
-  min-width: 40px;
-  text-align: right;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.cred-email {
-  color: #94A3B8;
-}
-
-.cred-sep {
-  color: #475569;
 }
 
 .quick-login-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
+  margin-top: 8px;
 }
 
 .quick-login-btn {
-  padding: 7px 18px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  color: #e2e8f0;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  padding: 7px 16px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--r-sm);
+  color: oklch(0.78 0.01 250);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   font-family: inherit;
-  min-height: 36px;
+  min-height: 34px;
 }
-.quick-login-btn:hover { background: rgba(255,255,255,0.14); }
-.quick-login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.quick-login-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.24);
+  color: #fff;
+}
+.quick-login-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Subtext below quick-login ---- */
+.dev-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: oklch(0.5 0.01 250);
+}
 </style>
