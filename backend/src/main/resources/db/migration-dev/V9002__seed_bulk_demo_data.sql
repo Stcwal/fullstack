@@ -64,13 +64,13 @@ VALUES
   (5012, 1, 'Ravarer Kaldsone', 'OTHER', 5.0, 2.0, 7.0, 'Raw ingredients zone', TRUE, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON DUPLICATE KEY UPDATE name = VALUES(name), updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO temperature_readings
+  (id, organization_id, unit_id, recorded_by_user_id, temperature, recorded_at, note, is_deviation, created_at, updated_at)
 WITH RECURSIVE seq AS (
   SELECT 0 AS n
   UNION ALL
   SELECT n + 1 FROM seq WHERE n < 191
 )
-INSERT INTO temperature_readings
-  (id, organization_id, unit_id, recorded_by_user_id, temperature, recorded_at, note, is_deviation, created_at, updated_at)
 SELECT
   7000 + n,
   1,
@@ -212,13 +212,13 @@ VALUES
   (11002, 1, 'TEMPORARY', 'TRD-ALK-TEMP-021', TIMESTAMPADD(DAY, -30, CURRENT_DATE), TIMESTAMPADD(DAY, 20, CURRENT_DATE), 'Trondheim kommune', 'Midlertidig tillatelse for arrangement.', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at), notes = VALUES(notes), updated_at = CURRENT_TIMESTAMP;
 
+INSERT INTO age_verification_logs
+  (id, organization_id, location_id, verified_by_user_id, verification_method, guest_appeared_underage, id_was_valid, was_refused, note, verified_at, created_at)
 WITH RECURSIVE age_seq AS (
   SELECT 0 AS n
   UNION ALL
   SELECT n + 1 FROM age_seq WHERE n < 79
 )
-INSERT INTO age_verification_logs
-  (id, organization_id, location_id, verified_by_user_id, verification_method, guest_appeared_underage, id_was_valid, was_refused, note, verified_at, created_at)
 SELECT
   12000 + n,
   1,
@@ -246,13 +246,13 @@ SELECT
 FROM age_seq
 ON DUPLICATE KEY UPDATE was_refused = VALUES(was_refused), verified_at = VALUES(verified_at);
 
+INSERT INTO alcohol_serving_incidents
+  (id, organization_id, location_id, reported_by_user_id, resolved_by_user_id, incident_type, severity, status, description, corrective_action, occurred_at, resolved_at, created_at, updated_at)
 WITH RECURSIVE incident_seq AS (
   SELECT 0 AS n
   UNION ALL
   SELECT n + 1 FROM incident_seq WHERE n < 19
 )
-INSERT INTO alcohol_serving_incidents
-  (id, organization_id, location_id, reported_by_user_id, resolved_by_user_id, incident_type, severity, status, description, corrective_action, occurred_at, resolved_at, created_at, updated_at)
 SELECT
   13000 + n,
   1,
@@ -297,13 +297,13 @@ ON DUPLICATE KEY UPDATE status = VALUES(status), updated_at = VALUES(updated_at)
 -- Documents
 -- ---------------------------------------------------------------------------
 
+INSERT INTO documents
+  (id, organization_id, uploaded_by_id, title, description, category, file_name, content_type, file_size, file_data, created_at, updated_at)
 WITH RECURSIVE doc_seq AS (
   SELECT 0 AS n
   UNION ALL
   SELECT n + 1 FROM doc_seq WHERE n < 17
 )
-INSERT INTO documents
-  (id, organization_id, uploaded_by_id, title, description, category, file_name, content_type, file_size, file_data, created_at, updated_at)
 SELECT
   14000 + n,
   1,
