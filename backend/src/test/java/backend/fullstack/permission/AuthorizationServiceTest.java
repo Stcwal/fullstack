@@ -31,12 +31,14 @@ import backend.fullstack.permission.catalog.RolePermissionBindingRepository;
 import backend.fullstack.permission.catalog.RolePermissionCatalog;
 import backend.fullstack.permission.core.AuthorizationService;
 import backend.fullstack.permission.core.ConditionEvaluator;
+import backend.fullstack.permission.core.PermissionConditionContext;
 import backend.fullstack.permission.model.Permission;
 import backend.fullstack.permission.override.UserPermissionOverrideRepository;
 import backend.fullstack.permission.profile.PermissionProfileBindingRepository;
 import backend.fullstack.permission.profile.UserProfileAssignmentRepository;
 import backend.fullstack.permission.dto.CapabilitiesResponse;
 import backend.fullstack.training.TrainingRecordRepository;
+import backend.fullstack.training.TrainingType;
 import backend.fullstack.user.AccessContextService;
 import backend.fullstack.user.User;
 import backend.fullstack.user.UserLocationScopeAssignmentRepository;
@@ -217,6 +219,80 @@ class AuthorizationServiceTest {
         assertTrue(response.getLocations().stream().anyMatch(l -> l.getLocationId().equals(8L)
                 && l.getPermissions().contains("checklists.read")));
         assertTrue(response.getPermissionScopeLocationIds().containsKey("checklists.read"));
+    }
+
+    @Test
+    void hasPermissionWithConditionRespectsTrainingRequirement() {
+        User actor = user(1L, 100L, Role.MANAGER, "actor@everest.no");
+        authenticate(actor);
+
+        when(userRepository.findById(actor.getId())).thenReturn(java.util.Optional.of(actor));
+        when(userRepository.findEffectiveLocationScopeByUserId(actor.getId())).thenReturn(List.of(7L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(actor.getId()), any()))
+                .thenReturn(List.of());
+        rolePermissionCatalog.setEffectivePermissions(7L, Set.of(Permission.LOGS_FREEZER_CREATE));
+        when(trainingRecordRepository.hasValidTraining(eq(actor.getId()), eq(TrainingType.FREEZER_LOGGING), any()))
+                .thenReturn(false);
+
+        boolean denied = authorizationService.hasPermissionWithCondition(
+                Permission.LOGS_FREEZER_CREATE,
+                7L,
+                new PermissionConditionContext(true, false)
+        );
+
+        assertFalse(denied);
+
+        when(trainingRecordRepository.hasValidTraining(eq(actor.getId()), eq(TrainingType.FREEZER_LOGGING), any()))
+                .thenReturn(true);
+
+        boolean allowed = authorizationService.hasPermissionWithCondition(
+                Permission.LOGS_FREEZER_CREATE,
+                7L,
+                new PermissionConditionContext(true, false)
+        );
+
+        assertTrue(allowed);
+    }
+
+    @Test
+    void assertCanAssignLocationsRejectsSupervisorOutsideScope() {
+        User supervisor = user(10L, 100L, Role.SUPERVISOR, "supervisor@everest.no");
+        User targetStaff = user(11L, 100L, Role.STAFF, "staff@everest.no");
+
+        authenticate(supervisor);
+        when(userRepository.findById(supervisor.getId())).thenReturn(java.util.Optional.of(supervisor));
+        when(userRepository.findEffectiveLocationScopeByUserId(supervisor.getId())).thenReturn(List.of(7L));
+        when(userLocationScopeAssignmentRepository.findActiveLocationIdsByUserId(eq(supervisor.getId()), any()))
+                .thenReturn(List.of());
+        when(userRepository.findAdditionalLocationIdsByUserId(supervisor.getId())).thenReturn(List.of(7L));
+        when(userRepository.findAdditionalLocationIdsByUserId(targetStaff.getId())).thenReturn(List.of(7L));
+        rolePermissionCatalog.setEffectivePermissions(null,
+                Set.of(Permission.USERS_ASSIGN_LOCATIONS, Permission.USERS_UPDATE));
+
+        backend.fullstack.exceptions.AccessDeniedException ex =
+                assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
+                        () -> authorizationService.assertCanAssignLocations(targetStaff, List.of(7L, 8L)));
+
+        assertTrue(ex.getMessage().contains("outside your scope"));
+    }
+
+    @Test
+    void assertCanDeactivateUserRejectsManagerEvenWithPermission() {
+        User manager = user(20L, 100L, Role.MANAGER, "manager@everest.no");
+        User targetStaff = user(21L, 100L, Role.STAFF, "target-staff@everest.no");
+
+        authenticate(manager);
+        when(userRepository.findById(manager.getId())).thenReturn(java.util.Optional.of(manager));
+        when(userRepository.findAdditionalLocationIdsByUserId(manager.getId())).thenReturn(List.of(9L));
+        when(userRepository.findAdditionalLocationIdsByUserId(targetStaff.getId())).thenReturn(List.of(9L));
+        rolePermissionCatalog.setEffectivePermissions(null,
+                Set.of(Permission.USERS_DEACTIVATE, Permission.USERS_UPDATE));
+
+        backend.fullstack.exceptions.AccessDeniedException ex =
+                assertThrows(backend.fullstack.exceptions.AccessDeniedException.class,
+                        () -> authorizationService.assertCanDeactivateUser(targetStaff));
+
+        assertTrue(ex.getMessage().contains("Only ADMIN or SUPERVISOR can deactivate users"));
     }
 
     private static void authenticate(User actor) {
