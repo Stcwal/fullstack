@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
+import backend.fullstack.deviations.api.dto.DeviationCommentRequest;
+import backend.fullstack.deviations.api.dto.DeviationCommentResponse;
+import backend.fullstack.deviations.api.dto.DeviationDetailsResponse;
 import backend.fullstack.deviations.api.dto.DeviationRequest;
 import backend.fullstack.deviations.api.dto.DeviationResponse;
 import backend.fullstack.deviations.api.dto.ResolveDeviationRequest;
+import backend.fullstack.deviations.api.dto.UpdateDeviationStatusRequest;
 import backend.fullstack.deviations.application.DeviationService;
 import backend.fullstack.deviations.domain.DeviationStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,6 +58,23 @@ public class DeviationController {
         return ResponseEntity.ok(ApiResponse.success("Deviations retrieved", deviations));
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
+    @Operation(summary = "Get deviation by id", description = "Returns one deviation including comment log")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Deviation retrieved"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Deviation not found")
+    })
+    public ResponseEntity<ApiResponse<DeviationDetailsResponse>> getDeviationById(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @PathVariable Long id
+    ) {
+        DeviationDetailsResponse deviation = deviationService.getDeviationById(principal.organizationId(), id);
+        return ResponseEntity.ok(ApiResponse.success("Deviation retrieved", deviation));
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
     @Operation(summary = "Create deviation")
@@ -87,4 +108,52 @@ public class DeviationController {
         DeviationResponse deviation = deviationService.resolveDeviation(principal.organizationId(), principal.userId(), id, request);
         return ResponseEntity.ok(ApiResponse.success("Deviation resolved", deviation));
     }
+
+        @PatchMapping("/{id}/status")
+        @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
+        @Operation(summary = "Update deviation status")
+        @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Deviation status updated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Deviation not found")
+        })
+        public ResponseEntity<ApiResponse<DeviationResponse>> updateDeviationStatus(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateDeviationStatusRequest request
+        ) {
+        DeviationResponse deviation = deviationService.updateDeviationStatus(
+            principal.organizationId(),
+            principal.userId(),
+            id,
+            request
+        );
+        return ResponseEntity.ok(ApiResponse.success("Deviation status updated", deviation));
+        }
+
+        @PostMapping("/{id}/comments")
+        @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
+        @Operation(summary = "Add comment to deviation")
+        @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Comment created"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Deviation not found")
+        })
+        public ResponseEntity<ApiResponse<DeviationCommentResponse>> addDeviationComment(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @PathVariable Long id,
+            @Valid @RequestBody DeviationCommentRequest request
+        ) {
+        DeviationCommentResponse response = deviationService.addComment(
+            principal.organizationId(),
+            principal.userId(),
+            id,
+            request
+        );
+        return ResponseEntity.status(201).body(ApiResponse.success("Deviation comment created", response));
+        }
 }

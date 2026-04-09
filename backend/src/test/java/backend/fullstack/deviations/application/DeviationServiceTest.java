@@ -17,14 +17,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import backend.fullstack.deviations.api.dto.DeviationCommentRequest;
+import backend.fullstack.deviations.api.dto.DeviationCommentResponse;
+import backend.fullstack.deviations.api.dto.DeviationDetailsResponse;
 import backend.fullstack.deviations.api.dto.DeviationMapper;
 import backend.fullstack.deviations.api.dto.DeviationRequest;
 import backend.fullstack.deviations.api.dto.DeviationResponse;
 import backend.fullstack.deviations.api.dto.ResolveDeviationRequest;
+import backend.fullstack.deviations.api.dto.UpdateDeviationStatusRequest;
 import backend.fullstack.deviations.domain.Deviation;
+import backend.fullstack.deviations.domain.DeviationComment;
 import backend.fullstack.deviations.domain.DeviationModuleType;
 import backend.fullstack.deviations.domain.DeviationSeverity;
 import backend.fullstack.deviations.domain.DeviationStatus;
+import backend.fullstack.deviations.infrastructure.DeviationCommentRepository;
 import backend.fullstack.deviations.infrastructure.DeviationRepository;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.organization.OrganizationRepository;
@@ -36,6 +42,9 @@ class DeviationServiceTest {
 
     @Mock
     private DeviationRepository deviationRepository;
+
+        @Mock
+        private DeviationCommentRepository deviationCommentRepository;
 
     @Mock
     private OrganizationRepository organizationRepository;
@@ -50,7 +59,13 @@ class DeviationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DeviationService(deviationRepository, organizationRepository, userRepository, deviationMapper);
+                service = new DeviationService(
+                                deviationRepository,
+                                deviationCommentRepository,
+                                organizationRepository,
+                                userRepository,
+                                deviationMapper
+                );
     }
 
     @Test
@@ -158,6 +173,121 @@ class DeviationServiceTest {
         assertEquals(DeviationStatus.RESOLVED, saved.getStatus());
         assertNotNull(saved.getResolvedAt());
         assertEquals(resolver, saved.getResolvedBy());
+    }
+
+    @Test
+    void updateDeviationStatus_openToInProgress_setsStatus() {
+        Long orgId = 1L;
+        Long userId = 5L;
+        Long deviationId = 21L;
+
+        User actor = buildUser(userId, orgId);
+        Deviation existing = buildDeviation(deviationId, orgId, DeviationStatus.OPEN);
+
+        when(deviationRepository.findByIdAndOrganization_Id(deviationId, orgId))
+                .thenReturn(Optional.of(existing));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+        when(deviationRepository.save(any(Deviation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(deviationMapper.toResponse(any(Deviation.class))).thenReturn(buildResponse(deviationId));
+
+        service.updateDeviationStatus(
+                orgId,
+                userId,
+                deviationId,
+                new UpdateDeviationStatusRequest(DeviationStatus.IN_PROGRESS, null)
+        );
+
+        ArgumentCaptor<Deviation> captor = ArgumentCaptor.forClass(Deviation.class);
+        verify(deviationRepository).save(captor.capture());
+        assertEquals(DeviationStatus.IN_PROGRESS, captor.getValue().getStatus());
+    }
+
+    @Test
+    void updateDeviationStatus_invalidTransition_throwsIllegalArgumentException() {
+        Long orgId = 1L;
+        Long userId = 5L;
+        Long deviationId = 22L;
+
+        User actor = buildUser(userId, orgId);
+        Deviation existing = buildDeviation(deviationId, orgId, DeviationStatus.RESOLVED);
+
+        when(deviationRepository.findByIdAndOrganization_Id(deviationId, orgId))
+                .thenReturn(Optional.of(existing));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.updateDeviationStatus(
+                        orgId,
+                        userId,
+                        deviationId,
+                        new UpdateDeviationStatusRequest(DeviationStatus.IN_PROGRESS, null)
+                )
+        );
+
+        assertEquals("Invalid status transition: RESOLVED -> IN_PROGRESS", ex.getMessage());
+    }
+
+    @Test
+    void addComment_returnsCommentResponse() {
+        Long orgId = 1L;
+        Long userId = 5L;
+        Long deviationId = 30L;
+
+        Organization org = buildOrganization(orgId);
+        User author = buildUser(userId, orgId);
+        Deviation deviation = buildDeviation(deviationId, orgId, DeviationStatus.OPEN);
+        deviation.setOrganization(org);
+
+        when(deviationRepository.findByIdAndOrganization_Id(deviationId, orgId))
+                .thenReturn(Optional.of(deviation));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(author));
+        when(deviationCommentRepository.save(any(DeviationComment.class))).thenAnswer(invocation -> {
+            DeviationComment comment = invocation.getArgument(0);
+            comment.setId(100L);
+            comment.setCreatedAt(LocalDateTime.now());
+            return comment;
+        });
+
+        DeviationCommentResponse response = service.addComment(
+                orgId,
+                userId,
+                deviationId,
+                new DeviationCommentRequest("Follow-up done")
+        );
+
+        assertEquals(100L, response.id());
+        assertEquals("Follow-up done", response.comment());
+        assertEquals(userId, response.createdById());
+    }
+
+    @Test
+    void getDeviationById_includesCommentLog() {
+        Long orgId = 1L;
+        Long deviationId = 40L;
+
+        Deviation deviation = buildDeviation(deviationId, orgId, DeviationStatus.OPEN);
+        User author = buildUser(8L, orgId);
+        DeviationComment comment = DeviationComment.builder()
+                .id(501L)
+                .organization(buildOrganization(orgId))
+                .deviation(deviation)
+                .createdBy(author)
+                .commentText("Investigating")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(deviationRepository.findByIdAndOrganization_Id(deviationId, orgId))
+                .thenReturn(Optional.of(deviation));
+        when(deviationCommentRepository.findByOrganization_IdAndDeviation_IdOrderByCreatedAtAsc(orgId, deviationId))
+                .thenReturn(List.of(comment));
+        when(deviationMapper.toResponse(any(Deviation.class))).thenReturn(buildResponse(deviationId));
+
+        DeviationDetailsResponse response = service.getDeviationById(orgId, deviationId);
+
+        assertEquals(deviationId, response.id());
+        assertEquals(1, response.comments().size());
+        assertEquals("Investigating", response.comments().get(0).comment());
     }
 
         @Test
