@@ -89,6 +89,20 @@ export const organizationService = {
     return res.data
   },
 
+  async createLocation(data: { name: string; address: string }): Promise<BackendLocation> {
+    const res = await api.post<BackendLocation>('/locations', data)
+    return res.data
+  },
+
+  async updateLocation(id: number, data: { name: string; address: string }): Promise<BackendLocation> {
+    const res = await api.put<BackendLocation>(`/locations/${id}`, data)
+    return res.data
+  },
+
+  async deleteLocation(id: number): Promise<void> {
+    await api.delete(`/locations/${id}`)
+  },
+
   async updateUser(id: number, data: Partial<SettingsUser> & { locationId?: number }): Promise<SettingsUser> {
     // Name update
     if (data.firstName !== undefined || data.lastName !== undefined) {

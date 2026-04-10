@@ -19,7 +19,9 @@ export interface User {
   email: string
   role: UserRole
   organizationId?: number
+  organizationName?: string
   primaryLocationId?: number
+  primaryLocationName?: string
   permissions?: UserPermissions
 }
 

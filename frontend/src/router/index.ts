@@ -112,6 +112,11 @@ const router = createRouter({
           path: 'sjekklister',
           name: 'settings-checklists',
           component: () => import('@/views/settings/ChecklistsTab.vue')
+        },
+        {
+          path: 'lokasjoner',
+          name: 'settings-locations',
+          component: () => import('@/views/settings/LocationsTab.vue')
         }
       ]
     },

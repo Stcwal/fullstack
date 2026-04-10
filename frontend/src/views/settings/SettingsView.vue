@@ -34,6 +34,13 @@
       >
         Sjekklister
       </RouterLink>
+      <RouterLink
+        to="/innstillinger/lokasjoner"
+        class="sub-nav-item"
+        :class="{ active: route.path.startsWith('/innstillinger/lokasjoner') }"
+      >
+        Lokasjoner
+      </RouterLink>
     </nav>
 
     <RouterView />

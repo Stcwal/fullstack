@@ -57,57 +57,6 @@
       </template>
     </div>
 
-    <!-- Aktive moduler -->
-    <div class="card">
-      <div class="card-header mb-4">
-        <h2 class="section-title">Aktive moduler</h2>
-      </div>
-
-      <template v-if="orgForm">
-        <div class="status-row">
-          <div class="flex items-center gap-3 flex-1">
-            <input
-              id="module-ik-mat"
-              v-model="orgForm.modules.ikMat"
-              type="checkbox"
-            />
-            <div>
-              <label for="module-ik-mat" class="font-medium flex items-center gap-2">
-                <span class="mod-badge ik-mat">IK-Mat</span>
-                IK-Mat
-              </label>
-              <p class="text-muted text-sm mt-1">
-                Internkontroll for næringsmiddelhygiene – temperaturlogging, rengjøring og
-                sjekklister.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider" />
-
-        <div class="status-row">
-          <div class="flex items-center gap-3 flex-1">
-            <input
-              id="module-ik-alkohol"
-              v-model="orgForm.modules.ikAlkohol"
-              type="checkbox"
-            />
-            <div>
-              <label for="module-ik-alkohol" class="font-medium flex items-center gap-2">
-                <span class="mod-badge ik-alkohol">IK-Alkohol</span>
-                IK-Alkohol
-              </label>
-              <p class="text-muted text-sm mt-1">
-                Internkontroll for skjenkebevilgning – alderskontroll, opplæring og
-                bevillingslogg.
-              </p>
-            </div>
-          </div>
-        </div>
-      </template>
-    </div>
-
     <!-- Varslingsinnstillinger -->
     <div class="card">
       <div class="card-header mb-4">

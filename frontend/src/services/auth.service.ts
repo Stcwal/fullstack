@@ -20,7 +20,9 @@ interface BackendUserResponse {
   email: string
   role: User['role']
   organizationId: number
+  organizationName?: string
   homeLocationId?: number
+  homeLocationName?: string
   isActive: boolean
 }
 
@@ -53,7 +55,9 @@ export const authService = {
       email: d.email,
       role: d.role,
       organizationId: d.organizationId,
+      organizationName: d.organizationName,
       primaryLocationId: d.homeLocationId,
+      primaryLocationName: d.homeLocationName,
     }
   }
 }
