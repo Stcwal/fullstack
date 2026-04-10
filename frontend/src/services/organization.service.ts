@@ -17,6 +17,12 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
   STAFF:      { temperatureLogging: true,  checklists: true,  reports: false, deviations: true,  userAdmin: false, settings: false },
 }
 
+interface BackendLocation {
+  id: number
+  name: string
+  address: string
+}
+
 interface BackendUser {
   id: number
   firstName: string
@@ -76,7 +82,12 @@ export const organizationService = {
     }))
   },
 
-  async updateUser(id: number, data: Partial<SettingsUser>): Promise<SettingsUser> {
+  async getLocations(): Promise<BackendLocation[]> {
+    const res = await api.get<BackendLocation[]>('/locations')
+    return res.data
+  },
+
+  async updateUser(id: number, data: Partial<SettingsUser> & { locationId?: number }): Promise<SettingsUser> {
     // Name update
     if (data.firstName !== undefined || data.lastName !== undefined) {
       await api.put(`/users/${id}`, {
@@ -84,9 +95,9 @@ export const organizationService = {
         lastName: data.lastName,
       })
     }
-    // Role update (separate endpoint)
+    // Role update (separate endpoint) — locationId required for MANAGER/STAFF
     if (data.role !== undefined) {
-      await api.put(`/users/${id}/role`, { role: data.role })
+      await api.put(`/users/${id}/role`, { role: data.role, locationId: data.locationId ?? null })
     }
     // Re-fetch the updated user from the list
     const users = await this.getUsers()
@@ -95,12 +106,13 @@ export const organizationService = {
     return updated
   },
 
-  async createUser(data: Omit<SettingsUser, 'id'>): Promise<SettingsUser> {
+  async createUser(data: Omit<SettingsUser, 'id'> & { locationId?: number | null }): Promise<SettingsUser> {
     const res = await api.post<BackendUser>('/users', {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       role: data.role,
+      locationId: data.locationId ?? null,
     })
     return {
       id: res.data.id,

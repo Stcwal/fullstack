@@ -86,6 +86,17 @@
         </div>
       </div>
 
+      <div
+        v-if="(form.role === 'MANAGER' || form.role === 'STAFF') && form.role !== originalRole"
+        class="form-group mt-3"
+      >
+        <label class="font-medium text-sm">Lokasjon</label>
+        <select v-model="form.locationId" class="form-control">
+          <option :value="null" disabled>Velg lokasjon</option>
+          <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
+        </select>
+      </div>
+
       <div class="divider mt-4 mb-3" />
       <p class="font-semibold text-sm mb-3">Tillatelser</p>
 
@@ -139,6 +150,7 @@ import { organizationService } from '@/services/organization.service'
 import type { SettingsUser, UserRole } from '@/types'
 
 const users = ref<SettingsUser[]>([])
+const locations = ref<{ id: number; name: string }[]>([])
 const loading = ref(false)
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -146,13 +158,14 @@ const editingId = ref<number | null>(null)
 const originalRole = ref<UserRole | null>(null)
 const saveError = ref<string | null>(null)
 
-type FormData = Omit<SettingsUser, 'id' | 'colorBg' | 'colorText'>
+type FormData = Omit<SettingsUser, 'id' | 'colorBg' | 'colorText'> & { locationId: number | null }
 
 const emptyForm = (): FormData => ({
   firstName: '',
   lastName: '',
   email: '',
   role: 'STAFF',
+  locationId: null,
   isActive: true,
   permissions: {
     temperatureLogging: false,
@@ -169,7 +182,10 @@ const form = reactive<FormData>(emptyForm())
 async function fetchUsers() {
   loading.value = true
   try {
-    users.value = await organizationService.getUsers()
+    ;[users.value, locations.value] = await Promise.all([
+      organizationService.getUsers(),
+      organizationService.getLocations(),
+    ])
   } finally {
     loading.value = false
   }
@@ -207,6 +223,7 @@ function openAddModal() {
   isEditing.value = false
   editingId.value = null
   saveError.value = null
+  originalRole.value = null
   Object.assign(form, emptyForm())
   showModal.value = true
 }
@@ -223,20 +240,28 @@ function openEditModal(user: SettingsUser) {
     role: user.role,
     isActive: user.isActive,
     permissions: { ...user.permissions },
+    locationId: null,
   })
   showModal.value = true
 }
 
 async function save() {
   saveError.value = null
+  const needsLocation = form.role === 'MANAGER' || form.role === 'STAFF'
+  const roleChanged = form.role !== originalRole.value
+  if (needsLocation && (roleChanged || !isEditing.value) && !form.locationId) {
+    saveError.value = 'Velg en lokasjon for denne rollen.'
+    return
+  }
+
   const colors = getAvatarColors(form.role)
-  const userData: Partial<SettingsUser> & { colorBg: string; colorText: string } = {
+  const userData: Partial<SettingsUser> & { colorBg: string; colorText: string; locationId?: number | null } = {
     ...form,
     colorBg: colors.bg,
     colorText: colors.text,
   }
   // Only send role if it actually changed — role endpoint returns 403 otherwise
-  if (isEditing.value && form.role === originalRole.value) {
+  if (isEditing.value && !roleChanged) {
     delete userData.role
   }
 
