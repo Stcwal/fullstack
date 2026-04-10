@@ -41,7 +41,7 @@ public class ReportService {
         LocalDateTime since = LocalDate.now().minusDays(days - 1L).atStartOfDay();
 
         List<String> labels = buildLabels(days);
-        List<TemperatureUnit> units = unitRepository.findByOrganizationAndOptionalActive(organizationId, true);
+        List<TemperatureUnit> units = unitRepository.findByOrganizationAndOptionalActive(organizationId, true, null);
 
         List<ChartDataset> datasets = new ArrayList<>();
         List<ChartAlert> alerts = new ArrayList<>();
