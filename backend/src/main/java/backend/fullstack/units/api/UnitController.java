@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
+import backend.fullstack.user.role.Role;
 import backend.fullstack.units.api.dto.UnitRequest;
 import backend.fullstack.units.api.dto.UnitResponse;
 import backend.fullstack.units.api.dto.UnitStatusRequest;
@@ -59,9 +60,10 @@ public class UnitController {
         return ResponseEntity.ok(ApiResponse.success("Units retrieved", units));
     }
 
-    /** ADMIN/SUPERVISOR pass explicit locationId or null (see all). STAFF/MANAGER auto-scoped to their first location. */
+    /** ADMIN/SUPERVISOR see all when no explicit locationId given. STAFF/MANAGER auto-scoped to their first location. */
     private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
         if (requestedLocationId != null) return requestedLocationId;
+        if (principal.role() == Role.ADMIN || principal.role() == Role.SUPERVISOR) return null;
         java.util.List<Long> ids = principal.locationIds();
         return ids.isEmpty() ? null : ids.get(0);
     }

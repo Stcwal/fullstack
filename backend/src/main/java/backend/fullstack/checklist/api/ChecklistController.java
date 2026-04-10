@@ -28,6 +28,7 @@ import backend.fullstack.checklist.domain.ChecklistFrequency;
 import backend.fullstack.checklist.domain.ChecklistInstanceStatus;
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
+import backend.fullstack.user.role.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -130,9 +131,10 @@ public class ChecklistController {
         return ResponseEntity.ok(ApiResponse.success("Instances retrieved", instances));
     }
 
-    /** ADMIN/SUPERVISOR pass explicit locationId or null (see all). STAFF/MANAGER auto-scoped to their first location. */
+    /** ADMIN/SUPERVISOR see all when no explicit locationId given. STAFF/MANAGER auto-scoped to their first location. */
     private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
         if (requestedLocationId != null) return requestedLocationId;
+        if (principal.role() == Role.ADMIN || principal.role() == Role.SUPERVISOR) return null;
         java.util.List<Long> ids = principal.locationIds();
         return ids.isEmpty() ? null : ids.get(0);
     }

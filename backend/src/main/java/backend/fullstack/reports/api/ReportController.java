@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.fullstack.config.ApiResponse;
 import backend.fullstack.config.JwtPrincipal;
+import backend.fullstack.user.role.Role;
 import backend.fullstack.reports.api.dto.ChartResponse;
 import backend.fullstack.reports.application.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +52,7 @@ public class ReportController {
 
     private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
         if (requestedLocationId != null) return requestedLocationId;
+        if (principal.role() == Role.ADMIN || principal.role() == Role.SUPERVISOR) return null;
         java.util.List<Long> ids = principal.locationIds();
         return ids.isEmpty() ? null : ids.get(0);
     }
