@@ -17,15 +17,18 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 class SecurityErrorHandlerTest {
 
+    private static SecurityErrorHandler handler(ObjectMapper mapper) {
+        return new SecurityErrorHandler(mapper, req -> null);
+    }
+
     @Test
     void commenceWritesUnauthorizedJsonResponse() throws Exception {
         ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
-        SecurityErrorHandler handler = new SecurityErrorHandler(mapper);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/private");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        handler.commence(request, response, new BadCredentialsException("bad credentials"));
+        handler(mapper).commence(request, response, new BadCredentialsException("bad credentials"));
 
         assertEquals(401, response.getStatus());
         assertEquals(MediaType.APPLICATION_JSON_VALUE, response.getContentType());
@@ -39,12 +42,11 @@ class SecurityErrorHandlerTest {
     @Test
     void handleWritesForbiddenJsonResponseAndFallbackMessage() throws Exception {
         ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
-        SecurityErrorHandler handler = new SecurityErrorHandler(mapper);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/admin");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        handler.handle(request, response, new AccessDeniedException(null));
+        handler(mapper).handle(request, response, new AccessDeniedException(null));
 
         assertEquals(403, response.getStatus());
         assertEquals(MediaType.APPLICATION_JSON_VALUE, response.getContentType());
@@ -58,12 +60,11 @@ class SecurityErrorHandlerTest {
     @Test
     void commenceUsesFallbackMessageWhenAuthMessageIsNull() throws Exception {
         ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
-        SecurityErrorHandler handler = new SecurityErrorHandler(mapper);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/private");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        handler.commence(request, response, new AuthenticationException(null) {
+        handler(mapper).commence(request, response, new AuthenticationException(null) {
             private static final long serialVersionUID = 1L;
         });
 
@@ -74,12 +75,11 @@ class SecurityErrorHandlerTest {
     @Test
     void handleUsesCustomMessageWhenProvided() throws Exception {
         ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
-        SecurityErrorHandler handler = new SecurityErrorHandler(mapper);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/admin");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        handler.handle(request, response, new AccessDeniedException("specific denied"));
+        handler(mapper).handle(request, response, new AccessDeniedException("specific denied"));
 
         JsonNode body = mapper.readTree(response.getContentAsString());
         assertEquals("specific denied", body.get("message").asText());

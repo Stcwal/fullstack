@@ -60,7 +60,7 @@ class SecurityConfigRegisterAccessTest {
         return new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
                 new RateLimitFilter(),
-                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper(), req -> null),
                 repositoryWithCount(count),
                 new BCryptPasswordEncoder()
         );

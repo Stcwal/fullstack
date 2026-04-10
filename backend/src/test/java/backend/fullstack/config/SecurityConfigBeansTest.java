@@ -39,7 +39,7 @@ class SecurityConfigBeansTest {
         SecurityConfig config = new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
                 new RateLimitFilter(),
-                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper(), req -> null),
                 userRepository,
                 new BCryptPasswordEncoder()
         );
@@ -55,7 +55,7 @@ class SecurityConfigBeansTest {
         SecurityConfig config = new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
                 new RateLimitFilter(),
-                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+                new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper(), req -> null),
                 userRepository,
                 new BCryptPasswordEncoder()
         );
@@ -83,7 +83,7 @@ class SecurityConfigBeansTest {
         SecurityConfig allowConfig = new SecurityConfig(
             new JwtAuthFilter(new JwtUtil(new JwtProperties())),
             new RateLimitFilter(),
-            new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+            new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper(), req -> null),
             emptyRepo,
             new BCryptPasswordEncoder()
         );
@@ -107,7 +107,7 @@ class SecurityConfigBeansTest {
         SecurityConfig denyConfig = new SecurityConfig(
             new JwtAuthFilter(new JwtUtil(new JwtProperties())),
             new RateLimitFilter(),
-            new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
+            new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper(), req -> null),
             nonEmptyRepo,
             new BCryptPasswordEncoder()
         );
