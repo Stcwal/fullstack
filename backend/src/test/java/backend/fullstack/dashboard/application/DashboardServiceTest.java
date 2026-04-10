@@ -49,21 +49,22 @@ class DashboardServiceTest {
     void getDashboard_returnsStatsWithOpenDeviationCount() {
         Long orgId = 1L;
 
-        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
+        when(readingRepository.countDeviationsAfterByOrganizationAndOptionalLocation(
                 org.mockito.ArgumentMatchers.eq(orgId),
-                org.mockito.ArgumentMatchers.any(LocalDateTime.class)
+                org.mockito.ArgumentMatchers.any(LocalDateTime.class),
+                org.mockito.ArgumentMatchers.isNull()
         )).thenReturn(0L);
 
-        when(deviationRepository.countByOrganization_IdAndStatus(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.countByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(3L);
 
-        when(checklistInstanceRepository.findAllByOrganizationId(orgId))
+        when(checklistInstanceRepository.findAllByOrganizationIdAndOptionalLocation(orgId, null))
                 .thenReturn(List.of());
 
-        when(deviationRepository.findByOrganization_IdAndStatusOrderByCreatedAtDesc(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.findByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(List.of());
 
-        DashboardResponse response = service.getDashboard(orgId);
+        DashboardResponse response = service.getDashboard(orgId, null);
 
         assertEquals(3L, response.stats().openDeviations());
     }
@@ -72,21 +73,22 @@ class DashboardServiceTest {
     void getDashboard_tasksListEmptyWhenNoInstances() {
         Long orgId = 2L;
 
-        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
+        when(readingRepository.countDeviationsAfterByOrganizationAndOptionalLocation(
                 org.mockito.ArgumentMatchers.eq(orgId),
-                org.mockito.ArgumentMatchers.any(LocalDateTime.class)
+                org.mockito.ArgumentMatchers.any(LocalDateTime.class),
+                org.mockito.ArgumentMatchers.isNull()
         )).thenReturn(0L);
 
-        when(deviationRepository.countByOrganization_IdAndStatus(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.countByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(0L);
 
-        when(checklistInstanceRepository.findAllByOrganizationId(orgId))
+        when(checklistInstanceRepository.findAllByOrganizationIdAndOptionalLocation(orgId, null))
                 .thenReturn(List.of());
 
-        when(deviationRepository.findByOrganization_IdAndStatusOrderByCreatedAtDesc(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.findByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(List.of());
 
-        DashboardResponse response = service.getDashboard(orgId);
+        DashboardResponse response = service.getDashboard(orgId, null);
 
         assertTrue(response.tasks().isEmpty());
     }
@@ -95,26 +97,25 @@ class DashboardServiceTest {
     void getDashboard_onlyTodayInstancesIncludedAsTasks() {
         Long orgId = 3L;
 
-        // Instance for today — should be included
         ChecklistInstance todayInstance = buildInstance(1L, orgId, LocalDate.now(), ChecklistInstanceStatus.PENDING);
-        // Instance for yesterday — should be excluded
         ChecklistInstance yesterdayInstance = buildInstance(2L, orgId, LocalDate.now().minusDays(1), ChecklistInstanceStatus.PENDING);
 
-        when(readingRepository.countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(
+        when(readingRepository.countDeviationsAfterByOrganizationAndOptionalLocation(
                 org.mockito.ArgumentMatchers.eq(orgId),
-                org.mockito.ArgumentMatchers.any(LocalDateTime.class)
+                org.mockito.ArgumentMatchers.any(LocalDateTime.class),
+                org.mockito.ArgumentMatchers.isNull()
         )).thenReturn(0L);
 
-        when(deviationRepository.countByOrganization_IdAndStatus(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.countByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(0L);
 
-        when(checklistInstanceRepository.findAllByOrganizationId(orgId))
+        when(checklistInstanceRepository.findAllByOrganizationIdAndOptionalLocation(orgId, null))
                 .thenReturn(List.of(todayInstance, yesterdayInstance));
 
-        when(deviationRepository.findByOrganization_IdAndStatusOrderByCreatedAtDesc(orgId, DeviationStatus.OPEN))
+        when(deviationRepository.findByOrganizationAndStatusAndOptionalLocation(orgId, DeviationStatus.OPEN, null))
                 .thenReturn(List.of());
 
-        DashboardResponse response = service.getDashboard(orgId);
+        DashboardResponse response = service.getDashboard(orgId, null);
 
         assertEquals(1, response.tasks().size());
         assertEquals(1L, response.tasks().get(0).id());
