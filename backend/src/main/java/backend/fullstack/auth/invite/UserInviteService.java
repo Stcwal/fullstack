@@ -35,6 +35,7 @@ public class UserInviteService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final Optional<JavaMailSender> mailSender;
+    private final AsyncMailSender asyncMailSender;
     private final InviteProperties inviteProperties;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -43,12 +44,14 @@ public class UserInviteService {
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             Optional<JavaMailSender> mailSender,
+            AsyncMailSender asyncMailSender,
             InviteProperties inviteProperties
     ) {
         this.userInviteTokenRepository = userInviteTokenRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
+        this.asyncMailSender = asyncMailSender;
         this.inviteProperties = inviteProperties;
     }
 
@@ -113,13 +116,8 @@ public class UserInviteService {
             return;
         }
 
-        try {
-            mailSender.get().send(message);
-            logger.info("Invite email sent to userId={} email={}", user.getId(), user.getEmail());
-        } catch (Exception ex) {
-            logger.error("Failed to send invite email to userId={} email={}: {}",
-                    user.getId(), user.getEmail(), ex.getMessage());
-        }
+        logger.info("Sending invite email to userId={} email={}", user.getId(), user.getEmail());
+        asyncMailSender.send(message);
     }
 
     /**
