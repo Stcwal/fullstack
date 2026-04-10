@@ -108,6 +108,14 @@ export const organizationService = {
     return updated
   },
 
+  async deactivateUser(id: number): Promise<void> {
+    await api.post(`/users/${id}/deactivate`)
+  },
+
+  async reactivateUser(id: number): Promise<void> {
+    await api.post(`/users/${id}/reactivate`)
+  },
+
   async createUser(data: Omit<SettingsUser, 'id'> & { locationId?: number | null }): Promise<SettingsUser> {
     const res = await api.post<BackendUser>('/users', {
       firstName: data.firstName,

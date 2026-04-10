@@ -99,42 +99,19 @@
       </div>
 
       <div class="divider mt-4 mb-3" />
-      <p class="font-semibold text-sm mb-3">Tillatelser</p>
-
-      <div class="flex flex-col gap-2">
-        <label class="checklist-item">
-          <input v-model="form.permissions.temperatureLogging" type="checkbox" />
-          Temperaturlogging
-        </label>
-        <label class="checklist-item">
-          <input v-model="form.permissions.checklists" type="checkbox" />
-          Sjekklister
-        </label>
-        <label class="checklist-item">
-          <input v-model="form.permissions.reports" type="checkbox" />
-          Rapporter
-        </label>
-        <label class="checklist-item">
-          <input v-model="form.permissions.deviations" type="checkbox" />
-          Avviksrapportering
-        </label>
-        <label class="checklist-item">
-          <input v-model="form.permissions.userAdmin" type="checkbox" />
-          Brukeradministrasjon
-        </label>
-        <label class="checklist-item">
-          <input v-model="form.permissions.settings" type="checkbox" />
-          Innstillinger
-        </label>
+      <p class="font-semibold text-sm mb-2">Tilgang for denne rollen</p>
+      <div class="permission-pills">
+        <span v-for="label in rolePermissionLabels" :key="label" class="permission-pill">{{ label }}</span>
       </div>
 
       <template #footer>
         <button
+          v-if="isEditing"
           class="btn btn-ghost btn-sm"
-          style="margin-right: auto"
-          @click="resetPassword"
+          style="margin-right: auto; color: #DC2626;"
+          @click="toggleActive"
         >
-          Tilbakestill passord
+          {{ form.isActive ? 'Deaktiver bruker' : 'Reaktiver bruker' }}
         </button>
         <span v-if="saveError" class="text-sm text-red-500 mr-auto">{{ saveError }}</span>
         <button class="btn btn-secondary" @click="showModal = false">Avbryt</button>
@@ -145,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import AppModal from '@/components/AppModal.vue'
 import { organizationService } from '@/services/organization.service'
 import type { SettingsUser, UserRole } from '@/types'
@@ -160,6 +137,15 @@ const originalRole = ref<UserRole | null>(null)
 const saveError = ref<string | null>(null)
 
 type FormData = Omit<SettingsUser, 'id' | 'colorBg' | 'colorText'> & { locationId: number | null }
+
+const ROLE_PERMISSION_LABELS: Record<UserRole, string[]> = {
+  ADMIN:      ['Temperaturlogging', 'Sjekklister', 'Rapporter', 'Avvik', 'Brukeradmin', 'Innstillinger'],
+  SUPERVISOR: ['Temperaturlogging', 'Sjekklister', 'Rapporter', 'Avvik'],
+  MANAGER:    ['Temperaturlogging', 'Sjekklister', 'Rapporter', 'Avvik'],
+  STAFF:      ['Temperaturlogging', 'Sjekklister', 'Avvik'],
+}
+
+const rolePermissionLabels = computed(() => ROLE_PERMISSION_LABELS[form.role] ?? [])
 
 const emptyForm = (): FormData => ({
   firstName: '',
@@ -283,9 +269,40 @@ async function save() {
   }
 }
 
-function resetPassword() {
-  alert('Ikke implementert ennå')
+async function toggleActive() {
+  if (editingId.value === null) return
+  try {
+    if (form.isActive) {
+      await organizationService.deactivateUser(editingId.value)
+      form.isActive = false
+    } else {
+      await organizationService.reactivateUser(editingId.value)
+      form.isActive = true
+    }
+    const idx = users.value.findIndex(u => u.id === editingId.value)
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], isActive: form.isActive }
+    showModal.value = false
+  } catch {
+    saveError.value = 'Kunne ikke oppdatere brukerstatus. Prøv igjen.'
+  }
 }
 
 onMounted(fetchUsers)
 </script>
+
+<style scoped>
+.permission-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.permission-pill {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--c-primary) 10%, transparent);
+  color: var(--c-primary);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 20%, transparent);
+}
+</style>
