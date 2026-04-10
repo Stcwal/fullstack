@@ -38,6 +38,7 @@ class SecurityConfigBeansTest {
 
         SecurityConfig config = new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+                new RateLimitFilter(),
                 new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
                 userRepository,
                 new BCryptPasswordEncoder()
@@ -53,6 +54,7 @@ class SecurityConfigBeansTest {
         UserRepository userRepository = mock(UserRepository.class);
         SecurityConfig config = new SecurityConfig(
                 new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+                new RateLimitFilter(),
                 new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
                 userRepository,
                 new BCryptPasswordEncoder()
@@ -80,6 +82,7 @@ class SecurityConfigBeansTest {
         when(emptyRepo.count()).thenReturn(0L);
         SecurityConfig allowConfig = new SecurityConfig(
             new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+            new RateLimitFilter(),
             new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
             emptyRepo,
             new BCryptPasswordEncoder()
@@ -103,6 +106,7 @@ class SecurityConfigBeansTest {
         when(nonEmptyRepo.count()).thenReturn(2L);
         SecurityConfig denyConfig = new SecurityConfig(
             new JwtAuthFilter(new JwtUtil(new JwtProperties())),
+            new RateLimitFilter(),
             new SecurityErrorHandler(new com.fasterxml.jackson.databind.ObjectMapper()),
             nonEmptyRepo,
             new BCryptPasswordEncoder()
