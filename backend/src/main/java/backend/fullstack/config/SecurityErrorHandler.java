@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -32,7 +33,7 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
     private final ObjectMapper objectMapper;
     private final CorsConfigurationSource corsConfigurationSource;
 
-    public SecurityErrorHandler(ObjectMapper objectMapper, CorsConfigurationSource corsConfigurationSource) {
+    public SecurityErrorHandler(ObjectMapper objectMapper, @Lazy CorsConfigurationSource corsConfigurationSource) {
         this.objectMapper = objectMapper;
         this.corsConfigurationSource = corsConfigurationSource;
     }
