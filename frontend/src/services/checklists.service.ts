@@ -1,4 +1,4 @@
-import type { Checklist, ChecklistFrequency } from '@/types'
+import type { Checklist, ChecklistFrequency, ModuleType } from '@/types'
 import api from './api'
 
 export interface ChecklistTemplateItem {
@@ -10,12 +10,14 @@ export interface ChecklistTemplate {
   id: number
   title: string
   frequency: ChecklistFrequency
+  moduleType: ModuleType
   items: ChecklistTemplateItem[]
 }
 
 export interface ChecklistTemplateUpsertRequest {
   title: string
   frequency: ChecklistFrequency
+  moduleType: ModuleType
   itemTexts: string[]
 }
 
@@ -31,6 +33,7 @@ interface BackendInstance {
   id: number
   title: string
   frequency: ChecklistFrequency
+  moduleType?: string
   items: BackendItem[]
 }
 
@@ -39,7 +42,7 @@ function mapInstance(inst: BackendInstance): Checklist {
     id: inst.id,
     title: inst.title,
     frequency: inst.frequency,
-    moduleType: 'IK_MAT',
+    moduleType: (inst.moduleType as ModuleType) ?? 'IK_MAT',
     items: inst.items.map(item => ({
       id: item.id,
       text: item.text,

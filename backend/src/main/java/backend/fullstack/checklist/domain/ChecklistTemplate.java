@@ -33,6 +33,10 @@ public class ChecklistTemplate {
     @Column(nullable = false, length = 20)
     private ChecklistFrequency frequency;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "module_type", nullable = false, length = 20)
+    private ChecklistModuleType moduleType = ChecklistModuleType.IK_MAT;
+
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<ChecklistTemplateItem> items = new ArrayList<>();
@@ -70,6 +74,14 @@ public class ChecklistTemplate {
 
     public void setFrequency(ChecklistFrequency frequency) {
         this.frequency = frequency;
+    }
+
+    public ChecklistModuleType getModuleType() {
+        return moduleType;
+    }
+
+    public void setModuleType(ChecklistModuleType moduleType) {
+        this.moduleType = moduleType;
     }
 
     public List<ChecklistTemplateItem> getItems() {

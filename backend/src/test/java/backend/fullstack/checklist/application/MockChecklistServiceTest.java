@@ -118,6 +118,14 @@ class MockChecklistServiceTest {
                                                                         .filter(instance -> orgId.equals(instance.getOrganizationId()))
                                                                         .toList();
                                                 }
+                                                case "findAllByOrganizationIdAndOptionalLocation" -> {
+                                                        Long orgId = (Long) args[0];
+                                                        Long locationId = (Long) args[1];
+                                                        return instanceStore.values().stream()
+                                                                        .filter(instance -> orgId.equals(instance.getOrganizationId()))
+                                                                        .filter(instance -> locationId == null || locationId.equals(instance.getLocationId()))
+                                                                        .toList();
+                                                }
                                                 case "findByIdAndOrganizationId" -> {
                                                         Long instanceId = (Long) args[0];
                                                         Long orgId = (Long) args[1];
@@ -154,7 +162,8 @@ class MockChecklistServiceTest {
         ChecklistTemplateUpsertRequest request = new ChecklistTemplateUpsertRequest(
                 "Opening kitchen",
                 ChecklistFrequency.DAILY,
-                List.of("Sanitize worktops", "Check freezer")
+                List.of("Sanitize worktops", "Check freezer"),
+                null
         );
 
         ChecklistTemplateResponse created = service.createTemplate(1L, request);
@@ -181,7 +190,8 @@ class MockChecklistServiceTest {
                 new ChecklistTemplateUpsertRequest(
                         "Weekly close",
                         ChecklistFrequency.WEEKLY,
-                        List.of("Lock storage", "Turn off lights")
+                        List.of("Lock storage", "Turn off lights"),
+                        null
                 )
         );
 
@@ -230,11 +240,11 @@ class MockChecklistServiceTest {
     void listInstancesAppliesFrequencyDateAndStatusFilters() {
         service.createTemplate(
                 1L,
-                new ChecklistTemplateUpsertRequest("Daily check", ChecklistFrequency.DAILY, List.of("A"))
+                new ChecklistTemplateUpsertRequest("Daily check", ChecklistFrequency.DAILY, List.of("A"), null)
         );
         service.createTemplate(
                 1L,
-                new ChecklistTemplateUpsertRequest("Weekly check", ChecklistFrequency.WEEKLY, List.of("B"))
+                new ChecklistTemplateUpsertRequest("Weekly check", ChecklistFrequency.WEEKLY, List.of("B"), null)
         );
 
         List<ChecklistInstanceResponse> dailyInstances = service.listInstances(

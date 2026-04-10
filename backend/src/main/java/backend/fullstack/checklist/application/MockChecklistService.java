@@ -20,6 +20,7 @@ import backend.fullstack.checklist.domain.ChecklistFrequency;
 import backend.fullstack.checklist.domain.ChecklistInstance;
 import backend.fullstack.checklist.domain.ChecklistInstanceItem;
 import backend.fullstack.checklist.domain.ChecklistInstanceStatus;
+import backend.fullstack.checklist.domain.ChecklistModuleType;
 import backend.fullstack.checklist.domain.ChecklistTemplate;
 import backend.fullstack.checklist.domain.ChecklistTemplateItem;
 import backend.fullstack.checklist.infrastructure.ChecklistInstanceRepository;
@@ -140,6 +141,7 @@ public class MockChecklistService implements ChecklistService {
         template.setOrganizationId(organizationId);
         template.setTitle(request.title());
         template.setFrequency(request.frequency());
+        template.setModuleType(request.moduleType() != null ? request.moduleType() : ChecklistModuleType.IK_MAT);
         template.setItems(buildTemplateItems(request.itemTexts()));
         return template;
     }
@@ -158,6 +160,7 @@ public class MockChecklistService implements ChecklistService {
         instance.setOrganizationId(template.getOrganizationId());
         instance.setTitle(template.getTitle());
         instance.setFrequency(template.getFrequency());
+        instance.setModuleType(template.getModuleType() != null ? template.getModuleType() : ChecklistModuleType.IK_MAT);
         instance.setDate(LocalDate.now());
         instance.setStatus(ChecklistInstanceStatus.PENDING);
 
@@ -188,6 +191,7 @@ public class MockChecklistService implements ChecklistService {
                 template.getId(),
                 template.getTitle(),
                 template.getFrequency(),
+                template.getModuleType() != null ? template.getModuleType() : ChecklistModuleType.IK_MAT,
                 template.getItems().stream()
                         .map(item -> new ChecklistTemplateItemResponse(item.getId(), item.getText()))
                         .toList()
@@ -218,6 +222,7 @@ public class MockChecklistService implements ChecklistService {
                 instance.getTemplateId(),
                 instance.getTitle(),
                 instance.getFrequency(),
+                instance.getModuleType() != null ? instance.getModuleType() : ChecklistModuleType.IK_MAT,
                 instance.getDate(),
                 completedCount,
                 totalCount,

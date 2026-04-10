@@ -47,6 +47,10 @@ public class ChecklistInstance {
     @Column(nullable = false, length = 20)
     private ChecklistInstanceStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "module_type", nullable = false, length = 20)
+    private ChecklistModuleType moduleType = ChecklistModuleType.IK_MAT;
+
     @OneToMany(mappedBy = "instance", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<ChecklistInstanceItem> items = new ArrayList<>();
@@ -116,6 +120,14 @@ public class ChecklistInstance {
 
     public void setStatus(ChecklistInstanceStatus status) {
         this.status = status;
+    }
+
+    public ChecklistModuleType getModuleType() {
+        return moduleType;
+    }
+
+    public void setModuleType(ChecklistModuleType moduleType) {
+        this.moduleType = moduleType;
     }
 
     public List<ChecklistInstanceItem> getItems() {

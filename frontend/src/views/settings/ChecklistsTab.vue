@@ -19,6 +19,7 @@
             <div class="font-medium truncate">{{ template.title }}</div>
             <div class="text-muted text-sm mt-1">
               {{ frequencyLabel(template.frequency) }} &middot;
+              {{ template.moduleType === 'IK_ALKOHOL' ? 'IK-Alkohol' : 'IK-Mat' }} &middot;
               {{ template.items.length }} punkt{{ template.items.length !== 1 ? 'er' : '' }}
             </div>
           </div>
@@ -67,6 +68,14 @@
           <option value="DAILY">Daglig</option>
           <option value="WEEKLY">Ukentlig</option>
           <option value="MONTHLY">Månedlig</option>
+        </select>
+      </div>
+
+      <div class="form-group mt-3">
+        <label class="font-medium text-sm" for="tpl-module">Modul</label>
+        <select id="tpl-module" v-model="form.moduleType" class="form-control">
+          <option value="IK_MAT">IK-Mat</option>
+          <option value="IK_ALKOHOL">IK-Alkohol</option>
         </select>
       </div>
 
@@ -126,7 +135,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import AppModal from '@/components/AppModal.vue'
 import { checklistsService, type ChecklistTemplate } from '@/services/checklists.service'
-import type { ChecklistFrequency } from '@/types'
+import type { ChecklistFrequency, ModuleType } from '@/types'
 
 const templates = ref<ChecklistTemplate[]>([])
 const loading = ref(false)
@@ -139,12 +148,14 @@ const error = ref('')
 interface FormState {
   title: string
   frequency: ChecklistFrequency
+  moduleType: ModuleType
   itemTexts: string[]
 }
 
 const emptyForm = (): FormState => ({
   title: '',
   frequency: 'DAILY',
+  moduleType: 'IK_MAT',
   itemTexts: [''],
 })
 
@@ -176,6 +187,7 @@ function openEditModal(template: ChecklistTemplate) {
   editingId.value = template.id
   form.title = template.title
   form.frequency = template.frequency
+  form.moduleType = template.moduleType ?? 'IK_MAT'
   form.itemTexts = template.items.map(i => i.text)
   error.value = ''
   showModal.value = true
@@ -207,7 +219,7 @@ async function save() {
 
   saving.value = true
   try {
-    const payload = { title: form.title.trim(), frequency: form.frequency, itemTexts: validItems }
+    const payload = { title: form.title.trim(), frequency: form.frequency, moduleType: form.moduleType, itemTexts: validItems }
     if (isEditing.value && editingId.value !== null) {
       const updated = await checklistsService.updateTemplate(editingId.value, payload)
       const idx = templates.value.findIndex(t => t.id === editingId.value)
