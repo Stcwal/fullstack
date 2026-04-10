@@ -1,6 +1,7 @@
 package backend.fullstack.auth;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import backend.fullstack.config.GlobalExceptionHandler;
 import backend.fullstack.config.JwtProperties;
 import backend.fullstack.config.JwtUtil;
+import backend.fullstack.auth.invite.InviteProperties;
 import backend.fullstack.auth.invite.UserInviteService;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.user.User;
@@ -210,7 +212,7 @@ class AuthControllerTest {
         private String acceptedPassword;
 
         private TestUserInviteService() {
-            super(null, null, null, null, null);
+            super(null, null, null, Optional.empty(), null, new InviteProperties());
         }
 
         @Override

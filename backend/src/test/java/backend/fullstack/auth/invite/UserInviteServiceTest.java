@@ -38,6 +38,8 @@ class UserInviteServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private JavaMailSender mailSender;
+    @Mock
+    private AsyncMailSender asyncMailSender;
 
     private UserInviteService userInviteService;
 
@@ -52,6 +54,7 @@ class UserInviteServiceTest {
                 userRepository,
                 passwordEncoder,
                 Optional.of(mailSender),
+            asyncMailSender,
                 inviteProperties
         );
     }
@@ -80,7 +83,7 @@ class UserInviteServiceTest {
         assertTrue(savedToken.getExpiresAt().isAfter(LocalDateTime.now().plusHours(23)));
 
         ArgumentCaptor<SimpleMailMessage> mailCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
-        verify(mailSender).send(mailCaptor.capture());
+        verify(asyncMailSender).send(mailCaptor.capture());
 
         SimpleMailMessage sentMessage = mailCaptor.getValue();
         assertEquals("Set up your account", sentMessage.getSubject());
@@ -100,6 +103,7 @@ class UserInviteServiceTest {
                 userRepository,
                 passwordEncoder,
                 Optional.empty(),
+            asyncMailSender,
                 inviteProperties
         );
 
@@ -116,7 +120,7 @@ class UserInviteServiceTest {
 
         verify(userInviteTokenRepository).deleteByUserIdAndConsumedAtIsNull(8L);
         verify(userInviteTokenRepository, org.mockito.Mockito.times(1)).save(org.mockito.ArgumentMatchers.any(UserInviteToken.class));
-        verify(mailSender, never()).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
+        verify(asyncMailSender, never()).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
     }
 
     @Test
