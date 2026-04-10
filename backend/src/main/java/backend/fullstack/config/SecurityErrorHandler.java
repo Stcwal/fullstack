@@ -44,6 +44,7 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
             AuthenticationException authException
     ) throws IOException {
         writeErrorResponse(
+                request,
                 response,
                 HttpStatus.UNAUTHORIZED,
                 "UNAUTHORIZED",
@@ -59,6 +60,7 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
             AccessDeniedException accessDeniedException
     ) throws IOException {
         writeErrorResponse(
+                request,
                 response,
                 HttpStatus.FORBIDDEN,
                 "ACCESS_DENIED",
@@ -68,6 +70,7 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
     }
 
     private void writeErrorResponse(
+            HttpServletRequest request,
             HttpServletResponse response,
             HttpStatus status,
             String errorCode,
