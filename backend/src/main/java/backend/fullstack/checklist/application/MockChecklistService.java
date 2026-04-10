@@ -26,6 +26,7 @@ import backend.fullstack.checklist.domain.ChecklistTemplateItem;
 import backend.fullstack.checklist.infrastructure.ChecklistInstanceRepository;
 import backend.fullstack.checklist.infrastructure.ChecklistTemplateRepository;
 import backend.fullstack.exceptions.ResourceNotFoundException;
+import backend.fullstack.user.UserRepository;
 
 @Service
 @Transactional
@@ -33,13 +34,16 @@ public class MockChecklistService implements ChecklistService {
 
     private final ChecklistTemplateRepository templateRepository;
     private final ChecklistInstanceRepository instanceRepository;
+    private final UserRepository userRepository;
 
     public MockChecklistService(
             ChecklistTemplateRepository templateRepository,
-            ChecklistInstanceRepository instanceRepository
+            ChecklistInstanceRepository instanceRepository,
+            UserRepository userRepository
     ) {
         this.templateRepository = templateRepository;
         this.instanceRepository = instanceRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -204,9 +208,15 @@ public class MockChecklistService implements ChecklistService {
 
         List<ChecklistInstanceItemResponse> itemResponses = instance.getItems().stream()
                 .map(item -> {
-                    CompletedByResponse completedBy = item.getCompletedByUserId() == null
-                            ? null
-                            : new CompletedByResponse(item.getCompletedByUserId(), "Mock User " + item.getCompletedByUserId());
+                    CompletedByResponse completedBy = null;
+                    if (item.getCompletedByUserId() != null) {
+                        String name = (userRepository != null)
+                                ? userRepository.findById(item.getCompletedByUserId())
+                                        .map(u -> u.getFirstName() + " " + u.getLastName())
+                                        .orElse("Ukjent bruker")
+                                : "Ukjent bruker";
+                        completedBy = new CompletedByResponse(item.getCompletedByUserId(), name);
+                    }
                     return new ChecklistInstanceItemResponse(
                             item.getId(),
                             item.getText(),

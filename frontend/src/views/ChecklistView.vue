@@ -252,7 +252,6 @@ onMounted(() => {
 }
 
 .checklist-item.is-done .checklist-text {
-  text-decoration: line-through;
   color: var(--c-text-3);
 }
 

@@ -53,7 +53,7 @@ class MockChecklistServiceTest {
                 ChecklistTemplateRepository templateRepository = createTemplateRepositoryProxy();
                 ChecklistInstanceRepository instanceRepository = createInstanceRepositoryProxy();
 
-                service = new MockChecklistService(templateRepository, instanceRepository);
+                service = new MockChecklistService(templateRepository, instanceRepository, null);
     }
 
         private ChecklistTemplateRepository createTemplateRepositoryProxy() {
