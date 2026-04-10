@@ -17,5 +17,6 @@ public record DeviationResponse(
         LocalDateTime reportedAt,
         String resolvedBy,
         LocalDateTime resolvedAt,
-        String resolution
+        String resolution,
+        String locationName
 ) {}

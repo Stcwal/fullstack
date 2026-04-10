@@ -7,6 +7,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import backend.fullstack.location.Location;
 import backend.fullstack.organization.Organization;
 import backend.fullstack.temperature.domain.TemperatureReading;
 import backend.fullstack.user.User;
@@ -74,6 +75,10 @@ public class Deviation {
     @Column(name = "module_type", nullable = false, length = 30)
     private DeviationModuleType moduleType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reported_by_id", nullable = false)
     private User reportedBy;
@@ -122,6 +127,10 @@ public class Deviation {
 
     public Long getRelatedReadingId() {
         return relatedReading != null ? relatedReading.getId() : null;
+    }
+
+    public String getLocationName() {
+        return location != null ? location.getName() : null;
     }
 
     public void addComment(DeviationComment comment) {

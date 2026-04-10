@@ -25,24 +25,39 @@ type SeverityFilter = 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
 const filterStatus   = ref<StatusFilter>('ALL')
 const filterModule   = ref<ModuleFilter>('ALL')
 const filterSeverity = ref<SeverityFilter>('ALL')
+const filterLocation = ref<string>('ALL')
+
+const isAdminOrSupervisor = computed(() => {
+  const r = authStore.user?.role
+  return r === 'ADMIN' || r === 'SUPERVISOR'
+})
+
+const availableLocations = computed(() => {
+  const names = deviationsStore.deviations
+    .map(d => d.locationName)
+    .filter((n): n is string => !!n)
+  return [...new Set(names)].sort()
+})
 
 const filteredDeviations = computed(() =>
   deviationsStore.deviations.filter(d => {
     if (filterStatus.value   !== 'ALL' && d.status     !== filterStatus.value)   return false
     if (filterModule.value   !== 'ALL' && d.moduleType !== filterModule.value)   return false
     if (filterSeverity.value !== 'ALL' && d.severity   !== filterSeverity.value) return false
+    if (filterLocation.value !== 'ALL' && d.locationName !== filterLocation.value) return false
     return true
   })
 )
 
 const hasActiveFilter = computed(
-  () => filterStatus.value !== 'ALL' || filterModule.value !== 'ALL' || filterSeverity.value !== 'ALL'
+  () => filterStatus.value !== 'ALL' || filterModule.value !== 'ALL' || filterSeverity.value !== 'ALL' || filterLocation.value !== 'ALL'
 )
 
 function clearFilters() {
   filterStatus.value   = 'ALL'
   filterModule.value   = 'ALL'
   filterSeverity.value = 'ALL'
+  filterLocation.value = 'ALL'
 }
 
 // ── Expand / comments ─────────────────────────────────────────────────────────
@@ -253,6 +268,22 @@ onMounted(() => deviationsStore.fetchAll())
       >{{ opt.label }}</button>
     </div>
 
+    <!-- Location (admins/supervisors only, when multiple locations exist) -->
+    <div v-if="isAdminOrSupervisor && availableLocations.length > 1" class="filter-group">
+      <button
+        class="filter-pill"
+        :class="{ 'filter-pill--active': filterLocation === 'ALL' }"
+        @click="filterLocation = 'ALL'"
+      >Alle lokasjoner</button>
+      <button
+        v-for="loc in availableLocations"
+        :key="loc"
+        class="filter-pill"
+        :class="{ 'filter-pill--active': filterLocation === loc }"
+        @click="filterLocation = loc"
+      >{{ loc }}</button>
+    </div>
+
     <!-- Clear + count -->
     <div class="filter-meta">
       <span class="text-muted text-xs">
@@ -319,6 +350,9 @@ onMounted(() => deviationsStore.fetchAll())
         </div>
         <p class="dev-meta">
           {{ fmtDate(dev.reportedAt) }} &middot; {{ dev.reportedBy }}
+          <template v-if="isAdminOrSupervisor && dev.locationName">
+            &middot; <span class="location-tag">{{ dev.locationName }}</span>
+          </template>
         </p>
       </button>
 
@@ -565,6 +599,19 @@ onMounted(() => deviationsStore.fetchAll())
   font-size: 0.75rem;
   color: var(--c-text-2);
   margin: 0;
+}
+
+.location-tag {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: color-mix(in srgb, var(--c-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 25%, transparent);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  line-height: 1.6;
+  vertical-align: middle;
 }
 
 /* ── Chevron ── */

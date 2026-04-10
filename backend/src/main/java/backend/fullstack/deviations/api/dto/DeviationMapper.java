@@ -11,5 +11,6 @@ public interface DeviationMapper {
     @Mapping(target = "reportedBy", source = "reportedByName")
     @Mapping(target = "resolvedBy", source = "resolvedByName")
     @Mapping(target = "reportedAt", source = "createdAt")
+    @Mapping(target = "locationName", source = "locationName")
     DeviationResponse toResponse(Deviation deviation);
 }
