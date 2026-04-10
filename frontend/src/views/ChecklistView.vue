@@ -168,7 +168,9 @@ function isFullyCompleted(checklist: Checklist): boolean {
 
 function resolvedCompletedBy(checklist: Checklist): string {
   if (checklist.completedBy) return checklist.completedBy
-  const last = [...checklist.items].reverse().find(i => i.completed && i.completedBy)
+  const last = [...checklist.items]
+    .filter(i => i.completed && i.completedBy && i.completedAt)
+    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())[0]
   return last?.completedBy ?? ''
 }
 
