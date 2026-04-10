@@ -19,6 +19,7 @@ public record DeviationDetailsResponse(
         String resolvedBy,
         LocalDateTime resolvedAt,
         String resolution,
+        String locationName,
         Long relatedReadingId,
         List<DeviationCommentResponse> comments
 ) {}

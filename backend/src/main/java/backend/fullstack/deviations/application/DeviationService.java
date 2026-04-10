@@ -91,6 +91,7 @@ public class DeviationService {
                 base.resolvedBy(),
                 base.resolvedAt(),
                 base.resolution(),
+                base.locationName(),
                 deviation.getRelatedReadingId(),
                 comments
         );
@@ -111,6 +112,7 @@ public class DeviationService {
                 .severity(request.severity())
                 .moduleType(request.moduleType())
                 .reportedBy(reporter)
+                .location(reporter.getHomeLocation())
                 .build();
 
         Deviation saved = deviationRepository.save(deviation);

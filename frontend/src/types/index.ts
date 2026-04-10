@@ -132,6 +132,7 @@ export interface Deviation {
   reportedBy: string
   reportedAt: string
   moduleType: ModuleType
+  locationName?: string
   resolvedBy?: string
   resolvedAt?: string
   resolution?: string
