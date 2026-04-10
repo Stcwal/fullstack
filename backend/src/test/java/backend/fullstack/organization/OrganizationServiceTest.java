@@ -119,6 +119,7 @@ class OrganizationServiceTest {
         when(accessContext.getCurrentOrganizationId()).thenReturn(100L);
         when(organizationRepository.findById(100L)).thenReturn(Optional.of(existing));
         when(organizationRepository.existsByOrganizationNumberAndIdNot("987654321", 100L)).thenReturn(false);
+        when(organizationRepository.save(existing)).thenReturn(existing);
         when(organizationMapper.toResponse(existing)).thenReturn(response);
 
         OrganizationResponse result = organizationService.updateCurrentOrganization(request);

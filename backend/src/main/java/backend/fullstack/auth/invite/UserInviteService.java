@@ -107,12 +107,36 @@ public class UserInviteService {
                 + inviteLink + "\n\n"
                 + "This link expires in 24 hours and can only be used once.\n");
 
-        if (mailSender.isEmpty()) {
+        if (mailSender.isEmpty() || !isMailConfigured()) {
             logger.warn("Mail sender not configured — invite email NOT sent to userId={} email={}", user.getId(), user.getEmail());
+            logger.info("Invite link for userId={}: {}", user.getId(), inviteLink);
             return;
         }
-        mailSender.get().send(message);
-        logger.info("Invite email sent to userId={} email={}", user.getId(), user.getEmail());
+
+        try {
+            mailSender.get().send(message);
+            logger.info("Invite email sent to userId={} email={}", user.getId(), user.getEmail());
+        } catch (Exception ex) {
+            logger.error("Failed to send invite email to userId={} email={}: {}",
+                    user.getId(), user.getEmail(), ex.getMessage());
+        }
+    }
+
+    /**
+     * Returns true only if mail credentials are actually provided.
+     * Spring auto-configures a JavaMailSender even with empty username/password,
+     * which causes SMTP connections to hang. This guard prevents that.
+     */
+    private boolean isMailConfigured() {
+        if (mailSender.isEmpty()) {
+            return false;
+        }
+        // If the sender is a JavaMailSenderImpl, verify credentials are present
+        if (mailSender.get() instanceof org.springframework.mail.javamail.JavaMailSenderImpl impl) {
+            String username = impl.getUsername();
+            return username != null && !username.isBlank();
+        }
+        return true;
     }
 
     private String generateToken() {
