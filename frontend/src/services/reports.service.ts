@@ -28,8 +28,10 @@ function triggerDownload(blob: Blob, filename: string): void {
 }
 
 export const reportsService = {
-  async getChartData(period: ChartPeriod): Promise<ChartData> {
-    const response = await api.get<ChartData>(`/reports/chart?period=${period}`)
+  async getChartData(period: ChartPeriod, locationId?: number | null): Promise<ChartData> {
+    const params: Record<string, string | number> = { period }
+    if (locationId != null) params.locationId = locationId
+    const response = await api.get<ChartData>('/reports/chart', { params })
     return response.data
   },
 

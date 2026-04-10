@@ -42,8 +42,16 @@ public class ReportController {
     })
     public ResponseEntity<ApiResponse<ChartResponse>> getChartData(
             @AuthenticationPrincipal JwtPrincipal principal,
-            @RequestParam(defaultValue = "WEEK") String period) {
-        ChartResponse response = reportService.getChartData(principal.organizationId(), period);
+            @RequestParam(defaultValue = "WEEK") String period,
+            @RequestParam(required = false) Long locationId) {
+        Long resolvedLocationId = resolveLocationId(principal, locationId);
+        ChartResponse response = reportService.getChartData(principal.organizationId(), period, resolvedLocationId);
         return ResponseEntity.ok(ApiResponse.success("Chart data retrieved", response));
+    }
+
+    private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
+        if (requestedLocationId != null) return requestedLocationId;
+        java.util.List<Long> ids = principal.locationIds();
+        return ids.isEmpty() ? null : ids.get(0);
     }
 }

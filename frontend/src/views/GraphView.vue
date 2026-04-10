@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Line } from 'vue-chartjs'
 import { useAuthStore } from '@/stores/auth'
+import { useLocationStore } from '@/stores/location'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,6 +20,7 @@ import type { ChartData as ServiceChartData } from '@/services/reports.service'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const authStore = useAuthStore()
+const locationStore = useLocationStore()
 const canExport = computed(() =>
   authStore.user?.role === 'ADMIN' || authStore.user?.role === 'MANAGER'
 )
@@ -73,7 +75,7 @@ function toggleUnit(label: string) {
 async function loadData() {
   loading.value = true
   try {
-    chartData.value  = await reportsService.getChartData(period.value)
+    chartData.value  = await reportsService.getChartData(period.value, locationStore.activeLocationId)
     typeFilter.value = 'ALL'
     hiddenUnits.value = new Set()
   } finally {
@@ -88,6 +90,7 @@ async function setPeriod(p: ChartPeriod) {
 }
 
 onMounted(loadData)
+watch(() => locationStore.activeLocationId, loadData)
 
 // ── Export ───────────────────────────────────────────────────────────────────
 async function handleExport(format: 'pdf' | 'json') {

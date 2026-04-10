@@ -36,12 +36,12 @@ public class ReportService {
         this.readingRepository = readingRepository;
     }
 
-    public ChartResponse getChartData(Long organizationId, String period) {
+    public ChartResponse getChartData(Long organizationId, String period, Long locationId) {
         int days = "MONTH".equalsIgnoreCase(period) ? 30 : 7;
         LocalDateTime since = LocalDate.now().minusDays(days - 1L).atStartOfDay();
 
         List<String> labels = buildLabels(days);
-        List<TemperatureUnit> units = unitRepository.findByOrganizationAndOptionalActive(organizationId, true, null);
+        List<TemperatureUnit> units = unitRepository.findByOrganizationAndOptionalActive(organizationId, true, locationId);
 
         List<ChartDataset> datasets = new ArrayList<>();
         List<ChartAlert> alerts = new ArrayList<>();

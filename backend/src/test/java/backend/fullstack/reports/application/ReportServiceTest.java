@@ -38,7 +38,7 @@ class ReportServiceTest {
         Long orgId = 1L;
         when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
-        ChartResponse response = service.getChartData(orgId, "WEEK");
+        ChartResponse response = service.getChartData(orgId, "WEEK", null);
 
         assertEquals(7, response.labels().size());
     }
@@ -48,7 +48,7 @@ class ReportServiceTest {
         Long orgId = 1L;
         when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
-        ChartResponse response = service.getChartData(orgId, "MONTH");
+        ChartResponse response = service.getChartData(orgId, "MONTH", null);
 
         assertEquals(30, response.labels().size());
     }
@@ -67,7 +67,7 @@ class ReportServiceTest {
         when(readingRepository.findByOrganization_IdAndUnit_IdOrderByRecordedAtDesc(orgId, 2L))
                 .thenReturn(List.of());
 
-        ChartResponse response = service.getChartData(orgId, "WEEK");
+        ChartResponse response = service.getChartData(orgId, "WEEK", null);
 
         assertEquals(2, response.datasets().size());
         assertEquals("Frys 1", response.datasets().get(0).label());
@@ -79,7 +79,7 @@ class ReportServiceTest {
         Long orgId = 1L;
         when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
-        ChartResponse response = service.getChartData(orgId, "UNKNOWN");
+        ChartResponse response = service.getChartData(orgId, "UNKNOWN", null);
 
         assertEquals(7, response.labels().size());
     }
