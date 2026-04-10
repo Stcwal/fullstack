@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { TemperatureReading, NewReading } from '@/types'
 import { readingsService } from '@/services/readings.service'
+import { useDashboardStore } from '@/stores/dashboard'
 
 export const useReadingsStore = defineStore('readings', () => {
   const readings = ref<TemperatureReading[]>([])
@@ -26,6 +27,9 @@ export const useReadingsStore = defineStore('readings', () => {
     try {
       const created = await readingsService.create(data)
       readings.value.unshift(created)
+      if (created.isDeviation) {
+        useDashboardStore().fetchDashboard()
+      }
       return created
     } finally {
       saving.value = false
