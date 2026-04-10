@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,7 +43,7 @@ public class UnitController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','STAFF','SUPERVISOR')")
-    @Operation(summary = "Get units", description = "Returns all units in authenticated organization")
+    @Operation(summary = "Get units", description = "Returns units scoped by location when applicable")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Units retrieved"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -50,10 +51,19 @@ public class UnitController {
     })
     public ResponseEntity<ApiResponse<List<UnitResponse>>> getUnits(
             @AuthenticationPrincipal JwtPrincipal principal,
-            @RequestParam(required = false) Boolean active
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) Long locationId
     ) {
-        List<UnitResponse> units = unitService.getUnits(principal.organizationId(), active);
+        Long effectiveLocation = resolveLocationId(principal, locationId);
+        List<UnitResponse> units = unitService.getUnits(principal.organizationId(), active, effectiveLocation);
         return ResponseEntity.ok(ApiResponse.success("Units retrieved", units));
+    }
+
+    /** ADMIN/SUPERVISOR pass explicit locationId or null (see all). STAFF/MANAGER auto-scoped to their first location. */
+    private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
+        if (requestedLocationId != null) return requestedLocationId;
+        java.util.List<Long> ids = principal.locationIds();
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     @GetMapping("/{id}")

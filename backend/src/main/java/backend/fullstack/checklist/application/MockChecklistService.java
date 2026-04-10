@@ -83,9 +83,10 @@ public class MockChecklistService implements ChecklistService {
             Long organizationId,
             ChecklistFrequency frequency,
             LocalDate date,
-            ChecklistInstanceStatus status
+            ChecklistInstanceStatus status,
+            Long locationId
     ) {
-        return instanceRepository.findAllByOrganizationId(organizationId).stream()
+        return instanceRepository.findAllByOrganizationIdAndOptionalLocation(organizationId, locationId).stream()
                 .filter(instance -> frequency == null || instance.getFrequency() == frequency)
                 .filter(instance -> date == null || date.equals(instance.getDate()))
                 .filter(instance -> status == null || instance.getStatus() == status)

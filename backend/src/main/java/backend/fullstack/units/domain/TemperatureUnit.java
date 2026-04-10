@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import backend.fullstack.location.Location;
 import backend.fullstack.organization.Organization;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,6 +51,10 @@ public class TemperatureUnit {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @NotBlank(message = "Unit name is required")
     @Size(max = 120, message = "Unit name must be at most 120 characters")
@@ -111,5 +116,9 @@ public class TemperatureUnit {
 
     public Long getOrganizationId() {
         return organization != null ? organization.getId() : null;
+    }
+
+    public Long getLocationId() {
+        return location != null ? location.getId() : null;
     }
 }

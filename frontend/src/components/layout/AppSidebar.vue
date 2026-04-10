@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useLayoutStore } from '@/stores/layout'
+import { useLocationStore } from '@/stores/location'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const layout = useLayoutStore()
+const locationStore = useLocationStore()
+
+const canSwitchLocation = computed(() =>
+  auth.user?.role === 'ADMIN' || auth.user?.role === 'SUPERVISOR'
+)
+
+onMounted(() => {
+  if (canSwitchLocation.value) locationStore.fetchLocations()
+})
 
 const collapsed = computed(() => layout.isSidebarCollapsed)
 
@@ -75,8 +85,23 @@ function logout() {
       </div>
       <div class="brand-text">
         <div class="brand-name">IK-System</div>
-        <div class="brand-sub">Everest Sushi & Fusion</div>
+        <div class="brand-sub">{{ user?.organizationName ?? 'IK-Kontrollsystem' }}</div>
       </div>
+    </div>
+
+    <!-- Location switcher (ADMIN / SUPERVISOR only) -->
+    <div v-if="canSwitchLocation && !collapsed" class="sidebar-location-switcher">
+      <select
+        :value="locationStore.activeLocationId ?? ''"
+        @change="locationStore.setLocation(($event.target as HTMLSelectElement).value ? Number(($event.target as HTMLSelectElement).value) : null)"
+        class="location-select"
+        aria-label="Velg lokasjon"
+      >
+        <option value="">Alle lokasjoner</option>
+        <option v-for="loc in locationStore.locations" :key="loc.id" :value="loc.id">
+          {{ loc.name }}
+        </option>
+      </select>
     </div>
 
     <!-- Navigation -->
@@ -136,6 +161,10 @@ function logout() {
         <div class="user-info">
           <div class="user-name">{{ user?.firstName }} {{ user?.lastName }}</div>
           <div class="user-role">{{ roleName }}</div>
+          <div v-if="user?.primaryLocationName" class="user-location">
+            <svg width="10" height="10" fill="none" viewBox="0 0 24 24" style="opacity:0.6;flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>
+            {{ user.primaryLocationName }}
+          </div>
         </div>
       </div>
 

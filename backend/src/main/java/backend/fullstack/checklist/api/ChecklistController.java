@@ -111,20 +111,30 @@ public class ChecklistController {
     }
 
     @GetMapping("/instances")
-    @Operation(summary = "Get checklist instances", description = "Returns checklist instances with optional filters")
+    @Operation(summary = "Get checklist instances", description = "Returns checklist instances scoped by location when applicable")
     public ResponseEntity<ApiResponse<List<ChecklistInstanceResponse>>> listInstances(
             @AuthenticationPrincipal JwtPrincipal principal,
             @RequestParam(required = false) ChecklistFrequency frequency,
             @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate date,
-            @RequestParam(required = false) ChecklistInstanceStatus status
+            @RequestParam(required = false) ChecklistInstanceStatus status,
+            @RequestParam(required = false) Long locationId
     ) {
+        Long effectiveLocation = resolveLocationId(principal, locationId);
         List<ChecklistInstanceResponse> instances = checklistService.listInstances(
                 principal.organizationId(),
                 frequency,
                 date,
-                status
+                status,
+                effectiveLocation
         );
         return ResponseEntity.ok(ApiResponse.success("Instances retrieved", instances));
+    }
+
+    /** ADMIN/SUPERVISOR pass explicit locationId or null (see all). STAFF/MANAGER auto-scoped to their first location. */
+    private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
+        if (requestedLocationId != null) return requestedLocationId;
+        java.util.List<Long> ids = principal.locationIds();
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     @GetMapping("/instances/{id}")

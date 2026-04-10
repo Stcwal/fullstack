@@ -1004,6 +1004,44 @@ label {
   text-transform: uppercase;
 }
 
+.sidebar-location-switcher {
+  padding: 0.5rem 0.75rem 0;
+}
+
+.location-select {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  color: #F8FAFC;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-md);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.location-select:focus {
+  border-color: rgba(255,255,255,0.3);
+}
+
+.location-select option {
+  background: #1E293B;
+  color: #F8FAFC;
+}
+
+.sidebar-user .user-location {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.6rem;
+  color: var(--c-sidebar-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.15rem;
+  opacity: 0.8;
+}
+
 .sidebar.collapsed .sidebar-user .user-info { opacity: 0; pointer-events: none; }
 
 .sidebar-toggle {

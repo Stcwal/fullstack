@@ -30,6 +30,9 @@ public class ChecklistInstance {
     @Column(name = "organization_id", nullable = false)
     private Long organizationId;
 
+    @Column(name = "location_id")
+    private Long locationId;
+
     @Column(nullable = false, length = 120)
     private String title;
 
@@ -73,6 +76,14 @@ public class ChecklistInstance {
 
     public void setOrganizationId(Long organizationId) {
         this.organizationId = organizationId;
+    }
+
+    public Long getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(Long locationId) {
+        this.locationId = locationId;
     }
 
     public String getTitle() {

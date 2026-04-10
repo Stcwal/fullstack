@@ -24,7 +24,8 @@ public interface ChecklistService {
             Long organizationId,
             ChecklistFrequency frequency,
             LocalDate date,
-            ChecklistInstanceStatus status
+            ChecklistInstanceStatus status,
+            Long locationId
     );
 
     ChecklistInstanceResponse getInstance(Long organizationId, Long instanceId);

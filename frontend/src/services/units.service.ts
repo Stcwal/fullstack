@@ -2,8 +2,10 @@ import type { Unit } from '@/types'
 import api from './api'
 
 export const unitsService = {
-  async getAll(): Promise<Unit[]> {
-    const res = await api.get<Unit[]>('/units')
+  async getAll(locationId?: number | null): Promise<Unit[]> {
+    const res = await api.get<Unit[]>('/units', {
+      params: locationId != null ? { locationId } : {},
+    })
     return res.data.map(u => ({ ...u, hasAlert: false }))
   },
 

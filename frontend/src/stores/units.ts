@@ -1,24 +1,29 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { Unit, UnitType } from '@/types'
 import { unitsService } from '@/services/units.service'
+import { useLocationStore } from '@/stores/location'
 
 export const useUnitsStore = defineStore('units', () => {
   const units = ref<Unit[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
+  const locationStore = useLocationStore()
+
   async function fetchUnits() {
     loading.value = true
     error.value = null
     try {
-      units.value = await unitsService.getAll()
+      units.value = await unitsService.getAll(locationStore.activeLocationId)
     } catch (e) {
       error.value = 'Kunne ikke laste enheter'
     } finally {
       loading.value = false
     }
   }
+
+  watch(() => locationStore.activeLocationId, () => { fetchUnits() })
 
   async function createUnit(data: Omit<Unit, 'id'>) {
     const created = await unitsService.create(data)

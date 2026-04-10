@@ -51,9 +51,9 @@ function mapInstance(inst: BackendInstance): Checklist {
 }
 
 export const checklistsService = {
-  async getByFrequency(frequency: ChecklistFrequency): Promise<Checklist[]> {
+  async getByFrequency(frequency: ChecklistFrequency, locationId?: number | null): Promise<Checklist[]> {
     const res = await api.get<BackendInstance[]>('/checklists/instances', {
-      params: { frequency },
+      params: { frequency, ...(locationId != null && { locationId }) },
     })
     return res.data.map(mapInstance)
   },

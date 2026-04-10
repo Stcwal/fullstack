@@ -37,8 +37,8 @@ public class UnitService {
     }
 
     @Transactional(readOnly = true)
-    public List<UnitResponse> getUnits(Long organizationId, Boolean active) {
-        return unitRepository.findByOrganizationAndOptionalActive(organizationId, active).stream()
+    public List<UnitResponse> getUnits(Long organizationId, Boolean active, Long locationId) {
+        return unitRepository.findByOrganizationAndOptionalActive(organizationId, active, locationId).stream()
                 .map(unitMapper::toResponse)
                 .toList();
     }

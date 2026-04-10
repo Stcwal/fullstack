@@ -24,10 +24,12 @@ public interface TemperatureUnitRepository extends JpaRepository<TemperatureUnit
             FROM TemperatureUnit u
             WHERE u.organization.id = :organizationId
               AND (:active IS NULL OR u.active = :active)
+              AND (:locationId IS NULL OR u.location.id = :locationId)
             ORDER BY u.name ASC
             """)
     List<TemperatureUnit> findByOrganizationAndOptionalActive(
             @Param("organizationId") Long organizationId,
-            @Param("active") Boolean active
+            @Param("active") Boolean active,
+            @Param("locationId") Long locationId
     );
 }
