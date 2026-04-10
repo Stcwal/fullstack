@@ -216,8 +216,7 @@ Two GitHub Actions workflows run on every pull request to `main`:
 │   │   ├── types/          TypeScript interfaces
 │   │   ├── components/     Shared UI components
 │   │   └── assets/main.css Design system (CSS custom properties)
-│   ├── cypress/            E2E tests
-│   └── documentation/      Frontend architecture docs
+│   └── cypress/            E2E tests
 ├── db/                     Database Dockerfile
 └── docker-compose.yaml     Full-stack Docker setup
 ```
@@ -235,22 +234,6 @@ http://localhost:8080/swagger-ui.html
 The OpenAPI spec (JSON) is at `http://localhost:8080/v3/api-docs`.
 
 ---
-
-## Architecture and design decisions
-
-Detailed documentation lives in `frontend/documentation/`:
-
-| File | Contents |
-|---|---|
-| `08-architecture-diagrams.md` | **Architecture diagrams** — system overview, backend domain model (ER), frontend route structure, 5 user flow diagrams, JWT session sequence |
-| `10-prioritization.md` | **Prioritization and development process** — how the team approached the project, phase-by-phase decisions, what was built and why, what was intentionally left out |
-| `01-architecture.md` | System architecture, directory structure, layout modes, state management patterns, key design decisions |
-| `02-auth-permissions.md` | JWT authentication flow, role-based access control, two-layer permissions system |
-| `03-api-contracts.md` | Full REST API contract — every endpoint, request/response shape, error codes |
-| `04-features/` | Feature-level documentation for each module (temperature, checklists, deviations, graphs, training, settings) |
-| `05-design-system.md` | CSS design system, tokens, component classes |
-| `06-state-management.md` | Pinia store patterns, data flow |
-| `09-testing.md` | Testing guide — how to run all tests, what each test suite covers, known limitations |
 
 ---
 
