@@ -2,6 +2,7 @@ package backend.fullstack.config;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -10,6 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,9 +30,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
+    private final CorsConfigurationSource corsConfigurationSource;
 
-    public SecurityErrorHandler(ObjectMapper objectMapper) {
+    public SecurityErrorHandler(ObjectMapper objectMapper, CorsConfigurationSource corsConfigurationSource) {
         this.objectMapper = objectMapper;
+        this.corsConfigurationSource = corsConfigurationSource;
     }
 
     @Override
@@ -79,6 +83,19 @@ public class SecurityErrorHandler implements AuthenticationEntryPoint, AccessDen
                 null,
                 path
         );
+
+        // Ensure CORS headers are present even on security error responses
+        String origin = request.getHeader("Origin");
+        if (origin != null) {
+            var corsConfig = corsConfigurationSource.getCorsConfiguration(request);
+            if (corsConfig != null) {
+                List<String> allowed = corsConfig.getAllowedOrigins();
+                if (allowed != null && allowed.contains(origin)) {
+                    response.setHeader("Access-Control-Allow-Origin", origin);
+                    response.setHeader("Access-Control-Allow-Credentials", "true");
+                }
+            }
+        }
 
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
