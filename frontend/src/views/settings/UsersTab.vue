@@ -277,7 +277,9 @@ async function save() {
     }
     showModal.value = false
   } catch (e: unknown) {
-    saveError.value = e instanceof Error ? e.message : 'Noe gikk galt. Prøv igjen.'
+    const status = (e as any)?.response?.status
+    if (status === 409) saveError.value = 'En bruker med denne e-postadressen finnes allerede.'
+    else saveError.value = 'Noe gikk galt. Prøv igjen.'
   }
 }
 
