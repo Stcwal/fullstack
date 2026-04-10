@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { alkoholService } from '@/services/alkohol.service'
 import { useLocationStore } from '@/stores/location'
+import { useAuthStore } from '@/stores/auth'
 import type {
   AlderskontrollEntry,
   NewAlderskontrollEntry,
@@ -19,8 +20,15 @@ export const useAlkoholStore = defineStore('alkohol', () => {
   const error = ref<string | null>(null)
 
   const locationStore = useLocationStore()
+  const authStore = useAuthStore()
+
+  function canListAlcohol(): boolean {
+    const role = authStore.user?.role
+    return role === 'ADMIN' || role === 'MANAGER' || role === 'SUPERVISOR'
+  }
 
   async function fetchEntries() {
+    if (!canListAlcohol()) return
     loading.value = true
     error.value = null
     try {
@@ -43,6 +51,7 @@ export const useAlkoholStore = defineStore('alkohol', () => {
   }
 
   async function fetchIncidents() {
+    if (!canListAlcohol()) return
     loading.value = true
     error.value = null
     try {
