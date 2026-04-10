@@ -168,7 +168,7 @@ class MockChecklistServiceTest {
         assertEquals(1, orgOneTemplates.size());
         assertTrue(orgTwoTemplates.isEmpty());
 
-        List<ChecklistInstanceResponse> instances = service.listInstances(1L, null, null, null);
+        List<ChecklistInstanceResponse> instances = service.listInstances(1L, null, null, null, null);
         assertEquals(1, instances.size());
         assertEquals(ChecklistInstanceStatus.PENDING, instances.get(0).status());
         assertEquals(LocalDate.now(), instances.get(0).date());
@@ -185,7 +185,7 @@ class MockChecklistServiceTest {
                 )
         );
 
-        ChecklistInstanceResponse instance = service.listInstances(1L, null, null, null).get(0);
+        ChecklistInstanceResponse instance = service.listInstances(1L, null, null, null, null).get(0);
         Long instanceId = instance.id();
 
         ChecklistInstanceResponse afterFirstComplete = service.updateInstanceItem(
@@ -241,6 +241,7 @@ class MockChecklistServiceTest {
                 1L,
                 ChecklistFrequency.DAILY,
                 null,
+                null,
                 null
         );
         assertEquals(1, dailyInstances.size());
@@ -248,6 +249,7 @@ class MockChecklistServiceTest {
         ChecklistInstanceResponse weekly = service.listInstances(
                 1L,
                 ChecklistFrequency.WEEKLY,
+                null,
                 null,
                 null
         ).get(0);
@@ -264,7 +266,8 @@ class MockChecklistServiceTest {
                 1L,
                 ChecklistFrequency.WEEKLY,
                 LocalDate.now(),
-                ChecklistInstanceStatus.COMPLETED
+                ChecklistInstanceStatus.COMPLETED,
+                null
         );
 
         assertEquals(1, completedWeekly.size());

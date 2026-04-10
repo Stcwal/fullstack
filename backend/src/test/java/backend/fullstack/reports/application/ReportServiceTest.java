@@ -36,7 +36,7 @@ class ReportServiceTest {
     @Test
     void getChartData_returnsWeekLabels() {
         Long orgId = 1L;
-        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true)).thenReturn(List.of());
+        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
         ChartResponse response = service.getChartData(orgId, "WEEK");
 
@@ -46,7 +46,7 @@ class ReportServiceTest {
     @Test
     void getChartData_returnsMonthLabels() {
         Long orgId = 1L;
-        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true)).thenReturn(List.of());
+        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
         ChartResponse response = service.getChartData(orgId, "MONTH");
 
@@ -59,7 +59,7 @@ class ReportServiceTest {
         TemperatureUnit unit1 = buildUnit(1L, orgId, "Frys 1");
         TemperatureUnit unit2 = buildUnit(2L, orgId, "Kjøleskap 1");
 
-        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true))
+        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null))
                 .thenReturn(List.of(unit1, unit2));
 
         when(readingRepository.findByOrganization_IdAndUnit_IdOrderByRecordedAtDesc(orgId, 1L))
@@ -77,7 +77,7 @@ class ReportServiceTest {
     @Test
     void getChartData_defaultsToWeekWhenUnknownPeriod() {
         Long orgId = 1L;
-        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true)).thenReturn(List.of());
+        when(unitRepository.findByOrganizationAndOptionalActive(orgId, true, null)).thenReturn(List.of());
 
         ChartResponse response = service.getChartData(orgId, "UNKNOWN");
 
