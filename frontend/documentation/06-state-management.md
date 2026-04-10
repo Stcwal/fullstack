@@ -175,9 +175,13 @@ interface DashboardAlert {
 
 **`fetchDashboard(): Promise<void>`**
 - Sets `loading = true`
-- Calls `dashboardService.get()`
+- Calls `dashboardService.get(locationStore.activeLocationId)` — passes the active location so the backend scopes stats to that location (null = all locations for ADMIN)
 - Destructures the response into `stats`, `tasks`, and `alerts`
 - Sets `loading = false` in `finally` (always runs even on error)
+
+The store watches `locationStore.activeLocationId` and re-calls `fetchDashboard()` automatically when the location changes.
+
+`fetchDashboard()` is also called from `useReadingsStore.addReading()` whenever the new reading has `isDeviation === true`, keeping the open-deviation count on the dashboard current without a manual refresh.
 
 #### Error handling
 
@@ -292,14 +296,15 @@ interface NewReading {
 **`fetchByUnit(unitId: number): Promise<void>`**
 - Clears `error`, sets `loading = true`
 - Calls `readingsService.getByUnit(unitId)`
-- Replaces `readings` entirely with the response
+- Merges the response into `readings` by replacing only the slice for that unit (`readings.filter(r => r.unitId !== unitId)` + fetched) — concurrent fetches for different units cannot clobber each other
 - On catch: sets `error = 'Kunne ikke laste målinger'`
 
 **`addReading(data: NewReading): Promise<TemperatureReading>`**
 - Sets `saving = true`
 - Calls `readingsService.create(data)`
 - Uses `readings.value.unshift(created)` so the new reading appears at the top of the list without a page reload
-- Returns the created reading (used by the caller to check `isOutOfRange` and possibly open a deviation modal)
+- If `created.isDeviation === true`, triggers `useDashboardStore().fetchDashboard()` so the dashboard stat and alert list update immediately
+- Returns the created reading (used by the caller to possibly open a deviation modal)
 - Resets `saving` in `finally`
 
 **`getByUnit(unitId: number): TemperatureReading[]`** (synchronous)

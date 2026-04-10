@@ -5,7 +5,7 @@
     </div>
 
     <!-- Frequency filter -->
-    <nav class="sub-nav mb-5">
+    <nav class="sub-nav mb-3">
       <button
         v-for="option in frequencyOptions"
         :key="option.value"
@@ -17,11 +17,25 @@
       </button>
     </nav>
 
+    <!-- Module filter -->
+    <nav class="module-nav mb-5" aria-label="Velg modul">
+      <button
+        class="module-btn"
+        :class="{ active: activeModule === 'IK_MAT' }"
+        @click="activeModule = 'IK_MAT'"
+      >IK-Mat</button>
+      <button
+        class="module-btn"
+        :class="{ active: activeModule === 'IK_ALKOHOL' }"
+        @click="activeModule = 'IK_ALKOHOL'"
+      >IK-Alkohol</button>
+    </nav>
+
     <div v-if="checklistsStore.loading" class="text-muted text-sm">Laster sjekklister…</div>
 
-    <template v-else-if="checklistsStore.checklists.length">
+    <template v-else-if="filteredChecklists.length">
       <div
-        v-for="checklist in checklistsStore.checklists"
+        v-for="checklist in filteredChecklists"
         :key="checklist.id"
         class="card mb-4"
       >
@@ -105,7 +119,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useChecklistsStore } from '@/stores/checklists'
 import { useLayoutStore } from '@/stores/layout'
 import { useShiftStore } from '@/stores/shift'
-import type { ChecklistFrequency, Checklist } from '@/types'
+import type { ChecklistFrequency, Checklist, ModuleType } from '@/types'
 
 // ─── Store ─────────────────────────────────────────────────────────────────
 const checklistsStore = useChecklistsStore()
@@ -120,6 +134,11 @@ const frequencyOptions: { label: string; value: ChecklistFrequency }[] = [
 ]
 
 const activeFrequency = ref<ChecklistFrequency>('DAILY')
+const activeModule = ref<ModuleType>('IK_MAT')
+
+const filteredChecklists = computed(() =>
+  checklistsStore.checklists.filter(c => c.moduleType === activeModule.value)
+)
 
 function setFrequency(freq: ChecklistFrequency) {
   activeFrequency.value = freq
@@ -177,6 +196,41 @@ onMounted(() => {
 
 .checklist-view--tablet {
   max-width: none;
+}
+
+/* Module toggle */
+.module-nav {
+  display: flex;
+  gap: 6px;
+}
+
+.module-btn {
+  padding: 5px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--c-border-2);
+  background: transparent;
+  color: var(--c-text-2);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.module-btn:hover {
+  border-color: var(--c-primary);
+  color: var(--c-primary);
+}
+
+.module-btn.active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+}
+
+.module-btn:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
 }
 
 .checklist-title {
