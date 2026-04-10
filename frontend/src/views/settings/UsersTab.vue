@@ -124,6 +124,7 @@
         >
           Tilbakestill passord
         </button>
+        <span v-if="saveError" class="text-sm text-red-500 mr-auto">{{ saveError }}</span>
         <button class="btn btn-secondary" @click="showModal = false">Avbryt</button>
         <button class="btn btn-primary" @click="save">Lagre</button>
       </template>
@@ -143,6 +144,7 @@ const showModal = ref(false)
 const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const originalRole = ref<UserRole | null>(null)
+const saveError = ref<string | null>(null)
 
 type FormData = Omit<SettingsUser, 'id' | 'colorBg' | 'colorText'>
 
@@ -204,6 +206,7 @@ function getAvatarColors(role: UserRole): { bg: string; text: string } {
 function openAddModal() {
   isEditing.value = false
   editingId.value = null
+  saveError.value = null
   Object.assign(form, emptyForm())
   showModal.value = true
 }
@@ -211,6 +214,7 @@ function openAddModal() {
 function openEditModal(user: SettingsUser) {
   isEditing.value = true
   editingId.value = user.id
+  saveError.value = null
   originalRole.value = user.role
   Object.assign(form, {
     firstName: user.firstName,
@@ -224,6 +228,7 @@ function openEditModal(user: SettingsUser) {
 }
 
 async function save() {
+  saveError.value = null
   const colors = getAvatarColors(form.role)
   const userData: Partial<SettingsUser> & { colorBg: string; colorText: string } = {
     ...form,
@@ -235,15 +240,19 @@ async function save() {
     delete userData.role
   }
 
-  if (isEditing.value && editingId.value !== null) {
-    const updated = await organizationService.updateUser(editingId.value, userData)
-    const idx = users.value.findIndex((u) => u.id === editingId.value)
-    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated }
-  } else {
-    const created = await organizationService.createUser(userData)
-    users.value.push(created)
+  try {
+    if (isEditing.value && editingId.value !== null) {
+      const updated = await organizationService.updateUser(editingId.value, userData)
+      const idx = users.value.findIndex((u) => u.id === editingId.value)
+      if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated }
+    } else {
+      const created = await organizationService.createUser(userData)
+      users.value.push(created)
+    }
+    showModal.value = false
+  } catch (e: unknown) {
+    saveError.value = e instanceof Error ? e.message : 'Noe gikk galt. Prøv igjen.'
   }
-  showModal.value = false
 }
 
 function resetPassword() {
