@@ -119,7 +119,15 @@ public class DashboardService {
 
     private DashboardAlert toAlert(Deviation deviation) {
         long minutesSince = ChronoUnit.MINUTES.between(deviation.getCreatedAt(), LocalDateTime.now());
-        String message = deviation.getTitle() + " — " + minutesSince + " min siden";
+        String timeLabel;
+        if (minutesSince < 60) {
+            timeLabel = minutesSince + " min siden";
+        } else {
+            long hours = minutesSince / 60;
+            long mins  = minutesSince % 60;
+            timeLabel  = hours + "t " + (mins > 0 ? mins + "min " : "") + "siden";
+        }
+        String message = deviation.getTitle() + " — " + timeLabel;
 
         DeviationSeverity severity = deviation.getSeverity();
         String type = (severity == DeviationSeverity.CRITICAL || severity == DeviationSeverity.HIGH)
