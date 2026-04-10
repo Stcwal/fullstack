@@ -229,6 +229,7 @@ export interface SettingsUser {
   colorBg: string
   colorText: string
   permissions: UserPermissions
+  homeLocationName: string | null
 }
 
 // ============================================================
