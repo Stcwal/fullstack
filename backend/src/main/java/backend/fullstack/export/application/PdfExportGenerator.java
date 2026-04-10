@@ -44,10 +44,14 @@ public class PdfExportGenerator {
     private static final java.awt.Color HEADER_FG = java.awt.Color.WHITE;
     private static final java.awt.Color STRIPE_BG = new java.awt.Color(243, 244, 246);
 
-    // ────────────────────────────────────────────────────────────────
-    // Temperature logs
-    // ────────────────────────────────────────────────────────────────
-
+    /**
+     * Generates a PDF file containing temperature readings in a tabular format, along with metadata about the export.
+     * 
+     * @param readings The list of temperature readings to include in the export.
+     * @param from The start date of the period covered by the export (inclusive). Can be null to indicate no lower bound.
+     * @param to The end date of the period covered by the export (inclusive). Can be null to indicate no upper bound.
+     * @return A byte array representing the generated PDF file, which can be written to disk or returned in an HTTP response
+     */
     public byte[] generateTemperatureLogsPdf(List<TemperatureReading> readings,
                                              LocalDate from, LocalDate to) {
         return createPdf(doc -> {
@@ -82,10 +86,12 @@ public class PdfExportGenerator {
         });
     }
 
-    // ────────────────────────────────────────────────────────────────
-    // Deviations
-    // ────────────────────────────────────────────────────────────────
-
+    /**
+     * Generates a PDF file containing deviation records in a tabular format, along with metadata about the export.
+     * 
+     * @param deviations The list of deviations to include in the export.
+     * @return A byte array representing the generated PDF file, which can be written to disk
+     */
     public byte[] generateDeviationsPdf(List<Deviation> deviations) {
         return createPdf(doc -> {
             addTitle(doc, "Deviations Export");
@@ -118,10 +124,13 @@ public class PdfExportGenerator {
         });
     }
 
-    // ────────────────────────────────────────────────────────────────
-    // Checklists
-    // ────────────────────────────────────────────────────────────────
 
+    /**
+     * Generates a PDF file containing checklist instances in a structured format, along with metadata about the export.
+     * 
+     * @param checklists The list of checklist instances to include in the export.
+     * @return A byte array representing the generated PDF file, which can be written to disk
+     */
     public byte[] generateChecklistsPdf(List<ChecklistInstance> checklists) {
         return createPdf(doc -> {
             addTitle(doc, "Checklists Export");
@@ -166,10 +175,6 @@ public class PdfExportGenerator {
             addRecordCount(doc, checklists.size());
         });
     }
-
-    // ────────────────────────────────────────────────────────────────
-    // Shared helpers
-    // ────────────────────────────────────────────────────────────────
 
     private byte[] createPdf(PdfContentWriter writer) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
