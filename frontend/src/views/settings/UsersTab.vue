@@ -223,6 +223,7 @@ function openAddModal() {
   isEditing.value = false
   editingId.value = null
   saveError.value = null
+  originalRole.value = null
   Object.assign(form, emptyForm())
   showModal.value = true
 }
@@ -248,7 +249,7 @@ async function save() {
   saveError.value = null
   const needsLocation = form.role === 'MANAGER' || form.role === 'STAFF'
   const roleChanged = form.role !== originalRole.value
-  if (roleChanged && needsLocation && !form.locationId) {
+  if (needsLocation && (roleChanged || !isEditing.value) && !form.locationId) {
     saveError.value = 'Velg en lokasjon for denne rollen.'
     return
   }

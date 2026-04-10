@@ -106,12 +106,13 @@ export const organizationService = {
     return updated
   },
 
-  async createUser(data: Omit<SettingsUser, 'id'>): Promise<SettingsUser> {
+  async createUser(data: Omit<SettingsUser, 'id'> & { locationId?: number | null }): Promise<SettingsUser> {
     const res = await api.post<BackendUser>('/users', {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       role: data.role,
+      locationId: data.locationId ?? null,
     })
     return {
       id: res.data.id,
