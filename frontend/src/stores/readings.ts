@@ -14,7 +14,12 @@ export const useReadingsStore = defineStore('readings', () => {
     loading.value = true
     error.value = null
     try {
-      readings.value = await readingsService.getByUnit(unitId)
+      const fetched = await readingsService.getByUnit(unitId)
+      // Merge: replace only this unit's slice, keep all other units' readings
+      readings.value = [
+        ...readings.value.filter(r => r.unitId !== unitId),
+        ...fetched,
+      ]
     } catch {
       error.value = 'Kunne ikke laste målinger'
     } finally {
