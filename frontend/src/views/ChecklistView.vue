@@ -18,14 +18,14 @@
     </nav>
 
     <!-- Module filter -->
-    <nav class="module-nav mb-5" aria-label="Velg modul">
+    <nav class="sub-nav mb-5" aria-label="Velg modul">
       <button
-        class="module-btn"
+        class="sub-nav-item"
         :class="{ active: activeModule === 'IK_MAT' }"
         @click="activeModule = 'IK_MAT'"
       >IK-Mat</button>
       <button
-        class="module-btn"
+        class="sub-nav-item"
         :class="{ active: activeModule === 'IK_ALKOHOL' }"
         @click="activeModule = 'IK_ALKOHOL'"
       >IK-Alkohol</button>
@@ -196,41 +196,6 @@ onMounted(() => {
 
 .checklist-view--tablet {
   max-width: none;
-}
-
-/* Module toggle */
-.module-nav {
-  display: flex;
-  gap: 6px;
-}
-
-.module-btn {
-  padding: 5px 14px;
-  border-radius: var(--r-full);
-  border: 1.5px solid var(--c-border-2);
-  background: transparent;
-  color: var(--c-text-2);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.module-btn:hover {
-  border-color: var(--c-primary);
-  color: var(--c-primary);
-}
-
-.module-btn.active {
-  background: var(--c-primary);
-  border-color: var(--c-primary);
-  color: #fff;
-}
-
-.module-btn:focus-visible {
-  outline: 2px solid var(--c-primary);
-  outline-offset: 2px;
 }
 
 .checklist-title {
