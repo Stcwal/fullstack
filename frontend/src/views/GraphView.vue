@@ -163,7 +163,7 @@ const lineChartOptions = computed(() => ({
       callbacks: {
         label: (ctx: any) => {
           const ds = visibleDatasets.value[ctx.datasetIndex]
-          if (!ds || ctx.parsed.y == null) return null
+          if (!ds || ctx.parsed.y == null) return undefined
           const val: number = ctx.parsed.y
           const hasThresholds = ds.minThreshold != null && ds.maxThreshold != null
           const isOut = hasThresholds && (val < ds.minThreshold || val > ds.maxThreshold)
@@ -171,7 +171,7 @@ const lineChartOptions = computed(() => ({
         },
         afterLabel: (ctx: any) => {
           const ds = visibleDatasets.value[ctx.datasetIndex]
-          if (!ds || ctx.parsed.y == null || ds.minThreshold == null || ds.maxThreshold == null) return null
+          if (!ds || ctx.parsed.y == null || ds.minThreshold == null || ds.maxThreshold == null) return undefined
           return `  Grense: ${ds.minThreshold}°C – ${ds.maxThreshold}°C`
         },
       },
