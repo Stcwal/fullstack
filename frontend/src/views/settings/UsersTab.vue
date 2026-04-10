@@ -142,6 +142,7 @@ const loading = ref(false)
 const showModal = ref(false)
 const isEditing = ref(false)
 const editingId = ref<number | null>(null)
+const originalRole = ref<UserRole | null>(null)
 
 type FormData = Omit<SettingsUser, 'id' | 'colorBg' | 'colorText'>
 
@@ -210,6 +211,7 @@ function openAddModal() {
 function openEditModal(user: SettingsUser) {
   isEditing.value = true
   editingId.value = user.id
+  originalRole.value = user.role
   Object.assign(form, {
     firstName: user.firstName,
     lastName: user.lastName,
@@ -223,7 +225,15 @@ function openEditModal(user: SettingsUser) {
 
 async function save() {
   const colors = getAvatarColors(form.role)
-  const userData = { ...form, colorBg: colors.bg, colorText: colors.text }
+  const userData: Partial<SettingsUser> & { colorBg: string; colorText: string } = {
+    ...form,
+    colorBg: colors.bg,
+    colorText: colors.text,
+  }
+  // Only send role if it actually changed — role endpoint returns 403 otherwise
+  if (isEditing.value && form.role === originalRole.value) {
+    delete userData.role
+  }
 
   if (isEditing.value && editingId.value !== null) {
     const updated = await organizationService.updateUser(editingId.value, userData)
