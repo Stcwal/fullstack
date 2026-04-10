@@ -30,6 +30,7 @@ interface BackendUser {
   email: string
   role: UserRole
   isActive: boolean
+  homeLocationName: string | null
 }
 
 interface BackendOrg {
@@ -77,6 +78,7 @@ export const organizationService = {
       email: u.email,
       role: u.role,
       isActive: u.isActive,
+      homeLocationName: u.homeLocationName ?? null,
       ...ROLE_COLORS[u.role],
       permissions: ROLE_PERMISSIONS[u.role],
     }))

@@ -25,6 +25,7 @@
             <div class="min-w-0">
               <div class="font-medium truncate">{{ user.firstName }} {{ user.lastName }}</div>
               <div class="text-muted text-sm truncate">{{ user.email }}</div>
+              <div v-if="user.homeLocationName" class="text-muted text-sm truncate">{{ user.homeLocationName }}</div>
             </div>
           </div>
           <div class="flex items-center gap-3">
