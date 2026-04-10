@@ -88,4 +88,17 @@ public interface TemperatureReadingRepository extends JpaRepository<TemperatureR
     long countByOrganization_IdAndIsDeviationTrue(Long organizationId);
 
     long countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(Long organizationId, LocalDateTime since);
+
+    @Query("""
+            SELECT COUNT(r) FROM TemperatureReading r
+            WHERE r.organization.id = :organizationId
+              AND r.isDeviation = true
+              AND r.recordedAt > :since
+              AND (:locationId IS NULL OR r.unit.location.id = :locationId)
+            """)
+    long countDeviationsAfterByOrganizationAndOptionalLocation(
+            @Param("organizationId") Long organizationId,
+            @Param("since") LocalDateTime since,
+            @Param("locationId") Long locationId
+    );
 }

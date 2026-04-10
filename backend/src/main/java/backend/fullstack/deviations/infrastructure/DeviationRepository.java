@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import backend.fullstack.deviations.domain.Deviation;
@@ -19,4 +21,29 @@ public interface DeviationRepository extends JpaRepository<Deviation, Long> {
     Optional<Deviation> findByIdAndOrganization_Id(Long id, Long organizationId);
 
     long countByOrganization_IdAndStatus(Long organizationId, DeviationStatus status);
+
+    @Query("""
+            SELECT COUNT(d) FROM Deviation d
+            WHERE d.organization.id = :organizationId
+              AND d.status = :status
+              AND (:locationId IS NULL OR d.location.id = :locationId)
+            """)
+    long countByOrganizationAndStatusAndOptionalLocation(
+            @Param("organizationId") Long organizationId,
+            @Param("status") DeviationStatus status,
+            @Param("locationId") Long locationId
+    );
+
+    @Query("""
+            SELECT d FROM Deviation d
+            WHERE d.organization.id = :organizationId
+              AND d.status = :status
+              AND (:locationId IS NULL OR d.location.id = :locationId)
+            ORDER BY d.createdAt DESC
+            """)
+    List<Deviation> findByOrganizationAndStatusAndOptionalLocation(
+            @Param("organizationId") Long organizationId,
+            @Param("status") DeviationStatus status,
+            @Param("locationId") Long locationId
+    );
 }

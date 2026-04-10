@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { DashboardStats, DashboardTask, DashboardAlert } from '@/types'
 import { dashboardService } from '@/services/dashboard.service'
+import { useLocationStore } from '@/stores/location'
 import api from '@/services/api'
 
 export const useDashboardStore = defineStore('dashboard', () => {
@@ -10,10 +11,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const alerts = ref<DashboardAlert[]>([])
   const loading = ref(false)
 
+  const locationStore = useLocationStore()
+
   async function fetchDashboard() {
     loading.value = true
     try {
-      const data = await dashboardService.get()
+      const data = await dashboardService.get(locationStore.activeLocationId)
       stats.value = data.stats
       tasks.value = data.tasks
       alerts.value = data.alerts
@@ -21,6 +24,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       loading.value = false
     }
   }
+
+  watch(() => locationStore.activeLocationId, fetchDashboard)
 
   async function toggleTask(taskId: number) {
     const task = tasks.value.find(t => t.id === taskId)

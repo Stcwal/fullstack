@@ -48,16 +48,16 @@ public class DashboardService {
         this.userRepository = userRepository;
     }
 
-    public DashboardResponse getDashboard(Long organizationId) {
+    public DashboardResponse getDashboard(Long organizationId, Long locationId) {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
         long tempAlerts = readingRepository
-                .countByOrganization_IdAndIsDeviationTrueAndRecordedAtAfter(organizationId, startOfToday);
+                .countDeviationsAfterByOrganizationAndOptionalLocation(organizationId, startOfToday, locationId);
         long openDeviations = deviationRepository
-                .countByOrganization_IdAndStatus(organizationId, DeviationStatus.OPEN);
+                .countByOrganizationAndStatusAndOptionalLocation(organizationId, DeviationStatus.OPEN, locationId);
 
-        List<DashboardTask> tasks = buildTasks(organizationId, startOfToday);
-        List<DashboardAlert> alerts = buildAlerts(organizationId);
+        List<DashboardTask> tasks = buildTasks(organizationId, locationId, startOfToday);
+        List<DashboardAlert> alerts = buildAlerts(organizationId, locationId);
 
         int total = tasks.size();
         int completed = (int) tasks.stream()
@@ -69,10 +69,11 @@ public class DashboardService {
         return new DashboardResponse(stats, tasks, alerts);
     }
 
-    private List<DashboardTask> buildTasks(Long organizationId, LocalDateTime startOfToday) {
+    private List<DashboardTask> buildTasks(Long organizationId, Long locationId, LocalDateTime startOfToday) {
         LocalDate today = startOfToday.toLocalDate();
 
-        return checklistInstanceRepository.findAllByOrganizationId(organizationId).stream()
+        return checklistInstanceRepository
+                .findAllByOrganizationIdAndOptionalLocation(organizationId, locationId).stream()
                 .filter(instance -> today.equals(instance.getDate()))
                 .map(this::toTask)
                 .toList();
@@ -104,9 +105,9 @@ public class DashboardService {
         return new DashboardTask(instance.getId(), instance.getTitle(), status, completedBy, completedAt);
     }
 
-    private List<DashboardAlert> buildAlerts(Long organizationId) {
+    private List<DashboardAlert> buildAlerts(Long organizationId, Long locationId) {
         return deviationRepository
-                .findByOrganization_IdAndStatusOrderByCreatedAtDesc(organizationId, DeviationStatus.OPEN)
+                .findByOrganizationAndStatusAndOptionalLocation(organizationId, DeviationStatus.OPEN, locationId)
                 .stream()
                 .limit(5)
                 .map(this::toAlert)

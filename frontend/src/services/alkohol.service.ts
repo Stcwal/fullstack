@@ -50,8 +50,10 @@ function getLocationId(): number {
 }
 
 export const alkoholService = {
-  async getAlderskontrollEntries(): Promise<AlderskontrollEntry[]> {
-    const res = await api.get<BackendVerification[]>('/alcohol/age-verifications')
+  async getAlderskontrollEntries(locationId?: number | null): Promise<AlderskontrollEntry[]> {
+    const params: Record<string, number> = {}
+    if (locationId != null) params.locationId = locationId
+    const res = await api.get<BackendVerification[]>('/alcohol/age-verifications', { params })
     return res.data.map(v => ({
       id: v.id,
       recordedAt: v.verifiedAt,
@@ -80,8 +82,10 @@ export const alkoholService = {
     }
   },
 
-  async getIncidents(): Promise<AlkoholIncident[]> {
-    const res = await api.get<BackendIncident[]>('/alcohol/incidents')
+  async getIncidents(locationId?: number | null): Promise<AlkoholIncident[]> {
+    const params: Record<string, number> = {}
+    if (locationId != null) params.locationId = locationId
+    const res = await api.get<BackendIncident[]>('/alcohol/incidents', { params })
     return res.data.map(i => ({
       id: i.id,
       incidentType: INCIDENT_FROM_BACKEND[i.incidentType] ?? 'ANNET',

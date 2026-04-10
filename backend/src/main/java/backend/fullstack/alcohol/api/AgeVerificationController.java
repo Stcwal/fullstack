@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,8 @@ import backend.fullstack.alcohol.api.dto.AgeVerificationRequest;
 import backend.fullstack.alcohol.api.dto.AgeVerificationResponse;
 import backend.fullstack.alcohol.application.AgeVerificationService;
 import backend.fullstack.config.ApiResponse;
+import backend.fullstack.config.JwtPrincipal;
+import backend.fullstack.user.role.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -57,11 +60,20 @@ public class AgeVerificationController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','SUPERVISOR')")
     @Operation(summary = "List age verification logs with optional filters")
     public ApiResponse<List<AgeVerificationResponse>> list(
+            @AuthenticationPrincipal JwtPrincipal principal,
             @RequestParam(required = false) Long locationId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
     ) {
-        return ApiResponse.success("Verifications fetched", verificationService.list(locationId, from, to));
+        Long resolvedLocation = resolveLocationId(principal, locationId);
+        return ApiResponse.success("Verifications fetched", verificationService.list(resolvedLocation, from, to));
+    }
+
+    private Long resolveLocationId(JwtPrincipal principal, Long requestedLocationId) {
+        if (requestedLocationId != null) return requestedLocationId;
+        if (principal.role() == Role.ADMIN || principal.role() == Role.SUPERVISOR) return null;
+        java.util.List<Long> ids = principal.locationIds();
+        return ids.isEmpty() ? null : ids.get(0);
     }
 
     @GetMapping("/{id}")

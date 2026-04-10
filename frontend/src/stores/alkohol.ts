@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { alkoholService } from '@/services/alkohol.service'
+import { useLocationStore } from '@/stores/location'
 import type {
   AlderskontrollEntry,
   NewAlderskontrollEntry,
@@ -17,11 +18,13 @@ export const useAlkoholStore = defineStore('alkohol', () => {
   const saving = ref(false)
   const error = ref<string | null>(null)
 
+  const locationStore = useLocationStore()
+
   async function fetchEntries() {
     loading.value = true
     error.value = null
     try {
-      entries.value = await alkoholService.getAlderskontrollEntries()
+      entries.value = await alkoholService.getAlderskontrollEntries(locationStore.activeLocationId)
     } catch {
       error.value = 'Kunne ikke laste alderskontroll-logg.'
     } finally {
@@ -43,7 +46,7 @@ export const useAlkoholStore = defineStore('alkohol', () => {
     loading.value = true
     error.value = null
     try {
-      incidents.value = await alkoholService.getIncidents()
+      incidents.value = await alkoholService.getIncidents(locationStore.activeLocationId)
     } catch {
       error.value = 'Kunne ikke laste hendelseslogg.'
     } finally {
@@ -68,6 +71,11 @@ export const useAlkoholStore = defineStore('alkohol', () => {
       // stats remain at defaults if endpoint is unavailable
     }
   }
+
+  watch(() => locationStore.activeLocationId, () => {
+    fetchEntries()
+    fetchIncidents()
+  })
 
   return {
     entries, incidents, stats, loading, saving, error,
